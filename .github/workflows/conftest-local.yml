@@ -1,0 +1,35 @@
+name: Conftest (local)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - "policy/**"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - "policy/**"
+
+jobs:
+  conftest:
+    runs-on: ubuntu-latest
+    name: Conftest Action
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Conftest (local)
+        uses: ./conftest
+        with:
+          path: "."
+          policy-path: "./tests/policy"
+          output-format: "github"
+          fail-on-warn: "false"
+          all-namespaces: "true"

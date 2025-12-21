@@ -1,0 +1,27 @@
+name: Semantic-Release (local)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, next, beta, alpha ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Semantic Release Action
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Run Semantic Release (local)
+        uses: ./semantic-release
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          dry-run: "false"

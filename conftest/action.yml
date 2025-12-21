@@ -1,0 +1,132 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "Conftest"
+description: "Policy-as-Code testing using Open Policy Agent Conftest"
+author: "sentenz"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  path:
+    description: "Path to the files/directories to test"
+    required: false
+    default: "."
+  policy-path:
+    description: "Path to the policy directory"
+    required: false
+    default: "policy"
+  conftest-version:
+    description: "Conftest version tag"
+    required: false
+    default: "v0.65.0"
+  conftest-image:
+    description: "Conftest Docker image with digest"
+    required: false
+    default: "openpolicyagent/conftest:v0.65.0@sha256:afa510df6d4562ebe24fb3e457da6f6d6924124140a13b51b950cc6cb1d25525"
+  output-format:
+    description: "Output format (stdout, json, tap, table, junit, github)"
+    required: false
+    default: "github"
+  fail-on-warn:
+    description: "Fail on warnings"
+    required: false
+    default: "false"
+  all-namespaces:
+    description: "Use all namespaces"
+    required: false
+    default: "true"
+  config-file:
+    description: "Path to conftest configuration file"
+    required: false
+    default: ""
+  data-files:
+    description: "Path to data files (space-separated)"
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: "Conftest validation result"
+    value: ${{ steps.conftest.outputs.result }}
+  exit-code:
+    description: "Conftest exit code"
+    value: ${{ steps.conftest.outputs.exit-code }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ ! -e "${{ inputs.path }}" ]]; then
+          echo "::error::Path '${{ inputs.path }}' does not exist"
+          exit 1
+        fi
+        if [[ ! -d "${{ inputs.policy-path }}" && -z "${{ inputs.config-file }}" ]]; then
+          echo "::warning::Policy path '${{ inputs.policy-path }}' does not exist. Using default configuration."
+        fi
+
+    - name: Run Conftest
+      id: conftest
+      shell: bash
+      run: |
+        set +e
+
+        # Build conftest command arguments
+        CONFTEST_ARGS="test"
+        
+        # Add policy path if it exists
+        if [[ -d "${{ inputs.policy-path }}" ]]; then
+          CONFTEST_ARGS="${CONFTEST_ARGS} --policy ${{ inputs.policy-path }}"
+        fi
+        
+        # Add output format
+        CONFTEST_ARGS="${CONFTEST_ARGS} --output ${{ inputs.output-format }}"
+        
+        # Add fail-on-warn flag
+        if [[ "${{ inputs.fail-on-warn }}" == "true" ]]; then
+          CONFTEST_ARGS="${CONFTEST_ARGS} --fail-on-warn"
+        fi
+        
+        # Add all-namespaces flag
+        if [[ "${{ inputs.all-namespaces }}" == "true" ]]; then
+          CONFTEST_ARGS="${CONFTEST_ARGS} --all-namespaces"
+        fi
+        
+        # Add config file if specified
+        if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
+          CONFTEST_ARGS="${CONFTEST_ARGS} --config ${{ inputs.config-file }}"
+        fi
+        
+        # Add data files if specified
+        if [[ -n "${{ inputs.data-files }}" ]]; then
+          for data_file in ${{ inputs.data-files }}; do
+            if [[ -f "${data_file}" ]]; then
+              CONFTEST_ARGS="${CONFTEST_ARGS} --data ${data_file}"
+            fi
+          done
+        fi
+        
+        # Add path to test
+        CONFTEST_ARGS="${CONFTEST_ARGS} ${{ inputs.path }}"
+        
+        echo "Running: conftest ${CONFTEST_ARGS}"
+        
+        # Run conftest via Docker
+        RESULT=$(docker run --rm \
+          -v "${PWD}:/workspace" \
+          -w /workspace \
+          ${{ inputs.conftest-image }} \
+          ${CONFTEST_ARGS} 2>&1) || true
+        
+        EXIT_CODE=$?
+        
+        echo "result<<EOF" >> $GITHUB_OUTPUT
+        echo "${RESULT}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+        
+        echo "${RESULT}"
+        
+        exit ${EXIT_CODE}

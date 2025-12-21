@@ -1,0 +1,27 @@
+name: Regal (local)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - "**/*.rego"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "**/*.rego"
+
+jobs:
+  regal:
+    runs-on: ubuntu-latest
+    name: Regal Action
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Regal (local)
+        uses: ./regal
+        with:
+          path: "./tests/policy"
+          output-format: "github"
+          regal-version: "latest"

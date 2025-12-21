@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Example: Regal Rego Linting Workflow
+#
+# This workflow demonstrates how to use the regal action
+# to lint Rego policy files.
+
+name: Regal
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.rego"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.rego"
+
+jobs:
+  regal:
+    name: Lint Rego Policies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Regal
+        uses: sentenz/actions/regal@main
+        with:
+          path: "./policy"
+          output-format: "github"
+          regal-version: "latest"

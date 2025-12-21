@@ -1,0 +1,129 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "Renovate"
+description: "Automated dependency updates using Renovate"
+author: "sentenz"
+
+branding:
+  icon: "refresh-cw"
+  color: "purple"
+
+inputs:
+  token:
+    description: "GitHub token for Renovate"
+    required: true
+    default: "${{ github.token }}"
+  renovate-version:
+    description: "Renovate version tag"
+    required: false
+    default: "42.64.1"
+  renovate-image:
+    description: "Renovate Docker image with digest"
+    required: false
+    default: "ghcr.io/renovatebot/renovate:42.64.1@sha256:e09f71019881fff15f397560d979736c6c6fd712f790fdb0a75697a324ee965a"
+  autodiscover:
+    description: "Autodiscover repositories"
+    required: false
+    default: "true"
+  config-file:
+    description: "Path to renovate configuration file"
+    required: false
+    default: ""
+  platform:
+    description: "Platform to run on (github, gitlab, gitea, bitbucket)"
+    required: false
+    default: "github"
+  dry-run:
+    description: "Run in dry-run mode"
+    required: false
+    default: "false"
+  log-level:
+    description: "Log level (debug, info, warn, error)"
+    required: false
+    default: "info"
+  repositories:
+    description: "Specific repositories to process (comma-separated)"
+    required: false
+    default: ""
+  base-branches:
+    description: "Base branches to target (comma-separated)"
+    required: false
+    default: ""
+  timezone:
+    description: "Timezone for scheduling"
+    required: false
+    default: "UTC"
+
+outputs:
+  result:
+    description: "Renovate execution result"
+    value: ${{ steps.renovate.outputs.result }}
+  exit-code:
+    description: "Renovate exit code"
+    value: ${{ steps.renovate.outputs.exit-code }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Renovate
+      id: renovate
+      shell: bash
+      env:
+        RENOVATE_TOKEN: ${{ inputs.token }}
+        TZ: ${{ inputs.timezone }}
+        NODE_OPTIONS: "--no-deprecation"
+      run: |
+        set +e
+
+        # Build Docker run command
+        DOCKER_ARGS="--rm -t"
+        DOCKER_ARGS="${DOCKER_ARGS} --env RENOVATE_TOKEN"
+        DOCKER_ARGS="${DOCKER_ARGS} --env NODE_OPTIONS"
+        DOCKER_ARGS="${DOCKER_ARGS} --env TZ"
+        DOCKER_ARGS="${DOCKER_ARGS} --volume /tmp:/tmp"
+
+        # Mount config file if specified
+        if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
+          DOCKER_ARGS="${DOCKER_ARGS} --volume ${PWD}/${{ inputs.config-file }}:/usr/src/app/config.js"
+          DOCKER_ARGS="${DOCKER_ARGS} --env RENOVATE_CONFIG_FILE=/usr/src/app/config.js"
+        fi
+
+        # Build renovate command arguments
+        RENOVATE_ARGS=""
+
+        # Add platform
+        RENOVATE_ARGS="${RENOVATE_ARGS} --platform=${{ inputs.platform }}"
+
+        # Add autodiscover
+        if [[ "${{ inputs.autodiscover }}" == "true" ]]; then
+          RENOVATE_ARGS="${RENOVATE_ARGS} --autodiscover"
+        fi
+
+        # Add dry-run
+        if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+          RENOVATE_ARGS="${RENOVATE_ARGS} --dry-run"
+        fi
+
+        # Add log level
+        RENOVATE_ARGS="${RENOVATE_ARGS} --log-level=${{ inputs.log-level }}"
+
+        # Add specific repositories
+        if [[ -n "${{ inputs.repositories }}" ]]; then
+          IFS=',' read -ra REPOS <<< "${{ inputs.repositories }}"
+          for repo in "${REPOS[@]}"; do
+            RENOVATE_ARGS="${RENOVATE_ARGS} ${repo}"
+          done
+        fi
+
+        echo "Running: docker run ${DOCKER_ARGS} ${{ inputs.renovate-image }} ${RENOVATE_ARGS}"
+
+        RESULT=$(docker run ${DOCKER_ARGS} ${{ inputs.renovate-image }} ${RENOVATE_ARGS} 2>&1) || true
+        EXIT_CODE=$?
+
+        echo "result<<EOF" >> $GITHUB_OUTPUT
+        echo "${RESULT}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+
+        echo "${RESULT}"
+
+        exit ${EXIT_CODE}

@@ -1,0 +1,135 @@
+# Semgrep Configuration
+#
+# Custom rules and configuration for Semgrep security scanning.
+# Reference: https://semgrep.dev/docs/writing-rules/overview/
+
+rules:
+  # Security Rules
+  - id: hardcoded-secret-generic
+    patterns:
+      - pattern-either:
+          - pattern: $KEY = "..."
+          - pattern: $KEY = '...'
+    pattern-inside: |
+      ...
+    message: >-
+      Potential hardcoded secret detected in variable '$KEY'.
+      Use environment variables or a secrets manager instead.
+    metadata:
+      category: security
+      technology:
+        - secrets
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: A07:2021 - Identification and Authentication Failures
+      confidence: MEDIUM
+    severity: WARNING
+    languages:
+      - python
+      - javascript
+      - typescript
+      - go
+      - java
+
+  - id: sql-injection-formatted-string
+    patterns:
+      - pattern-either:
+          - pattern: $QUERY = f"SELECT ... {$INPUT} ..."
+          - pattern: $QUERY = f"INSERT ... {$INPUT} ..."
+          - pattern: $QUERY = f"UPDATE ... {$INPUT} ..."
+          - pattern: $QUERY = f"DELETE ... {$INPUT} ..."
+    message: >-
+      Potential SQL injection vulnerability. Use parameterized queries
+      instead of string formatting to prevent SQL injection attacks.
+    metadata:
+      category: security
+      technology:
+        - sql
+      cwe: "CWE-89: SQL Injection"
+      owasp: A03:2021 - Injection
+      confidence: HIGH
+    severity: ERROR
+    languages:
+      - python
+
+  # Code Quality Rules
+  - id: todo-comment-without-issue
+    pattern-regex: "#\\s*TODO(?!\\s*\\([^)]+\\))"
+    message: >-
+      TODO comment found without an associated issue reference.
+      Please link to an issue tracker: TODO(issue-123) or TODO(@assignee).
+    metadata:
+      category: maintainability
+      confidence: LOW
+    severity: INFO
+    languages:
+      - python
+      - javascript
+      - typescript
+      - go
+      - java
+      - c
+      - cpp
+
+  - id: empty-except-block
+    pattern: |
+      try:
+        ...
+      except:
+        pass
+    message: >-
+      Empty except block that catches all exceptions.
+      This can hide bugs and make debugging difficult.
+      Catch specific exceptions and handle them appropriately.
+    metadata:
+      category: best-practice
+      cwe: "CWE-755: Improper Handling of Exceptional Conditions"
+      confidence: HIGH
+    severity: WARNING
+    languages:
+      - python
+
+  - id: console-log-in-production
+    pattern-either:
+      - pattern: console.log(...)
+      - pattern: console.debug(...)
+      - pattern: console.info(...)
+    message: >-
+      Console logging statement found. Remove or replace with
+      proper logging framework before deploying to production.
+    metadata:
+      category: best-practice
+      confidence: MEDIUM
+    severity: INFO
+    languages:
+      - javascript
+      - typescript
+
+  # Infrastructure Rules
+  - id: dockerfile-run-apt-get-update-alone
+    pattern: RUN apt-get update
+    message: >-
+      apt-get update should be combined with apt-get install in the same RUN
+      instruction to prevent caching issues. Use:
+      RUN apt-get update && apt-get install -y <packages>
+    metadata:
+      category: best-practice
+      technology:
+        - docker
+      confidence: HIGH
+    severity: WARNING
+    languages:
+      - dockerfile
+
+  - id: yaml-boolean-coercion
+    pattern-regex: ":\\s*(yes|no|on|off|true|false)\\s*$"
+    message: >-
+      YAML boolean values like 'yes', 'no', 'on', 'off' may be
+      unexpectedly coerced. Use explicit strings with quotes.
+    metadata:
+      category: correctness
+      technology:
+        - yaml
+      confidence: LOW
+    severity: INFO
+    languages:
+      - yaml

@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Example: Conftest Policy Validation Workflow
+#
+# This workflow demonstrates how to use the conftest action
+# to validate configuration files against Rego policies.
+
+name: Conftest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - "policy/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - "policy/**"
+
+jobs:
+  conftest:
+    name: Policy Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Conftest
+        uses: sentenz/actions/conftest@main
+        with:
+          path: "."
+          policy-path: "./policy"
+          output-format: "github"
+          fail-on-warn: "false"
+          all-namespaces: "true"

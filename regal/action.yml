@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "Regal"
+description: "Linting for Rego policies using Regal"
+author: "sentenz"
+
+branding:
+  icon: "check-circle"
+  color: "green"
+
+inputs:
+  path:
+    description: "Path to the policy directory"
+    required: false
+    default: "./policy"
+  regal-version:
+    description: "Regal version"
+    required: false
+    default: "latest"
+  output-format:
+    description: "Output format (pretty, compact, json, github, sarif)"
+    required: false
+    default: "github"
+  config-file:
+    description: "Path to Regal configuration file"
+    required: false
+    default: ""
+  rules:
+    description: "Comma-separated list of rules to enable/disable"
+    required: false
+    default: ""
+  disable-category:
+    description: "Comma-separated list of categories to disable"
+    required: false
+    default: ""
+  enable-category:
+    description: "Comma-separated list of categories to enable"
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: "Regal lint result"
+    value: ${{ steps.regal.outputs.result }}
+  exit-code:
+    description: "Regal exit code"
+    value: ${{ steps.regal.outputs.exit-code }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Regal
+      uses: open-policy-agent/setup-regal@v1.0.0
+      with:
+        version: ${{ inputs.regal-version }}
+
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ ! -d "${{ inputs.path }}" ]]; then
+          echo "::warning::Path '${{ inputs.path }}' does not exist or is not a directory"
+        fi
+
+    - name: Run Regal
+      id: regal
+      shell: bash
+      run: |
+        set +e
+
+        # Build regal command arguments
+        REGAL_ARGS="lint"
+        
+        # Add output format
+        REGAL_ARGS="${REGAL_ARGS} --format ${{ inputs.output-format }}"
+        
+        # Add config file if specified
+        if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
+          REGAL_ARGS="${REGAL_ARGS} --config-file ${{ inputs.config-file }}"
+        fi
+        
+        # Add disable categories
+        if [[ -n "${{ inputs.disable-category }}" ]]; then
+          IFS=',' read -ra CATEGORIES <<< "${{ inputs.disable-category }}"
+          for cat in "${CATEGORIES[@]}"; do
+            REGAL_ARGS="${REGAL_ARGS} --disable-category ${cat}"
+          done
+        fi
+        
+        # Add enable categories
+        if [[ -n "${{ inputs.enable-category }}" ]]; then
+          IFS=',' read -ra CATEGORIES <<< "${{ inputs.enable-category }}"
+          for cat in "${CATEGORIES[@]}"; do
+            REGAL_ARGS="${REGAL_ARGS} --enable-category ${cat}"
+          done
+        fi
+        
+        # Add path
+        REGAL_ARGS="${REGAL_ARGS} ${{ inputs.path }}"
+        
+        echo "Running: regal ${REGAL_ARGS}"
+        
+        RESULT=$(regal ${REGAL_ARGS} 2>&1) || true
+        EXIT_CODE=$?
+        
+        echo "result<<EOF" >> $GITHUB_OUTPUT
+        echo "${RESULT}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+        
+        echo "${RESULT}"
+        
+        exit ${EXIT_CODE}

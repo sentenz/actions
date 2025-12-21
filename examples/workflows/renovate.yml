@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Example: Renovate Dependency Update Workflow
+#
+# This workflow demonstrates how to use the renovate action
+# for automated dependency updates.
+
+name: Renovate
+
+on:
+  schedule:
+    # Run every Monday at 3:00 AM UTC
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Run in dry-run mode"
+        required: false
+        default: "false"
+        type: boolean
+
+jobs:
+  renovate:
+    name: Dependency Updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      checks: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Renovate
+        uses: sentenz/actions/renovate@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          autodiscover: "true"
+          dry-run: ${{ inputs.dry-run || 'false' }}
+          log-level: "info"

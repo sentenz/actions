@@ -1,0 +1,201 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "Semgrep"
+description: "Static analysis security scanning using Semgrep"
+author: "sentenz"
+
+branding:
+  icon: "shield"
+  color: "red"
+
+inputs:
+  path:
+    description: "Path to scan"
+    required: false
+    default: "."
+  semgrep-version:
+    description: "Semgrep version tag"
+    required: false
+    default: "1.145.2"
+  semgrep-image:
+    description: "Semgrep Docker image with digest"
+    required: false
+    default: "semgrep/semgrep:1.145.2@sha256:791a85e244b61e83ef96364997fd069f33e78ce2c4b5541d7bee22f07ee117c9"
+  config:
+    description: "Semgrep configuration (auto, p/default, path to config file)"
+    required: false
+    default: "auto"
+  output-format:
+    description: "Output format (text, json, sarif, gitlab-sast, github)"
+    required: false
+    default: ""
+  severity:
+    description: "Minimum severity to report (INFO, WARNING, ERROR)"
+    required: false
+    default: ""
+  exclude:
+    description: "Patterns to exclude (comma-separated)"
+    required: false
+    default: ""
+  include:
+    description: "Patterns to include (comma-separated)"
+    required: false
+    default: ""
+  max-target-bytes:
+    description: "Maximum file size to scan in bytes"
+    required: false
+    default: ""
+  timeout:
+    description: "Timeout per file in seconds"
+    required: false
+    default: ""
+  jobs:
+    description: "Number of parallel jobs"
+    required: false
+    default: ""
+  metrics:
+    description: "Enable/disable metrics (on, off, auto)"
+    required: false
+    default: "off"
+  no-secrets-validation:
+    description: "Disable secrets validation"
+    required: false
+    default: "true"
+  gitlab-sast-output:
+    description: "Path to GitLab SAST output file"
+    required: false
+    default: ""
+  sarif-output:
+    description: "Path to SARIF output file"
+    required: false
+    default: ""
+  json-output:
+    description: "Path to JSON output file"
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: "Semgrep scan result"
+    value: ${{ steps.semgrep.outputs.result }}
+  exit-code:
+    description: "Semgrep exit code"
+    value: ${{ steps.semgrep.outputs.exit-code }}
+  findings-count:
+    description: "Number of findings"
+    value: ${{ steps.semgrep.outputs.findings-count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ ! -e "${{ inputs.path }}" ]]; then
+          echo "::warning::Path '${{ inputs.path }}' does not exist"
+        fi
+
+    - name: Run Semgrep
+      id: semgrep
+      shell: bash
+      run: |
+        set +e
+
+        # Build semgrep command arguments
+        SEMGREP_ARGS="scan"
+
+        # Add quiet mode
+        SEMGREP_ARGS="${SEMGREP_ARGS} -q"
+
+        # Add configuration
+        if [[ -n "${{ inputs.config }}" ]]; then
+          # Handle multiple configs separated by comma
+          IFS=',' read -ra CONFIGS <<< "${{ inputs.config }}"
+          for config in "${CONFIGS[@]}"; do
+            SEMGREP_ARGS="${SEMGREP_ARGS} --config ${config}"
+          done
+        fi
+
+        # Add metrics setting
+        if [[ -n "${{ inputs.metrics }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --metrics ${{ inputs.metrics }}"
+        fi
+
+        # Add secrets validation flag
+        if [[ "${{ inputs.no-secrets-validation }}" == "true" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --no-secrets-validation"
+        fi
+
+        # Add severity filter
+        if [[ -n "${{ inputs.severity }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --severity ${{ inputs.severity }}"
+        fi
+
+        # Add exclude patterns
+        if [[ -n "${{ inputs.exclude }}" ]]; then
+          IFS=',' read -ra EXCLUDES <<< "${{ inputs.exclude }}"
+          for pattern in "${EXCLUDES[@]}"; do
+            SEMGREP_ARGS="${SEMGREP_ARGS} --exclude ${pattern}"
+          done
+        fi
+
+        # Add include patterns
+        if [[ -n "${{ inputs.include }}" ]]; then
+          IFS=',' read -ra INCLUDES <<< "${{ inputs.include }}"
+          for pattern in "${INCLUDES[@]}"; do
+            SEMGREP_ARGS="${SEMGREP_ARGS} --include ${pattern}"
+          done
+        fi
+
+        # Add max-target-bytes
+        if [[ -n "${{ inputs.max-target-bytes }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --max-target-bytes ${{ inputs.max-target-bytes }}"
+        fi
+
+        # Add timeout
+        if [[ -n "${{ inputs.timeout }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --timeout ${{ inputs.timeout }}"
+        fi
+
+        # Add jobs
+        if [[ -n "${{ inputs.jobs }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --jobs ${{ inputs.jobs }}"
+        fi
+
+        # Add output formats
+        if [[ -n "${{ inputs.gitlab-sast-output }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --gitlab-sast --gitlab-sast-output /src/${{ inputs.gitlab-sast-output }}"
+        fi
+
+        if [[ -n "${{ inputs.sarif-output }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --sarif --sarif-output /src/${{ inputs.sarif-output }}"
+        fi
+
+        if [[ -n "${{ inputs.json-output }}" ]]; then
+          SEMGREP_ARGS="${SEMGREP_ARGS} --json --json-output /src/${{ inputs.json-output }}"
+        fi
+
+        # Add path (mounted as /src in container)
+        SEMGREP_ARGS="${SEMGREP_ARGS} /src"
+
+        echo "Running: semgrep ${SEMGREP_ARGS}"
+
+        # Run semgrep via Docker
+        RESULT=$(docker run --rm \
+          -v "${PWD}:/src" \
+          ${{ inputs.semgrep-image }} \
+          ${SEMGREP_ARGS} 2>&1) || true
+
+        EXIT_CODE=$?
+
+        # Count findings (approximate)
+        FINDINGS_COUNT=$(echo "${RESULT}" | grep -c "^" || echo "0")
+
+        echo "result<<EOF" >> $GITHUB_OUTPUT
+        echo "${RESULT}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+        echo "findings-count=${FINDINGS_COUNT}" >> $GITHUB_OUTPUT
+
+        echo "${RESULT}"
+
+        exit ${EXIT_CODE}

@@ -1,0 +1,26 @@
+# Example Data File
+#
+# External data that can be referenced by Rego policies.
+# This file demonstrates how to structure external metadata.
+
+allowed_versions:
+  - "1.0.0"
+  - "2.0.0"
+  - "3.0.0"
+
+required_labels:
+  - app
+  - environment
+  - team
+
+environments:
+  - development
+  - staging
+  - production
+
+security:
+  require_https: true
+  min_tls_version: "1.2"
+  allowed_ports:
+    - 443
+    - 8443

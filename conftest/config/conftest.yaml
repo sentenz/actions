@@ -1,0 +1,21 @@
+# Conftest Configuration
+#
+# Configuration file for Conftest policy testing.
+# Reference: https://www.conftest.dev/configuration/
+
+# Policy directories to search for Rego files
+policy:
+  - policy
+
+# Namespaces to use for policies
+namespace:
+  - main
+
+# Output format
+output: github
+
+# Fail on warnings
+fail-on-warn: false
+
+# All namespaces
+all-namespaces: true

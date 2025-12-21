@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Example: Complete CI Pipeline Workflow
+#
+# This workflow demonstrates how to combine multiple centralized actions
+# into a comprehensive CI pipeline.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Security scanning with Semgrep
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Semgrep
+        uses: sentenz/actions/semgrep@main
+        with:
+          config: "auto"
+          severity: "WARNING"
+
+  # Policy validation with Conftest
+  policy:
+    name: Policy Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Conftest
+        uses: sentenz/actions/conftest@main
+        with:
+          path: "."
+          policy-path: "./policy"
+          fail-on-warn: "false"
+
+  # Rego policy linting with Regal
+  lint-rego:
+    name: Lint Rego
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('**/*.rego') != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Regal
+        uses: sentenz/actions/regal@main
+        with:
+          path: "./policy"
+
+  # Release job (only on main branch push)
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [security, policy]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Run Semantic Release
+        uses: sentenz/actions/semantic-release@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

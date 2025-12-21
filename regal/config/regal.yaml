@@ -1,0 +1,148 @@
+# Regal Configuration
+#
+# Configuration file for Regal Rego linter.
+# Reference: https://docs.styra.com/regal/configuration
+
+rules:
+  # Style rules
+  style:
+    opa-fmt:
+      level: error
+    use-assignment-operator:
+      level: error
+    prefer-snake-case:
+      level: warning
+    avoid-get-and-list-prefix:
+      level: warning
+    detached-metadata:
+      level: warning
+    external-reference:
+      level: warning
+    file-length:
+      level: warning
+      max-file-length: 500
+    function-arg-return:
+      level: warning
+    line-length:
+      level: warning
+      max-line-length: 120
+    no-whitespace-comment:
+      level: warning
+    prefer-some-in-iteration:
+      level: warning
+    rule-length:
+      level: warning
+      max-rule-length: 30
+    todo-comment:
+      level: ignore
+    unconditional-assignment:
+      level: warning
+
+  # Bug rules
+  bugs:
+    constant-condition:
+      level: error
+    duplicate-rule:
+      level: error
+    inconsistent-args:
+      level: error
+    invalid-metadata-attribute:
+      level: error
+    not-equals-in-loop:
+      level: error
+    rule-named-if:
+      level: error
+    rule-shadows-builtin:
+      level: error
+    top-level-iteration:
+      level: error
+    unassigned-return-value:
+      level: error
+    zero-arity-function:
+      level: error
+
+  # Idiomatic rules
+  idiomatic:
+    boolean-assignment:
+      level: warning
+    custom-has-key-construct:
+      level: warning
+    custom-in-construct:
+      level: warning
+    equals-pattern-matching:
+      level: warning
+    no-defined-entrypoint:
+      level: warning
+    non-raw-regex-pattern:
+      level: warning
+    prefer-set-or-object-rule:
+      level: warning
+    use-contains:
+      level: warning
+    use-if:
+      level: warning
+    use-in-operator:
+      level: warning
+    use-some-for-output-vars:
+      level: warning
+
+  # Performance rules
+  performance:
+    defer-assignment:
+      level: warning
+    walk-no-path:
+      level: warning
+
+  # Testing rules
+  testing:
+    dubious-print-sprintf:
+      level: warning
+    file-missing-test-suffix:
+      level: warning
+    identically-named-tests:
+      level: error
+    metasyntactic-variable:
+      level: warning
+    print-or-trace-call:
+      level: warning
+    test-outside-test-package:
+      level: warning
+    todo-test:
+      level: warning
+
+  # Import rules
+  imports:
+    avoid-importing-input:
+      level: warning
+    circular-import:
+      level: error
+    ignored-import:
+      level: error
+    import-after-rule:
+      level: error
+    import-shadows-import:
+      level: error
+    import-shadows-builtin:
+      level: error
+    prefer-package-imports:
+      level: warning
+    redundant-alias:
+      level: warning
+    redundant-data-import:
+      level: warning
+    unresolved-import:
+      level: error
+    use-rego-v1:
+      level: error
+
+# Capabilities configuration
+capabilities:
+  from:
+    engine: opa
+    version: v1.0.0
+
+# Ignore patterns
+ignore:
+  files:
+    - "*_test.rego"
+    - "testdata/**"

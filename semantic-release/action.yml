@@ -1,0 +1,109 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "Semantic-Release"
+description: "Automated semantic versioning and releases using semantic-release"
+author: "sentenz"
+
+branding:
+  icon: "tag"
+  color: "orange"
+
+inputs:
+  github-token:
+    description: "GitHub token for releases"
+    required: true
+    default: "${{ github.token }}"
+  semantic-version:
+    description: "semantic-release version"
+    required: false
+    default: "25.0.2"
+  branches:
+    description: "Release branches (JSON array)"
+    required: false
+    default: '["main"]'
+  dry-run:
+    description: "Run in dry-run mode"
+    required: false
+    default: "false"
+  extra-plugins:
+    description: "Extra plugins to install (multiline)"
+    required: false
+    default: |
+      @semantic-release/changelog
+      @semantic-release/git
+      @semantic-release/exec
+      semantic-release-commitlint
+      semantic-commitlint
+  config-file:
+    description: "Path to semantic-release configuration file"
+    required: false
+    default: ""
+  working-directory:
+    description: "Working directory"
+    required: false
+    default: "."
+  tag-format:
+    description: "Tag format"
+    required: false
+    default: "v${version}"
+
+outputs:
+  new-release-published:
+    description: "Whether a new release was published"
+    value: ${{ steps.semantic-release.outputs.new_release_published }}
+  new-release-version:
+    description: "The new release version"
+    value: ${{ steps.semantic-release.outputs.new_release_version }}
+  new-release-major-version:
+    description: "The new release major version"
+    value: ${{ steps.semantic-release.outputs.new_release_major_version }}
+  new-release-minor-version:
+    description: "The new release minor version"
+    value: ${{ steps.semantic-release.outputs.new_release_minor_version }}
+  new-release-patch-version:
+    description: "The new release patch version"
+    value: ${{ steps.semantic-release.outputs.new_release_patch_version }}
+  new-release-channel:
+    description: "The new release channel"
+    value: ${{ steps.semantic-release.outputs.new_release_channel }}
+  new-release-notes:
+    description: "The new release notes"
+    value: ${{ steps.semantic-release.outputs.new_release_notes }}
+  new-release-git-head:
+    description: "The git HEAD of the new release"
+    value: ${{ steps.semantic-release.outputs.new_release_git_head }}
+  new-release-git-tag:
+    description: "The git tag of the new release"
+    value: ${{ steps.semantic-release.outputs.new_release_git_tag }}
+  last-release-version:
+    description: "The last release version"
+    value: ${{ steps.semantic-release.outputs.last_release_version }}
+  last-release-git-head:
+    description: "The git HEAD of the last release"
+    value: ${{ steps.semantic-release.outputs.last_release_git_head }}
+  last-release-git-tag:
+    description: "The git tag of the last release"
+    value: ${{ steps.semantic-release.outputs.last_release_git_tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.github-token }}" ]]; then
+          echo "::error::GitHub token is required"
+          exit 1
+        fi
+
+    - name: Semantic Release
+      id: semantic-release
+      uses: cycjimmy/semantic-release-action@v4.2.1
+      with:
+        semantic_version: ${{ inputs.semantic-version }}
+        branches: ${{ inputs.branches }}
+        extra_plugins: ${{ inputs.extra-plugins }}
+        dry_run: ${{ inputs.dry-run }}
+        working_directory: ${{ inputs.working-directory }}
+        tag_format: ${{ inputs.tag-format }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}

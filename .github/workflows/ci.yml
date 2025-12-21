@@ -1,0 +1,68 @@
+# GitHub Actions Repository Workflows
+#
+# This workflow validates the composite actions in this repository.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Validate action.yml files
+        run: |
+          echo "Validating action.yml files..."
+          for action_file in $(find . -name "action.yml" -type f); do
+            echo "Checking: ${action_file}"
+            if ! yq eval '.' "${action_file}" > /dev/null 2>&1; then
+              echo "::error::Invalid YAML in ${action_file}"
+              exit 1
+            fi
+            # Check required fields
+            if ! yq eval '.name' "${action_file}" > /dev/null 2>&1; then
+              echo "::error::Missing 'name' field in ${action_file}"
+              exit 1
+            fi
+            if ! yq eval '.description' "${action_file}" > /dev/null 2>&1; then
+              echo "::error::Missing 'description' field in ${action_file}"
+              exit 1
+            fi
+            if ! yq eval '.runs' "${action_file}" > /dev/null 2>&1; then
+              echo "::error::Missing 'runs' field in ${action_file}"
+              exit 1
+            fi
+          done
+          echo "All action.yml files are valid!"
+
+  lint:
+    name: Lint YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
+        run: yamllint -c .yamllint.yml .
