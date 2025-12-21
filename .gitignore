@@ -7,17 +7,6 @@ dist/
 build/
 out/
 
-# IDE and editor
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-
 # Logs
 *.log
 logs/
