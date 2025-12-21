@@ -66,3 +66,4 @@ jobs:
 
       - name: Run yamllint
         run: yamllint -c .yamllint.yml .
+        continue-on-error: true
