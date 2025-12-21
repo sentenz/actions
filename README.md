@@ -1,5 +1,7 @@
 # Actions
 
+[![License](https://img.shields.io/github/license/sentenz/percent)](https://opensource.org/licenses/Apache-2.0)
+
 A centralized repository containing reusable GitHub Composite Actions for CI/CD pipelines.
 
 - [1. GitHub Actions](#1-github-actions)
