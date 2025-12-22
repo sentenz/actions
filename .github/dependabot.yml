@@ -39,6 +39,8 @@ updates:
       prefix-development: chore
       include: scope
     open-pull-requests-limit: 5
+    reviewers:
+      - sentenz
 
   # GitHub Actions in composite actions - regal
   - package-ecosystem: github-actions
@@ -57,6 +59,8 @@ updates:
       prefix-development: chore
       include: scope
     open-pull-requests-limit: 5
+    reviewers:
+      - sentenz
 
   # GitHub Actions in composite actions - renovate
   - package-ecosystem: github-actions
@@ -75,6 +79,8 @@ updates:
       prefix-development: chore
       include: scope
     open-pull-requests-limit: 5
+    reviewers:
+      - sentenz
 
   # GitHub Actions in composite actions - semantic-release
   - package-ecosystem: github-actions
@@ -93,6 +99,8 @@ updates:
       prefix-development: chore
       include: scope
     open-pull-requests-limit: 5
+    reviewers:
+      - sentenz
 
   # GitHub Actions in composite actions - semgrep
   - package-ecosystem: github-actions
@@ -111,3 +119,5 @@ updates:
       prefix-development: chore
       include: scope
     open-pull-requests-limit: 5
+    reviewers:
+      - sentenz
