@@ -25,5 +25,4 @@ jobs:
         uses: ./semantic-release
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: semantic-release/config/.releaserc.json
           dry-run: "false"
