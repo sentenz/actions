@@ -1,9 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-#
-# Example: Semantic Release Workflow
-#
-# This workflow demonstrates how to use the semantic-release action
-# for automated versioning and releases.
 
 name: Semantic-Release
 
@@ -17,7 +12,7 @@ on:
 
 jobs:
   semantic-release:
-    name: Release
+    name: Semantic-Release Action
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -28,7 +23,7 @@ jobs:
       new-release-published: ${{ steps.release.outputs.new-release-published }}
       new-release-version: ${{ steps.release.outputs.new-release-version }}
     steps:
-      - name: Checkout repository
+      - name: Checkout (full history)
         uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
@@ -36,7 +31,7 @@ jobs:
 
       - name: Run Semantic Release
         id: release
-        uses: sentenz/actions/semantic-release@main
+        uses: sentenz/actions/semantic-release@latest
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: "false"

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 name: "Conftest"
-description: "Policy-as-Code testing using Open Policy Agent Conftest"
+description: "Policy-as-Code (PaC) testing using Open Policy Agent Conftest"
 author: "sentenz"
 
 branding:

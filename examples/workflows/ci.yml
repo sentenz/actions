@@ -1,9 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-#
-# Example: Complete CI Pipeline Workflow
-#
-# This workflow demonstrates how to combine multiple centralized actions
-# into a comprehensive CI pipeline.
 
 name: CI
 
@@ -25,7 +20,7 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6.0.1
 
       - name: Run Semgrep
@@ -39,7 +34,7 @@ jobs:
     name: Policy Validation
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6.0.1
 
       - name: Run Conftest
@@ -55,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ hashFiles('**/*.rego') != '' }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6.0.1
 
       - name: Run Regal
@@ -75,7 +70,7 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0

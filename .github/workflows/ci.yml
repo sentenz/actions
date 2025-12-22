@@ -21,7 +21,7 @@ jobs:
     name: Validate Actions
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6.0.1
 
       - name: Validate action.yml files
@@ -53,7 +53,7 @@ jobs:
     name: Lint YAML
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v6.0.1
 
       - name: Setup Python

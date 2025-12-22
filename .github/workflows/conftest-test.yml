@@ -15,12 +15,12 @@ on:
       - "**/*.yaml"
       - "**/*.yml"
       - "**/*.json"
-      - "policy/**"
+      - "**/policy/**"
 
 jobs:
   conftest:
-    runs-on: ubuntu-latest
     name: Conftest Action
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.1
