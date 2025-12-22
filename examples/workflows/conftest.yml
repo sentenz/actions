@@ -32,7 +32,7 @@ jobs:
         uses: sentenz/actions/conftest@latest
         with:
           path: "."
-          policy-path: "./policy"
+          policy-path: "./tests/policy"
           output-format: "github"
           fail-on-warn: "false"
           all-namespaces: "true"
