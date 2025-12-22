@@ -18,8 +18,14 @@ updates:
       include: scope
     open-pull-requests-limit: 10
 
-    # This block groups all updates into a single PR
+    # Group updates by semantic version type
     groups:
-      github-actions-deps:
-        patterns:
-          - "*"
+      github-actions-patch:
+        update-types:
+          - patch
+      github-actions-minor:
+        update-types:
+          - minor
+      github-actions-major:
+        update-types:
+          - major
