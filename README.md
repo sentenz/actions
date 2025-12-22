@@ -4,46 +4,41 @@
 
 A centralized repository containing reusable GitHub Composite Actions for CI/CD pipelines.
 
-- [1. GitHub Actions](#1-github-actions)
+- [1. Composite Actions](#1-composite-actions)
   - [1.1. Conftest](#11-conftest)
   - [1.2. Regal](#12-regal)
   - [1.3. Renovate](#13-renovate)
   - [1.4. Semantic Release](#14-semantic-release)
   - [1.5. Semgrep](#15-semgrep)
-- [3. References](#3-references)
+- [2. References](#2-references)
 
-## 1. GitHub Actions
+## 1. Composite Actions
 
 ### 1.1. Conftest
 
-Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
-
-[conftest](./conftest/action.yml)
+- [Conftest Action](./conftest/README.md)
+  > Validate configuration files using Open Policy Agent (OPA) and Rego policies.
 
 ### 1.2. Regal
 
-Linting for Rego policies using Regal.
-
-[regal](./regal/action.yml)
+- [Regal Action](./regal/README.md)
+  > Lint Rego policies to ensure best practices and coding standards.
 
 ### 1.3. Renovate
 
-Automated dependency updates using Renovate.
-
-[renovate](./renovate/action.yml)
+- [Renovate Action](./renovate/README.md)
+  > Automated dependency updates using Renovate.
 
 ### 1.4. Semantic Release
 
-Automated semantic versioning and releases.
-
-[semantic-release](./semantic-release/action.yml)
+- [Semantic-Release Action](./semantic-release/README.md)
+  > Automated semantic versioning and releases using semantic-release.
 
 ### 1.5. Semgrep
 
- Static analysis security scanning using Semgrep.
+- [Semgrep Action](./semgrep/README.md)
+  > Static analysis security testing (SAST) using Semgrep.
 
-[semgrep](./semgrep/action.yml)
+## 2. References
 
-## 3. References
-
-- GitHub Actions [Composite Actions](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) page.
+- GitHub [Composite Actions](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) page.

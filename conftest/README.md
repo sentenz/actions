@@ -1,12 +1,31 @@
 # Conftest Composite Action
 
-Policy-as-Code testing using [Open Policy Agent Conftest](https://www.conftest.dev/).
+Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
 
-## Description
+- [1. Details](#1-details)
+- [2. Action](#2-action)
+  - [2.1. Inputs](#21-inputs)
+  - [2.2. Outputs](#22-outputs)
+- [3. Usage](#3-usage)
+  - [3.1. Internal Configuration](#31-internal-configuration)
+  - [3.2. External Configuration](#32-external-configuration)
 
-This action runs Conftest to validate configuration files against Rego policies. It supports external policy and configuration files for flexible policy enforcement.
+## 1. Details
 
-## Inputs
+- [Conftest](https://www.conftest.dev/)
+    > A Policy-as-Code (PaC) tool for writing tests against structured configuration data using the Rego language from Open Policy Agent (OPA).
+
+- [Open Policy Agent (OPA)](https://www.openpolicyagent.org/)
+  > An open-source, general-purpose policy engine that enables unified, context-aware policy enforcement across the entire stack.
+
+- [Rego Language Reference](https://www.openpolicyagent.org/docs/latest/policy-reference/)
+  > The policy language used by OPA and Conftest to define rules and policies.
+
+## 2. Action
+
+The [Conftest Action](./conftest/action.yml) runs to validate configuration files against Rego policies.
+
+### 2.1. Inputs
 
 | Input              | Description                                             | Required | Default        |
 | ------------------ | ------------------------------------------------------- | -------- | -------------- |
@@ -18,14 +37,14 @@ This action runs Conftest to validate configuration files against Rego policies.
 | `fail-on-warn`     | Fail on warnings                                        | No       | `false`        |
 | `all-namespaces`   | Use all namespaces                                      | No       | `true`         |
 
-## Outputs
+### 2.2. Outputs
 
 | Output      | Description                |
 | ----------- | -------------------------- |
 | `result`    | Conftest validation result |
 | `exit-code` | Conftest exit code         |
 
-## Usage
+## 3. Usage
 
 ```yaml
 jobs:
@@ -36,13 +55,17 @@ jobs:
       - uses: sentenz/actions/conftest@main
         with:
           path: "./config"
-          policy-path: "./policies"
+          policy-path: "./tests/policy"
           output-format: "github"
 ```
 
-## External Configuration
+### 3.1. Internal Configuration
 
-You can reference external policy files from a separate repository:
+<!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
+
+### 3.2. External Configuration
+
+Referencing policies from an caller repository.
 
 ```yaml
 - uses: actions/checkout@v6.0.1
@@ -54,8 +77,3 @@ You can reference external policy files from a separate repository:
   with:
     policy-path: "./external-policies"
 ```
-
-## References
-
-- [Conftest Documentation](https://www.conftest.dev/)
-- [Rego Language Reference](https://www.openpolicyagent.org/docs/latest/policy-reference/)

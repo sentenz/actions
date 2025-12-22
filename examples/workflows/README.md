@@ -6,7 +6,7 @@ This directory contains example workflow files demonstrating how to use the cent
 
 | Workflow                                       | Description                                     |
 | ---------------------------------------------- | ----------------------------------------------- |
-| [conftest.yml](./conftest.yml)                 | Policy-as-Code validation workflow              |
+| [conftest.yml](./conftest.yml)                 | Policy-as-Code (PaC) validation workflow              |
 | [regal.yml](./regal.yml)                       | Rego policy linting workflow                    |
 | [renovate.yml](./renovate.yml)                 | Automated dependency updates workflow           |
 | [semantic-release.yml](./semantic-release.yml) | Automated release workflow                      |

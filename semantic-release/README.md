@@ -1,12 +1,40 @@
 # Semantic-Release Composite Action
 
-Automated semantic versioning and releases using [semantic-release](https://github.com/semantic-release/semantic-release).
+Automated semantic versioning and releases using semantic-release.
 
-## Description
+- [1. Details](#1-details)
+- [2. Action](#2-action)
+  - [2.1. Inputs](#21-inputs)
+  - [2.2. Outputs](#22-outputs)
+- [3. Usage](#3-usage)
+  - [3.1. Internal Configuration](#31-internal-configuration)
+  - [3.2. External Configuration](#32-external-configuration)
 
-This action runs semantic-release to automate version management and package publishing based on conventional commits.
+## 1. Details
 
-## Inputs
+- [Semantic-Release](https://github.com/semantic-release/semantic-release)
+    > An open-source tool that automates the versioning and release process of software projects based on semantic versioning and conventional commits.
+
+- [Semantic-Release Documentation](https://semantic-release.gitbook.io/)
+  > Comprehensive documentation for using and configuring semantic-release.
+
+- [Semantic-Release Plugins](https://semantic-release.gitbook.io/semantic-release/usage/plugins)
+  > A list of official and community plugins for extending semantic-release functionality.
+
+- [Conventional Commits](https://www.conventionalcommits.org/)
+  > A specification for adding human and machine-readable meaning to commit messages.
+
+- [Semantic Versioning](https://semver.org/)
+  > A versioning scheme for software that conveys meaning about the underlying changes.
+
+- [Keeping a Changelog](https://keepachangelog.com/en/1.0.0/)
+  > A guide for maintaining a changelog that is easy to read and understand.
+
+## 2. Action
+
+The [Semantic-Release Action](./semantic-release/action.yml) runs semantic-release to automate version management and package publishing based on conventional commits.
+
+### 2.1. Inputs
 
 | Input              | Description                            | Required | Default               |
 | ------------------ | -------------------------------------- | -------- | --------------------- |
@@ -17,7 +45,7 @@ This action runs semantic-release to automate version management and package pub
 | `extra-plugins`    | Extra plugins to install (multiline)   | No       | See action.yml        |
 | `config-file`      | Path to semantic-release configuration | No       | ``                    |
 
-## Outputs
+### 2.2. Outputs
 
 | Output                      | Description                         |
 | --------------------------- | ----------------------------------- |
@@ -30,7 +58,7 @@ This action runs semantic-release to automate version management and package pub
 | `new-release-notes`         | The new release notes               |
 | `last-release-version`      | The last release version            |
 
-## Usage
+## 3. Usage
 
 ```yaml
 jobs:
@@ -50,7 +78,11 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## External Configuration
+### 3.1. Internal Configuration
+
+<!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
+
+### 3.2. External Configuration
 
 Create a `.releaserc.json` file in your repository:
 
@@ -66,8 +98,3 @@ Create a `.releaserc.json` file in your repository:
   ]
 }
 ```
-
-## References
-
-- [semantic-release Documentation](https://semantic-release.gitbook.io/)
-- [Conventional Commits](https://www.conventionalcommits.org/)

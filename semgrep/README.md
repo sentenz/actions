@@ -1,12 +1,34 @@
 # Semgrep Composite Action
 
-Static analysis security scanning using [Semgrep](https://semgrep.dev/).
+Static analysis security scanning using Semgrep.
 
-## Description
+- [1. Details](#1-details)
+- [2. Action](#2-action)
+  - [2.1. Inputs](#21-inputs)
+  - [2.2. Outputs](#22-outputs)
+- [3. Usage](#3-usage)
+  - [3.1. Internal Configuration](#31-internal-configuration)
+  - [3.2. External Configuration](#32-external-configuration)
 
-This action runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
+## 1. Details
 
-## Inputs
+- [Semgrep](hhttps://github.com/semgrep/semgrep)
+  > A fast, open-source, static analysis tool that finds bugs and enforces code standards by scanning source code for patterns.
+
+- [Semgrep Documentation](https://semgrep.dev/docs/)
+  > Comprehensive documentation for using and configuring Semgrep.
+
+- [Semgrep Rules Registry](https://semgrep.dev/explore)
+  > A collection of pre-defined Semgrep rules for various languages and frameworks.
+
+- [Semgrep Writing Rules](https://semgrep.dev/docs/writing-rules/)
+  > A guide on how to write custom Semgrep rules to tailor scans to your specific needs.
+
+## 2. Action
+
+The [Semgrep Action](./semgrep/action.yml) runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
+
+### 2.1. Inputs
 
 | Input             | Description                                         | Required | Default        |
 | ----------------- | --------------------------------------------------- | -------- | -------------- |
@@ -19,7 +41,7 @@ This action runs Semgrep for static application security testing (SAST), detecti
 | `exclude`         | Patterns to exclude (comma-separated)               | No       | ``             |
 | `include`         | Patterns to include (comma-separated)               | No       | ``             |
 
-## Outputs
+### 2.2. Outputs
 
 | Output           | Description         |
 | ---------------- | ------------------- |
@@ -27,7 +49,7 @@ This action runs Semgrep for static application security testing (SAST), detecti
 | `exit-code`      | Semgrep exit code   |
 | `findings-count` | Number of findings  |
 
-## Usage
+## 3. Usage
 
 ```yaml
 jobs:
@@ -42,7 +64,11 @@ jobs:
           severity: "WARNING"
 ```
 
-## External Configuration
+### 3.1. Internal Configuration
+
+<!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
+
+### 3.2. External Configuration
 
 Create a `.semgrep.yml` file in your repository:
 
@@ -54,8 +80,3 @@ rules:
     severity: WARNING
     languages: [python]
 ```
-
-## References
-
-- [Semgrep Documentation](https://semgrep.dev/docs/)
-- [Semgrep Rules Registry](https://semgrep.dev/explore)

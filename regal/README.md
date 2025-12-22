@@ -2,11 +2,27 @@
 
 Linting for Rego policies using [Regal](https://github.com/StyraInc/regal).
 
-## Description
+- [1. Details](#1-details)
+- [2. Action](#2-action)
+  - [2.1. Inputs](#21-inputs)
+  - [2.2. Outputs](#22-outputs)
+- [3. Usage](#3-usage)
+  - [3.1. Internal Configuration](#31-internal-configuration)
+  - [3.1. External Configuration](#31-external-configuration)
 
-This action runs Regal to lint Rego policy files, ensuring they follow best practices and coding standards.
+## 1. Details
 
-## Inputs
+- [Regal](https://github.com/open-policy-agent/regal)
+    > An open-source linter for Rego policies that ensure best practices and coding standards.
+
+- [Rego Style Guide](https://www.openpolicyagent.org/docs/style-guide)
+    > A style guide for writing Rego policies, providing best practices and conventions to improve code quality and maintainability.
+
+## 2. Action
+
+The [Regal Action](./regal/action.yml) runs Regal to lint Rego policy files, ensuring best practices and coding standards are enforced.
+
+### 2.1. Inputs
 
 | Input           | Description                                          | Required | Default    |
 | --------------- | ---------------------------------------------------- | -------- | ---------- |
@@ -16,14 +32,14 @@ This action runs Regal to lint Rego policy files, ensuring they follow best prac
 | `config-file`   | Path to Regal configuration file                     | No       | ``         |
 | `rules`         | Comma-separated list of rules to enable/disable      | No       | ``         |
 
-## Outputs
+### 2.2. Outputs
 
 | Output      | Description       |
 | ----------- | ----------------- |
 | `result`    | Regal lint result |
 | `exit-code` | Regal exit code   |
 
-## Usage
+## 3. Usage
 
 ```yaml
 jobs:
@@ -33,11 +49,15 @@ jobs:
       - uses: actions/checkout@v6.0.1
       - uses: sentenz/actions/regal@main
         with:
-          path: "./policies"
+          path: "./tests/policy"
           output-format: "github"
 ```
 
-## External Configuration
+### 3.1. Internal Configuration
+
+<!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
+
+### 3.1. External Configuration
 
 Create a `.regal/config.yaml` file in your repository:
 
@@ -50,8 +70,3 @@ rules:
     rule-shadows-builtin:
       level: error
 ```
-
-## References
-
-- [Regal Documentation](https://docs.styra.com/regal)
-- [Regal Rules](https://docs.styra.com/regal/rules)
