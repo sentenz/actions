@@ -183,7 +183,7 @@ runs:
         RESULT=$(docker run --rm \
           -v "${PWD}:/src" \
           ${{ inputs.semgrep-image }} \
-          ${SEMGREP_ARGS} 2>&1) || true
+          semgrep ${SEMGREP_ARGS} 2>&1) || true
 
         EXIT_CODE=$?
 
