@@ -104,6 +104,7 @@ runs:
         extra_plugins: ${{ inputs.extra-plugins }}
         dry_run: ${{ inputs.dry-run }}
         working_directory: ${{ inputs.working-directory }}
+        config_file: ${{ inputs.config-file }}
         tag_format: ${{ inputs.tag-format }}
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
