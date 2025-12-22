@@ -1,13 +1,13 @@
-name: Regal (local)
+name: Regal Test
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - "**/*.rego"
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - "**/*.rego"
 
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run Regal (local)
+      - name: Run Regal Test
         uses: ./regal
         with:
           path: "./tests/policy"

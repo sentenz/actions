@@ -1,9 +1,9 @@
-name: Semantic-Release (local)
+name: Semantic-Release Test
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main, next, beta, alpha ]
+    branches: [main, next, beta, alpha]
 
 jobs:
   release:
@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Run Semantic Release (local)
+      - name: Run Semantic Release Test
         uses: ./semantic-release
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

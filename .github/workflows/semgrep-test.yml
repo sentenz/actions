@@ -1,11 +1,11 @@
-name: Semgrep (local)
+name: Semgrep Test
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   semgrep:
@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run Semgrep (local)
+      - name: Run Semgrep Test
         uses: ./semgrep
         with:
           path: "."
