@@ -1,0 +1,113 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # GitHub Actions in workflows
+  - package-ecosystem: github-actions
+    directory: /.github/workflows
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    open-pull-requests-limit: 10
+    reviewers:
+      - sentenz
+
+  # GitHub Actions in composite actions - conftest
+  - package-ecosystem: github-actions
+    directory: /conftest
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - github-actions
+      - conftest
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    open-pull-requests-limit: 5
+
+  # GitHub Actions in composite actions - regal
+  - package-ecosystem: github-actions
+    directory: /regal
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - github-actions
+      - regal
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    open-pull-requests-limit: 5
+
+  # GitHub Actions in composite actions - renovate
+  - package-ecosystem: github-actions
+    directory: /renovate
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - github-actions
+      - renovate
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    open-pull-requests-limit: 5
+
+  # GitHub Actions in composite actions - semantic-release
+  - package-ecosystem: github-actions
+    directory: /semantic-release
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - github-actions
+      - semantic-release
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    open-pull-requests-limit: 5
+
+  # GitHub Actions in composite actions - semgrep
+  - package-ecosystem: github-actions
+    directory: /semgrep
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - github-actions
+      - semgrep
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    open-pull-requests-limit: 5
