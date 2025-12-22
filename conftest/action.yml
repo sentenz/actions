@@ -75,30 +75,30 @@ runs:
 
         # Build conftest command arguments
         CONFTEST_ARGS="test"
-        
+
         # Add policy path if it exists
         if [[ -d "${{ inputs.policy-path }}" ]]; then
           CONFTEST_ARGS="${CONFTEST_ARGS} --policy ${{ inputs.policy-path }}"
         fi
-        
+
         # Add output format
         CONFTEST_ARGS="${CONFTEST_ARGS} --output ${{ inputs.output-format }}"
-        
+
         # Add fail-on-warn flag
         if [[ "${{ inputs.fail-on-warn }}" == "true" ]]; then
           CONFTEST_ARGS="${CONFTEST_ARGS} --fail-on-warn"
         fi
-        
+
         # Add all-namespaces flag
         if [[ "${{ inputs.all-namespaces }}" == "true" ]]; then
           CONFTEST_ARGS="${CONFTEST_ARGS} --all-namespaces"
         fi
-        
+
         # Add config file if specified
         if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
           CONFTEST_ARGS="${CONFTEST_ARGS} --config ${{ inputs.config-file }}"
         fi
-        
+
         # Add data files if specified
         if [[ -n "${{ inputs.data-files }}" ]]; then
           for data_file in ${{ inputs.data-files }}; do
@@ -107,26 +107,26 @@ runs:
             fi
           done
         fi
-        
+
         # Add path to test
         CONFTEST_ARGS="${CONFTEST_ARGS} ${{ inputs.path }}"
-        
+
         echo "Running: conftest ${CONFTEST_ARGS}"
-        
+
         # Run conftest via Docker
         RESULT=$(docker run --rm \
           -v "${PWD}:/workspace" \
           -w /workspace \
           ${{ inputs.conftest-image }} \
           ${CONFTEST_ARGS} 2>&1) || true
-        
+
         EXIT_CODE=$?
-        
+
         echo "result<<EOF" >> $GITHUB_OUTPUT
         echo "${RESULT}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
         echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
-        
+
         echo "${RESULT}"
-        
+
         exit ${EXIT_CODE}

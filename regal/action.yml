@@ -68,15 +68,15 @@ runs:
 
         # Build regal command arguments
         REGAL_ARGS="lint"
-        
+
         # Add output format
         REGAL_ARGS="${REGAL_ARGS} --format ${{ inputs.output-format }}"
-        
+
         # Add config file if specified
         if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
           REGAL_ARGS="${REGAL_ARGS} --config-file ${{ inputs.config-file }}"
         fi
-        
+
         # Add disable categories
         if [[ -n "${{ inputs.disable-category }}" ]]; then
           IFS=',' read -ra CATEGORIES <<< "${{ inputs.disable-category }}"
@@ -84,7 +84,7 @@ runs:
             REGAL_ARGS="${REGAL_ARGS} --disable-category ${cat}"
           done
         fi
-        
+
         # Add enable categories
         if [[ -n "${{ inputs.enable-category }}" ]]; then
           IFS=',' read -ra CATEGORIES <<< "${{ inputs.enable-category }}"
@@ -92,20 +92,20 @@ runs:
             REGAL_ARGS="${REGAL_ARGS} --enable-category ${cat}"
           done
         fi
-        
+
         # Add path
         REGAL_ARGS="${REGAL_ARGS} ${{ inputs.path }}"
-        
+
         echo "Running: regal ${REGAL_ARGS}"
-        
+
         RESULT=$(regal ${REGAL_ARGS} 2>&1) || true
         EXIT_CODE=$?
-        
+
         echo "result<<EOF" >> $GITHUB_OUTPUT
         echo "${RESULT}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
         echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
-        
+
         echo "${RESULT}"
-        
+
         exit ${EXIT_CODE}
