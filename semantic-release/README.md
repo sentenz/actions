@@ -32,7 +32,7 @@ Automated semantic versioning and releases using semantic-release.
 
 ## 2. Action
 
-The [Semantic-Release Action](./semantic-release/action.yml) runs semantic-release to automate version management and package publishing based on conventional commits.
+The [Semantic-Release Action](./action.yml) runs semantic-release to automate version management and package publishing based on conventional commits.
 
 ### 2.1. Inputs
 

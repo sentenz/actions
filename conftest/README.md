@@ -23,7 +23,7 @@ Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
 
 ## 2. Action
 
-The [Conftest Action](./conftest/action.yml) runs to validate configuration files against Rego policies.
+The [Conftest Action](./action.yml) runs to validate configuration files against Rego policies.
 
 ### 2.1. Inputs
 

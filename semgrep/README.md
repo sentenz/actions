@@ -12,7 +12,7 @@ Static analysis security scanning using Semgrep.
 
 ## 1. Details
 
-- [Semgrep](hhttps://github.com/semgrep/semgrep)
+- [Semgrep](https://github.com/semgrep/semgrep)
   > A fast, open-source, static analysis tool that finds bugs and enforces code standards by scanning source code for patterns.
 
 - [Semgrep Documentation](https://semgrep.dev/docs/)
@@ -21,12 +21,12 @@ Static analysis security scanning using Semgrep.
 - [Semgrep Rules Registry](https://semgrep.dev/explore)
   > A collection of pre-defined Semgrep rules for various languages and frameworks.
 
-- [Semgrep Writing Rules](https://semgrep.dev/docs/writing-rules/)
-  > A guide on how to write custom Semgrep rules to tailor scans to your specific needs.
+- [Semgrep Rule Syntax](https://semgrep.dev/docs/writing-rules/rule-syntax)
+  > A guide to writing custom Semgrep rules using structured pattern syntax.
 
 ## 2. Action
 
-The [Semgrep Action](./semgrep/action.yml) runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
+The [Semgrep Action](./action.yml) runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
 
 ### 2.1. Inputs
 
