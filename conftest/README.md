@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: sentenz/actions/conftest@main
+      - uses: sentenz/actions/conftest@latest
         with:
           path: "./config"
           policy-path: "./tests/policy"
@@ -73,7 +73,7 @@ Referencing policies from an caller repository.
     repository: your-org/policies
     path: external-policies
 
-- uses: sentenz/actions/conftest@main
+- uses: sentenz/actions/conftest@latest
   with:
     policy-path: "./external-policies"
 ```

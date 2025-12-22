@@ -73,7 +73,7 @@ jobs:
       - uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
-      - uses: sentenz/actions/semantic-release@main
+      - uses: sentenz/actions/semantic-release@latest
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```

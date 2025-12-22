@@ -62,7 +62,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: sentenz/actions/renovate@main
+      - uses: sentenz/actions/renovate@latest
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           autodiscover: "true"

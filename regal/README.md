@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: sentenz/actions/regal@main
+      - uses: sentenz/actions/regal@latest
         with:
           path: "./tests/policy"
           output-format: "github"

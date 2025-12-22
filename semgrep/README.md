@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: sentenz/actions/semgrep@main
+      - uses: sentenz/actions/semgrep@latest
         with:
           path: "./src"
           config: "auto"
