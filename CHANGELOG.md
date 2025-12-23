@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/sentenz/actions/compare/v1.0.1...v1.0.2) (2025-12-23)
+
+
+### Bug Fixes
+
+* resolve Semgrep Action Docker command execution and configuration error ([#5](https://github.com/sentenz/actions/issues/5)) ([cea167d](https://github.com/sentenz/actions/commit/cea167d687e0c3eb16f83148162609f91f9dcaf3))
+
 ## [1.0.1](https://github.com/sentenz/actions/compare/v1.0.0...v1.0.1) (2025-12-22)
 
 
