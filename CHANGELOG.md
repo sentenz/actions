@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/sentenz/actions/compare/v1.0.2...v1.0.3) (2025-12-23)
+
+
+### Bug Fixes
+
+* resolve Conftest action by replacing unsupported `--config` flag with `--config-file` ([#8](https://github.com/sentenz/actions/issues/8)) ([2a828d4](https://github.com/sentenz/actions/commit/2a828d494aafaa6825ad7d52327cc11c609daa25)), closes [#7](https://github.com/sentenz/actions/issues/7)
+
 ## [1.0.2](https://github.com/sentenz/actions/compare/v1.0.1...v1.0.2) (2025-12-23)
 
 
