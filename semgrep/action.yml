@@ -180,6 +180,9 @@ runs:
         echo "Running: semgrep ${SEMGREP_ARGS}"
 
         # Run semgrep via Docker
+        # Note: The semgrep command must be explicitly specified because the
+        # semgrep Docker image has an empty ENTRYPOINT (unlike conftest which
+        # has ENTRYPOINT set to [/conftest])
         RESULT=$(docker run --rm \
           -v "${PWD}:/src" \
           ${{ inputs.semgrep-image }} \
