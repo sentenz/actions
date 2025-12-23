@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/sentenz/actions/compare/v1.0.3...1.0.4) (2025-12-23)
+
+
+### Bug Fixes
+
+* refine action inputs and descriptions for clarity and consistency ([7ea128a](https://github.com/sentenz/actions/commit/7ea128a505683509540d53ea011e16b2f7b3a41f))
+
 ## [1.0.3](https://github.com/sentenz/actions/compare/v1.0.2...v1.0.3) (2025-12-23)
 
 
