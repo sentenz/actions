@@ -30,16 +30,15 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 
 ### 2.1. Inputs
 
-| Input             | Description                                         | Required | Default        |
-| ----------------- | --------------------------------------------------- | -------- | -------------- |
-| `path`            | Path to scan                                        | No       | `.`            |
-| `semgrep-version` | Semgrep Docker image version                        | No       | `1.145.2`      |
-| `semgrep-image`   | Semgrep Docker image with digest                    | No       | See action.yml |
-| `config`          | Semgrep configuration (auto, p/default, path, etc.) | No       | `auto`         |
-| `output-format`   | Output format (text, json, sarif, gitlab-sast)      | No       | `github`       |
-| `severity`        | Minimum severity to report (INFO, WARNING, ERROR)   | No       | `WARNING`      |
-| `exclude`         | Patterns to exclude (comma-separated)               | No       | ``             |
-| `include`         | Patterns to include (comma-separated)               | No       | ``             |
+| Input           | Description                                         | Required | Default                                    |
+| --------------- | --------------------------------------------------- | -------- | ------------------------------------------ |
+| `path`          | Path to scan                                        | No       | `.`                                        |
+| `semgrep-image` | Semgrep Docker image with version tag and digest    | No       | `semgrep/semgrep:1.145.2@sha256:791...7c9` |
+| `config`        | Semgrep configuration (auto, p/default, path, etc.) | No       | `auto`                                     |
+| `output-format` | Output format (text, json, sarif, gitlab-sast)      | No       | `github`                                   |
+| `severity`      | Minimum severity to report (INFO, WARNING, ERROR)   | No       | `WARNING`                                  |
+| `exclude`       | Patterns to exclude (comma-separated)               | No       | ``                                         |
+| `include`       | Patterns to include (comma-separated)               | No       | ``                                         |
 
 ### 2.2. Outputs
 
