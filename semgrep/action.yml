@@ -23,7 +23,7 @@ inputs:
   config:
     description: "Semgrep configuration (auto, p/default, path to config file)"
     required: false
-    default: "auto"
+    default: "p/default"
   output-format:
     description: "Output format (text, json, sarif, gitlab-sast, github)"
     required: false

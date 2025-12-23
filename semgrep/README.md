@@ -60,7 +60,7 @@ jobs:
       - uses: sentenz/actions/semgrep@latest
         with:
           path: "./src"
-          config: "auto"
+          config: "p/default"
           severity: "WARNING"
 ```
 
