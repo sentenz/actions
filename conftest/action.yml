@@ -96,7 +96,7 @@ runs:
 
         # Add config file if specified
         if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
-          CONFTEST_ARGS="${CONFTEST_ARGS} --config ${{ inputs.config-file }}"
+          CONFTEST_ARGS="${CONFTEST_ARGS} --config-file ${{ inputs.config-file }}"
         fi
 
         # Add data files if specified
