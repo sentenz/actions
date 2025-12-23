@@ -21,7 +21,7 @@ jobs:
         uses: ./semgrep
         with:
           path: "."
-          config: "auto"
+          config: "p/default"
           metrics: "off"
           no-secrets-validation: "true"
         continue-on-error: true

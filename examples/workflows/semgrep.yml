@@ -22,7 +22,7 @@ jobs:
         uses: sentenz/actions/semgrep@latest
         with:
           path: "."
-          config: "auto"
+          config: "p/default"
           metrics: "off"
           no-secrets-validation: "true"
 

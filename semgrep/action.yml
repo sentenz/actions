@@ -23,7 +23,7 @@ inputs:
   config:
     description: "Semgrep configuration (auto, p/default, path to config file)"
     required: false
-    default: "auto"
+    default: "p/default"
   output-format:
     description: "Output format (text, json, sarif, gitlab-sast, github)"
     required: false
@@ -180,10 +180,13 @@ runs:
         echo "Running: semgrep ${SEMGREP_ARGS}"
 
         # Run semgrep via Docker
+        # Note: The semgrep command must be explicitly specified because the
+        # semgrep Docker image has an empty ENTRYPOINT (unlike conftest which
+        # has ENTRYPOINT set to [/conftest])
         RESULT=$(docker run --rm \
           -v "${PWD}:/src" \
           ${{ inputs.semgrep-image }} \
-          ${SEMGREP_ARGS} 2>&1) || true
+          semgrep ${SEMGREP_ARGS} 2>&1) || true
 
         EXIT_CODE=$?
 
