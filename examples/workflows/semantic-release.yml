@@ -34,7 +34,7 @@ jobs:
         uses: sentenz/actions/semantic-release@latest
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: "false"
+          semantic-version: "latest"
 
       - name: Release Summary
         if: steps.release.outputs.new-release-published == 'true'

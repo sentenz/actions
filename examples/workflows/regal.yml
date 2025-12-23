@@ -26,5 +26,4 @@ jobs:
         uses: sentenz/actions/regal@latest
         with:
           path: "./tests/policy"
-          output-format: "github"
           regal-version: "latest"

@@ -22,8 +22,8 @@ jobs:
         uses: sentenz/actions/semgrep@latest
         with:
           path: "."
-          config: "p/default"
-          metrics: "off"
+          config: "auto"
+          metrics: "auto"
           no-secrets-validation: "true"
 
       - name: Upload SARIF results
