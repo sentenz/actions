@@ -44,7 +44,7 @@ inputs:
   tag-format:
     description: "Tag format"
     required: false
-    default: "v${version}"
+    default: "${version}"
 
 outputs:
   new-release-published:

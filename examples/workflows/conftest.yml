@@ -31,8 +31,4 @@ jobs:
       - name: Run Conftest
         uses: sentenz/actions/conftest@latest
         with:
-          path: "."
           policy-path: "./tests/policy"
-          output-format: "github"
-          fail-on-warn: "false"
-          all-namespaces: "true"

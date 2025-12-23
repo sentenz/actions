@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 name: "Semgrep"
-description: "Static analysis security scanning using Semgrep"
+description: "Static analysis security testing (SAST) using Semgrep"
 author: "sentenz"
 
 branding:
@@ -12,18 +12,14 @@ inputs:
     description: "Path to scan"
     required: false
     default: "."
-  semgrep-version:
-    description: "Semgrep version tag"
-    required: false
-    default: "1.145.2"
   semgrep-image:
-    description: "Semgrep Docker image with digest"
+    description: "Semgrep Docker image with version tag and digest"
     required: false
     default: "semgrep/semgrep:1.145.2@sha256:791a85e244b61e83ef96364997fd069f33e78ce2c4b5541d7bee22f07ee117c9"
   config:
     description: "Semgrep configuration (auto, p/default, path to config file)"
     required: false
-    default: "p/default"
+    default: "auto"
   output-format:
     description: "Output format (text, json, sarif, gitlab-sast, github)"
     required: false
@@ -183,10 +179,9 @@ runs:
         # Note: The semgrep command must be explicitly specified because the
         # semgrep Docker image has an empty ENTRYPOINT (unlike conftest which
         # has ENTRYPOINT set to [/conftest])
-        RESULT=$(docker run --rm \
-          -v "${PWD}:/src" \
-          ${{ inputs.semgrep-image }} \
-          semgrep ${SEMGREP_ARGS} 2>&1) || true
+        RESULT=$(
+          docker run --rm -v "${PWD}:/src" ${{ inputs.semgrep-image }} semgrep ${SEMGREP_ARGS} 2>&1
+        ) || true
 
         EXIT_CODE=$?
 

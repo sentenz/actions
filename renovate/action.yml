@@ -12,12 +12,8 @@ inputs:
     description: "GitHub token for Renovate"
     required: true
     default: "${{ github.token }}"
-  renovate-version:
-    description: "Renovate version tag"
-    required: false
-    default: "42.64.1"
   renovate-image:
-    description: "Renovate Docker image with digest"
+    description: "Renovate Docker image with version tag and digest"
     required: false
     default: "ghcr.io/renovatebot/renovate:42.64.1@sha256:e09f71019881fff15f397560d979736c6c6fd712f790fdb0a75697a324ee965a"
   autodiscover:
