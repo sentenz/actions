@@ -12,7 +12,7 @@ on:
 
 jobs:
   semgrep:
-    name: Security Scan
+    name: Semgrep Action
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,7 +21,6 @@ jobs:
       - name: Run Semgrep
         uses: sentenz/actions/semgrep@latest
         with:
-          path: "."
           config: "auto"
           metrics: "auto"
           no-secrets-validation: "true"
