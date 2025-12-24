@@ -18,6 +18,9 @@ Automated semantic versioning and releases using semantic-release.
 - [Semantic-Release Documentation](https://semantic-release.gitbook.io/)
   > Comprehensive documentation for using and configuring semantic-release.
 
+- [Semantic-Release Configuration](https://semantic-release.gitbook.io/semantic-release/usage/configuration)
+  > Configuration options for customizing semantic-release behavior.
+
 - [Semantic-Release Plugins](https://semantic-release.gitbook.io/semantic-release/usage/plugins)
   > A list of official and community plugins for extending semantic-release functionality.
 
@@ -36,14 +39,16 @@ The [Semantic-Release Action](./action.yml) runs semantic-release to automate ve
 
 ### 2.1. Inputs
 
-| Input              | Description                            | Required | Default               |
-| ------------------ | -------------------------------------- | -------- | --------------------- |
-| `github-token`     | GitHub token for releases              | Yes      | `${{ github.token }}` |
-| `semantic-version` | semantic-release version               | No       | `25.0.2`              |
-| `branches`         | Release branches (JSON array)          | No       | `["main"]`            |
-| `dry-run`          | Run in dry-run mode                    | No       | `false`               |
-| `extra-plugins`    | Extra plugins to install (multiline)   | No       | See action.yml        |
-| `config-file`      | Path to semantic-release configuration | No       | ``                    |
+| Input               | Description                            | Required | Default               |
+| ------------------- | -------------------------------------- | -------- | --------------------- |
+| `github-token`      | GitHub token for releases              | Yes      | `${{ github.token }}` |
+| `semantic-version`  | semantic-release version               | No       | `25.0.2`              |
+| `branches`          | Release branches (JSON array)          | No       | `["main"]`            |
+| `dry-run`           | Run in dry-run mode                    | No       | `false`               |
+| `extra-plugins`     | Extra plugins to install (multiline)   | No       | See action.yml        |
+| `config-file`       | Path to semantic-release configuration | No       | ``                    |
+| `working-directory` | Working directory                      | No       | `.`                   |
+| `tag-format`        | Tag format                             | No       | `${version}`          |
 
 ### 2.2. Outputs
 
@@ -56,7 +61,11 @@ The [Semantic-Release Action](./action.yml) runs semantic-release to automate ve
 | `new-release-patch-version` | The new release patch version       |
 | `new-release-channel`       | The new release channel             |
 | `new-release-notes`         | The new release notes               |
+| `new-release-git-head`      | The git HEAD of the new release     |
+| `new-release-git-tag`       | The git tag of the new release      |
 | `last-release-version`      | The last release version            |
+| `last-release-git-head`     | The git HEAD of the last release    |
+| `last-release-git-tag`      | The git tag of the last release     |
 
 ## 3. Usage
 
