@@ -40,10 +40,6 @@ inputs:
     description: "Specific repositories to process (comma-separated)"
     required: false
     default: ""
-  base-branches:
-    description: "Base branches to target (comma-separated)"
-    required: false
-    default: ""
   timezone:
     description: "Timezone for scheduling"
     required: false
