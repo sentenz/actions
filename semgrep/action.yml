@@ -20,10 +20,6 @@ inputs:
     description: "Semgrep configuration (auto, p/default, path to config file)"
     required: false
     default: "auto"
-  output-format:
-    description: "Output format (text, json, sarif, gitlab-sast, github)"
-    required: false
-    default: ""
   severity:
     description: "Minimum severity to report (INFO, WARNING, ERROR)"
     required: false

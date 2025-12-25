@@ -24,10 +24,6 @@ inputs:
     description: "Path to Regal configuration file"
     required: false
     default: ""
-  rules:
-    description: "Comma-separated list of rules to enable/disable"
-    required: false
-    default: ""
   disable-category:
     description: "Comma-separated list of categories to disable"
     required: false

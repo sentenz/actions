@@ -46,7 +46,6 @@ The [Semantic-Release Action](./action.yml) runs semantic-release to automate ve
 | `branches`          | Release branches (JSON array)          | No       | `["main"]`            |
 | `dry-run`           | Run in dry-run mode                    | No       | `false`               |
 | `extra-plugins`     | Extra plugins to install (multiline)   | No       | See action.yml        |
-| `config-file`       | Path to semantic-release configuration | No       | ``                    |
 | `working-directory` | Working directory                      | No       | `.`                   |
 | `tag-format`        | Tag format                             | No       | `${version}`          |
 

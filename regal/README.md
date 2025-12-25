@@ -30,7 +30,6 @@ The [Regal Action](./action.yml) runs Regal to lint Rego policy files, ensuring 
 | `regal-version` | Regal version                                        | No       | `latest`   |
 | `output-format` | Output format (pretty, compact, json, github, sarif) | No       | `github`   |
 | `config-file`   | Path to Regal configuration file                     | No       | ``         |
-| `rules`         | Comma-separated list of rules to enable/disable      | No       | ``         |
 
 ### 2.2. Outputs
 

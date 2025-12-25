@@ -35,7 +35,6 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 | `path`          | Path to scan                                        | No       | `.`                                        |
 | `semgrep-image` | Semgrep Docker image with version tag and digest    | No       | `semgrep/semgrep:1.145.2@sha256:791...7c9` |
 | `config`        | Semgrep configuration (auto, p/default, path, etc.) | No       | `auto`                                     |
-| `output-format` | Output format (text, json, sarif, gitlab-sast)      | No       | `github`                                   |
 | `severity`      | Minimum severity to report (INFO, WARNING, ERROR)   | No       | `WARNING`                                  |
 | `exclude`       | Patterns to exclude (comma-separated)               | No       | ``                                         |
 | `include`       | Patterns to include (comma-separated)               | No       | ``                                         |
