@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/sentenz/actions/compare/1.1.1...1.1.2) (2025-12-29)
+
+
+### Bug Fixes
+
+* update default exit code to empty in Trivy action inputs ([ccde002](https://github.com/sentenz/actions/commit/ccde0029d28df6f40b9686aa1bd0badced336a3d))
+
 ## [1.1.1](https://github.com/sentenz/actions/compare/1.1.0...1.1.1) (2025-12-29)
 
 
