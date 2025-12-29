@@ -1,0 +1,12 @@
+# Trivy Ignore File
+#
+# Use this file to ignore specific vulnerabilities, misconfigurations, or secrets
+# detected by Trivy. Each line should contain a CVE ID, vulnerability ID, or pattern
+# to ignore.
+#
+# Examples:
+# CVE-2021-12345
+# pkg:golang/example.com/package@1.0.0
+# AVD-AWS-0001
+#
+# See: https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/#by-vulnerability-ids

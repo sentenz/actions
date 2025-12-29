@@ -67,6 +67,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `ignored-licenses`          | Licenses to ignore (comma-separated)                                                 | No       | ``                                    |
 | `license-confidence-level`  | License confidence level (0.0-1.0)                                                   | No       | `0.9`                                 |
 | `trivyignore-file`          | Path to .trivyignore file                                                            | No       | ``                                    |
+| `trivy-config`              | Path to trivy.yaml config file                                                       | No       | ``                                    |
 | `github-pat`                | GitHub Personal Access Token for private repositories                                | No       | ``                                    |
 
 ### 2.2. Outputs
@@ -285,7 +286,55 @@ jobs:
 
 ## 4. Advanced Configuration
 
-### 4.1. Custom Ignore Rules
+### 4.1. Using Configuration Files
+
+Trivy supports configuration through a `trivy.yaml` file with the following order of precedence:
+1. **CLI flags** (highest priority) - passed via action inputs
+2. **Environment variables**
+3. **Config file** (`trivy.yaml`)
+4. **Default values** (lowest priority)
+
+Create a `trivy.yaml` file in your repository root:
+
+```yaml
+# trivy.yaml
+severity:
+  - HIGH
+  - CRITICAL
+
+scan:
+  scanners:
+    - vuln
+    - secret
+  skip-dirs:
+    - node_modules
+    - vendor
+
+license:
+  confidencelevel: 0.9
+  ignored:
+    - MIT
+    - Apache-2.0
+
+vulnerability:
+  ignore-unfixed: true
+
+timeout: 5m0s
+```
+
+The action will automatically detect and use `trivy.yaml` in your repository root, or you can specify a custom path:
+
+```yaml
+- uses: sentenz/actions/trivy@latest
+  with:
+    scan-type: fs
+    scan-target: .
+    trivy-config: config/trivy.yaml
+```
+
+A sample configuration file is provided in [`trivy/trivy.yaml`](./trivy.yaml).
+
+### 4.2. Custom Ignore Rules
 
 Create a `.trivyignore` file in your repository to ignore specific vulnerabilities:
 
@@ -298,17 +347,19 @@ CVE-2021-12345
 pkg:golang/example.com/package@1.0.0
 ```
 
-Use it in your workflow:
+The action will automatically detect `.trivyignore` in your repository root, or specify a custom path:
 
 ```yaml
 - uses: sentenz/actions/trivy@latest
   with:
-    scan-type: "fs"
-    scan-target: "."
-    trivyignore-file: ".trivyignore"
+    scan-type: fs
+    scan-target: .
+    trivyignore-file: .trivyignore
 ```
 
-### 4.2. Offline Scanning
+A sample ignore file is provided in [`trivy/.trivyignore`](./trivy/.trivyignore).
+
+### 4.3. Offline Scanning
 
 For air-gapped environments, use offline scanning:
 
@@ -321,7 +372,7 @@ For air-gapped environments, use offline scanning:
     cache-dir: ".trivy-cache"
 ```
 
-### 4.3. Publishing SBOM to Release Notes
+### 4.4. Publishing SBOM to Release Notes
 
 Complete workflow for generating and publishing SBOM:
 

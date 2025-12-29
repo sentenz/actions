@@ -94,6 +94,10 @@ inputs:
     description: "Path to .trivyignore file"
     required: false
     default: ""
+  trivy-config:
+    description: "Path to trivy.yaml config file"
+    required: false
+    default: ""
   github-pat:
     description: "GitHub Personal Access Token for private repositories"
     required: false
@@ -167,6 +171,14 @@ runs:
 
         # Build trivy command arguments
         TRIVY_ARGS="${TRIVY_COMMAND}"
+
+        # Add config file if specified (Trivy will use this as base configuration)
+        # Order of precedence: CLI flags > Environment variables > Config file > Defaults
+        if [[ -n "${{ inputs.trivy-config }}" && -f "${{ inputs.trivy-config }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --config /workspace/${{ inputs.trivy-config }}"
+        elif [[ -f "trivy.yaml" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --config /workspace/trivy.yaml"
+        fi
 
         # Add format
         TRIVY_ARGS="${TRIVY_ARGS} --format ${{ inputs.format }}"
@@ -267,6 +279,8 @@ runs:
         # Add .trivyignore file
         if [[ -n "${{ inputs.trivyignore-file }}" && -f "${{ inputs.trivyignore-file }}" ]]; then
           TRIVY_ARGS="${TRIVY_ARGS} --ignorefile /workspace/${{ inputs.trivyignore-file }}"
+        elif [[ -f ".trivyignore" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile /workspace/.trivyignore"
         fi
 
         # Add scan target
