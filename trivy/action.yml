@@ -36,7 +36,7 @@ inputs:
   scanners:
     description: "Scanners to use (comma-separated: vuln,misconfig,secret,license)"
     required: false
-    default: "vuln,secret"
+    default: ""
   skip-dirs:
     description: "Directories to skip (comma-separated)"
     required: false
