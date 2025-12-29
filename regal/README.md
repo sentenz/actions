@@ -7,8 +7,9 @@ Linting for Rego policies using [Regal](https://github.com/StyraInc/regal).
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
 - [3. Usage](#3-usage)
-  - [3.1. Internal Configuration](#31-internal-configuration)
-  - [3.1. External Configuration](#31-external-configuration)
+- [4. Configuration](#4-configuration)
+  - [4.1. Internal Configuration](#41-internal-configuration)
+  - [4.2. External Configuration](#42-external-configuration)
 
 ## 1. Details
 
@@ -52,11 +53,13 @@ jobs:
           output-format: "github"
 ```
 
-### 3.1. Internal Configuration
+## 4. Configuration
+
+### 4.1. Internal Configuration
 
 <!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
 
-### 3.1. External Configuration
+### 4.2. External Configuration
 
 Create a `.regal/config.yaml` file in your repository:
 

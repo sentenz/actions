@@ -7,8 +7,9 @@ Automated semantic versioning and releases using semantic-release.
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
 - [3. Usage](#3-usage)
-  - [3.1. Internal Configuration](#31-internal-configuration)
-  - [3.2. External Configuration](#32-external-configuration)
+- [4. Configuration](#4-configuration)
+  - [4.1. Internal Configuration](#41-internal-configuration)
+  - [4.2. External Configuration](#42-external-configuration)
 
 ## 1. Details
 
@@ -39,15 +40,15 @@ The [Semantic-Release Action](./action.yml) runs semantic-release to automate ve
 
 ### 2.1. Inputs
 
-| Input               | Description                            | Required | Default               |
-| ------------------- | -------------------------------------- | -------- | --------------------- |
-| `github-token`      | GitHub token for releases              | Yes      | `${{ github.token }}` |
-| `semantic-version`  | semantic-release version               | No       | `25.0.2`              |
-| `branches`          | Release branches (JSON array)          | No       | `["main"]`            |
-| `dry-run`           | Run in dry-run mode                    | No       | `false`               |
-| `extra-plugins`     | Extra plugins to install (multiline)   | No       | See action.yml        |
-| `working-directory` | Working directory                      | No       | `.`                   |
-| `tag-format`        | Tag format                             | No       | `${version}`          |
+| Input               | Description                          | Required | Default               |
+| ------------------- | ------------------------------------ | -------- | --------------------- |
+| `github-token`      | GitHub token for releases            | Yes      | `${{ github.token }}` |
+| `semantic-version`  | semantic-release version             | No       | `25.0.2`              |
+| `branches`          | Release branches (JSON array)        | No       | `["main"]`            |
+| `dry-run`           | Run in dry-run mode                  | No       | `false`               |
+| `extra-plugins`     | Extra plugins to install (multiline) | No       | See action.yml        |
+| `working-directory` | Working directory                    | No       | `.`                   |
+| `tag-format`        | Tag format                           | No       | `${version}`          |
 
 ### 2.2. Outputs
 
@@ -86,11 +87,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### 3.1. Internal Configuration
+## 4. Configuration
+
+### 4.1. Internal Configuration
 
 <!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
 
-### 3.2. External Configuration
+### 4.2. External Configuration
 
 Create a `.releaserc.json` file in your repository:
 

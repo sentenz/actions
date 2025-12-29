@@ -43,7 +43,7 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
 ### 1.6. Trivy
 
 - [Trivy Action](./trivy/README.md)
-  > Comprehensive security scanning with Trivy: SBOM generation, vulnerability scanning, and license compliance.
+  > Comprehensive security scanning with Trivy for SBOM generation, vulnerability scanning, and license compliance.
 
 ## 2. References
 
