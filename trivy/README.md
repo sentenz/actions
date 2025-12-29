@@ -131,14 +131,14 @@ jobs:
             output: "sbom.cdx.json"
 
         - name: Upload SBOM as artifact
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6.0.0
           with:
             name: sbom-cyclonedx
             path: sbom.cdx.json
 
         - name: Attach SBOM to release
           if: github.event_name == 'release'
-          uses: softprops/action-gh-release@v2
+          uses: softprops/action-gh-release@v2.5.0
           with:
             files: sbom.cdx.json
           env:
@@ -171,7 +171,7 @@ jobs:
             output: "sbom.spdx"
 
         - name: Upload SBOM artifacts
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6.0.0
           with:
             name: sbom-spdx
             path: |
@@ -318,7 +318,7 @@ The action will automatically detect and use `trivy.yaml` in your repository roo
 - uses: sentenz/actions/trivy@latest
   with:
     scan-type: fs
-    scan-target: .
+    scan-target: "."
     trivy-config: config/trivy.yaml
 ```
 
@@ -343,7 +343,7 @@ The action will automatically detect `.trivyignore` in your repository root, or 
 - uses: sentenz/actions/trivy@latest
   with:
     scan-type: fs
-    scan-target: .
+    scan-target: "."
     trivyignore-file: .trivyignore
 ```
 
@@ -406,7 +406,7 @@ jobs:
 
       # Upload to release
       - name: Upload SBOMs to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
             sbom.cdx.json
