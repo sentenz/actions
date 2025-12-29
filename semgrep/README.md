@@ -7,8 +7,9 @@ Static analysis security scanning using Semgrep.
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
 - [3. Usage](#3-usage)
-  - [3.1. Internal Configuration](#31-internal-configuration)
-  - [3.2. External Configuration](#32-external-configuration)
+- [4. Configuration](#4-configuration)
+  - [4.1. Internal Configuration](#41-internal-configuration)
+  - [4.2. External Configuration](#42-external-configuration)
 
 ## 1. Details
 
@@ -30,14 +31,14 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 
 ### 2.1. Inputs
 
-| Input           | Description                                         | Required | Default                                    |
-| --------------- | --------------------------------------------------- | -------- | ------------------------------------------ |
-| `path`          | Path to scan                                        | No       | `.`                                        |
-| `semgrep-image` | Semgrep Docker image with version tag and digest    | No       | `semgrep/semgrep:1.145.2@sha256:791...7c9` |
-| `config`        | Semgrep configuration (auto, p/default, path, etc.) | No       | `auto`                                     |
-| `severity`      | Minimum severity to report (INFO, WARNING, ERROR)   | No       | `WARNING`                                  |
-| `exclude`       | Patterns to exclude (comma-separated)               | No       | ``                                         |
-| `include`       | Patterns to include (comma-separated)               | No       | ``                                         |
+| Input           | Description                                         | Required | Default                              |
+| --------------- | --------------------------------------------------- | -------- | ------------------------------------ |
+| `path`          | Path to scan                                        | No       | `.`                                  |
+| `semgrep-image` | Semgrep Docker image with version tag and digest    | No       | `semgrep/semgrep:1.145.2@sha256:...` |
+| `config`        | Semgrep configuration (auto, p/default, path, etc.) | No       | `auto`                               |
+| `severity`      | Minimum severity to report (INFO, WARNING, ERROR)   | No       | `WARNING`                            |
+| `exclude`       | Patterns to exclude (comma-separated)               | No       | ``                                   |
+| `include`       | Patterns to include (comma-separated)               | No       | ``                                   |
 
 ### 2.2. Outputs
 
@@ -62,11 +63,13 @@ jobs:
           severity: "WARNING"
 ```
 
-### 3.1. Internal Configuration
+## 4. Configuration
+
+### 4.1. Internal Configuration
 
 <!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
 
-### 3.2. External Configuration
+### 4.2. External Configuration
 
 Create a `.semgrep.yml` file in your repository:
 

@@ -7,8 +7,9 @@ Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
 - [3. Usage](#3-usage)
-  - [3.1. Internal Configuration](#31-internal-configuration)
-  - [3.2. External Configuration](#32-external-configuration)
+- [4. Configuration](#4-configuration)
+  - [4.1. Internal Configuration](#41-internal-configuration)
+  - [4.2. External Configuration](#42-external-configuration)
 
 ## 1. Details
 
@@ -27,14 +28,14 @@ The [Conftest Action](./action.yml) runs to validate configuration files against
 
 ### 2.1. Inputs
 
-| Input            | Description                                             | Required | Default                                             |
-| ---------------- | ------------------------------------------------------- | -------- | --------------------------------------------------- |
-| `path`           | Path to the files/directories to test                   | No       | `.`                                                 |
-| `policy-path`    | Path to the policy directory                            | No       | `policy`                                            |
-| `conftest-image` | Conftest Docker image with version tag and digest       | No       | `openpolicyagent/conftest:v0.65.0@sha256:afa...525` |
-| `output-format`  | Output format (stdout, json, tap, table, junit, github) | No       | `github`                                            |
-| `fail-on-warn`   | Fail on warnings                                        | No       | `false`                                             |
-| `all-namespaces` | Use all namespaces                                      | No       | `true`                                              |
+| Input            | Description                                             | Required | Default                                       |
+| ---------------- | ------------------------------------------------------- | -------- | --------------------------------------------- |
+| `path`           | Path to the files/directories to test                   | No       | `.`                                           |
+| `policy-path`    | Path to the policy directory                            | No       | `policy`                                      |
+| `conftest-image` | Conftest Docker image with version tag and digest       | No       | `openpolicyagent/conftest:v0.65.0@sha256:...` |
+| `output-format`  | Output format (stdout, json, tap, table, junit, github) | No       | `github`                                      |
+| `fail-on-warn`   | Fail on warnings                                        | No       | `false`                                       |
+| `all-namespaces` | Use all namespaces                                      | No       | `true`                                        |
 
 ### 2.2. Outputs
 
@@ -58,11 +59,13 @@ jobs:
           output-format: "github"
 ```
 
-### 3.1. Internal Configuration
+## 4. Configuration
+
+### 4.1. Internal Configuration
 
 <!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
 
-### 3.2. External Configuration
+### 4.2. External Configuration
 
 Referencing policies from an caller repository.
 

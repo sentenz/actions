@@ -1,0 +1,100 @@
+name: Trivy Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  trivy-fs-scan:
+    name: Trivy Action - Filesystem Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Trivy Filesystem Scan
+        uses: ./trivy
+        with:
+          scan-type: fs
+          scan-target: "."
+          format: sarif
+        continue-on-error: true
+
+  trivy-config-scan:
+    name: Trivy Action - Configuration Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run Trivy Config Scan
+        uses: ./trivy
+        with:
+          scan-type: config
+          scan-target: "."
+          format: sarif
+        continue-on-error: true
+
+  trivy-sbom-generation:
+    name: Trivy Action - SBOM Generation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Generate CycloneDX SBOM
+        uses: ./trivy
+        with:
+          scan-type: sbom-generate
+          scan-target: "."
+          format: "cyclonedx"
+          output: "sbom.cdx.json"
+        continue-on-error: true
+
+      - name: Generate SPDX SBOM
+        uses: ./trivy
+        with:
+          scan-type: sbom-generate
+          scan-target: "."
+          format: "spdx-json"
+          output: "sbom.spdx.json"
+        continue-on-error: true
+
+      - name: Upload SBOM artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-files
+          path: |
+            sbom.cdx.json
+            sbom.spdx.json
+        continue-on-error: true
+
+  trivy-license-compliance:
+    name: Trivy Action - License Compliance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run License Compliance Scan
+        uses: ./trivy
+        with:
+          scan-type: fs
+          scan-target: "."
+          scanners: "license"
+          format: "table"
+        continue-on-error: true

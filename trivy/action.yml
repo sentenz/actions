@@ -1,0 +1,247 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Trivy
+description: >
+  Comprehensive security scanning with Trivy: SBOM generation,
+  vulnerability scanning, and license compliance
+author: sentenz
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  scan-type:
+    description: "Type of scan to perform (fs, image, config, repository, rootfs, sbom, sbom-generate)"
+    required: false
+    default: "fs"
+  scan-target:
+    description: "Target to scan (path for fs/config/rootfs, image name for image, repo URL for repository)"
+    required: false
+    default: "."
+  trivy-image:
+    description: "Trivy Docker image with version tag and digest"
+    required: false
+    default: "aquasec/trivy:0.68.2@sha256:05d0126976bdedcd0782a0336f77832dbea1c81b9cc5e4b3a5ea5d2ec863aca7"
+  format:
+    description: "Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)"
+    required: false
+    default: ""
+  output:
+    description: "Output file path (relative to workspace)"
+    required: false
+    default: ""
+  severity:
+    description: "Severities to report (comma-separated: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)"
+    required: false
+    default: ""
+  scanners:
+    description: "Scanners to use (comma-separated: vuln,misconfig,secret,license)"
+    required: false
+    default: ""
+  skip-dirs:
+    description: "Directories to skip (comma-separated)"
+    required: false
+    default: ""
+  skip-files:
+    description: "Files to skip (comma-separated)"
+    required: false
+    default: ""
+  exit-code:
+    description: "Exit code when vulnerabilities are found"
+    required: false
+    default: "1"
+  cache-dir:
+    description: "Cache directory"
+    required: false
+    default: ""
+  db-repository:
+    description: "Custom database repository"
+    required: false
+    default: ""
+  trivyignore-file:
+    description: "Path to .trivyignore file"
+    required: false
+    default: ""
+  trivy-config:
+    description: "Path to trivy.yaml config file"
+    required: false
+    default: ""
+  github-pat:
+    description: "GitHub Personal Access Token for private repositories"
+    required: false
+    default: ""
+
+outputs:
+  result:
+    description: "Trivy scan result"
+    value: ${{ steps.trivy.outputs.result }}
+  exit-code:
+    description: "Trivy exit code"
+    value: ${{ steps.trivy.outputs.exit-code }}
+  output-file:
+    description: "Path to the output file (if specified)"
+    value: ${{ steps.trivy.outputs.output-file }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        # Validate scan-type
+        VALID_SCAN_TYPES="fs image config repository rootfs sbom sbom-generate"
+        if ! echo "${VALID_SCAN_TYPES}" | grep -w "${{ inputs.scan-type }}" > /dev/null; then
+          echo "::error::Invalid scan-type '${{ inputs.scan-type }}'. Must be one of: ${VALID_SCAN_TYPES}"
+          exit 1
+        fi
+
+        # Validate scan-target exists for fs/config/rootfs scans
+        if [[ "${{ inputs.scan-type }}" =~ ^(fs|config|rootfs)$ ]] && [[ ! -e "${{ inputs.scan-target }}" ]]; then
+          echo "::error::Scan target '${{ inputs.scan-target }}' does not exist"
+          exit 1
+        fi
+
+        # Validate format
+        VALID_FORMATS="table json sarif cyclonedx spdx spdx-json github cosign-vuln"
+        if ! echo "${VALID_FORMATS}" | grep -w "${{ inputs.format }}" > /dev/null; then
+          echo "::error::Invalid format '${{ inputs.format }}'. Must be one of: ${VALID_FORMATS}"
+          exit 1
+        fi
+
+        # Validate SBOM format for sbom-generate
+        if [[ "${{ inputs.scan-type }}" == "sbom-generate" ]]; then
+          if [[ "${{ inputs.format }}" != "cyclonedx" && "${{ inputs.format }}" != "spdx" && "${{ inputs.format }}" != "spdx-json" ]]; then
+            echo "::error::For sbom-generate, format must be cyclonedx, spdx, or spdx-json"
+            exit 1
+          fi
+        fi
+
+    - name: Run Trivy
+      id: trivy
+      shell: bash
+      run: |
+        set +e
+
+        # Determine the actual scan command based on scan-type
+        if [[ "${{ inputs.scan-type }}" == "sbom-generate" ]]; then
+          # For SBOM generation, detect if target is an image or filesystem
+          # Image format: [registry.host:port/]namespace/image[:tag|@digest]
+          if [[ "${{ inputs.scan-target }}" =~ .*:.* ]] && [[ ! -e "${{ inputs.scan-target }}" ]]; then
+            TRIVY_COMMAND="image"
+          else
+            TRIVY_COMMAND="filesystem"
+          fi
+        elif [[ "${{ inputs.scan-type }}" == "fs" ]]; then
+          TRIVY_COMMAND="filesystem"
+        else
+          TRIVY_COMMAND="${{ inputs.scan-type }}"
+        fi
+
+        # Build trivy command arguments
+        TRIVY_ARGS="${TRIVY_COMMAND}"
+
+        # Add config file if specified (Trivy will use this as base configuration)
+        # Order of precedence: CLI flags > Environment variables > Config file > Defaults
+        if [[ -n "${{ inputs.trivy-config }}" && -f "${{ inputs.trivy-config }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --config /workspace/${{ inputs.trivy-config }}"
+        elif [[ -f "trivy.yaml" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --config /workspace/trivy.yaml"
+        fi
+
+        # Add format
+        TRIVY_ARGS="${TRIVY_ARGS} --format ${{ inputs.format }}"
+
+        # Add output file if specified
+        if [[ -n "${{ inputs.output }}" ]]; then
+          OUTPUT_DIR=$(dirname "/workspace/${{ inputs.output }}")
+          mkdir -p "${OUTPUT_DIR}"
+          TRIVY_ARGS="${TRIVY_ARGS} --output /workspace/${{ inputs.output }}"
+        fi
+
+        # Add severity filters (only for vuln scanning, not SBOM generation)
+        if [[ "${{ inputs.scan-type }}" != "sbom-generate" && -n "${{ inputs.severity }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --severity ${{ inputs.severity }}"
+        fi
+
+        # Add scanners (only for applicable scan types)
+        if [[ -n "${{ inputs.scanners }}" && "${{ inputs.scan-type }}" != "sbom-generate" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --scanners ${{ inputs.scanners }}"
+        fi
+
+        # Add skip directories
+        if [[ -n "${{ inputs.skip-dirs }}" ]]; then
+          IFS=',' read -ra SKIP_DIRS <<< "${{ inputs.skip-dirs }}"
+          for dir in "${SKIP_DIRS[@]}"; do
+            TRIVY_ARGS="${TRIVY_ARGS} --skip-dirs ${dir}"
+          done
+        fi
+
+        # Add skip files
+        if [[ -n "${{ inputs.skip-files }}" ]]; then
+          IFS=',' read -ra SKIP_FILES <<< "${{ inputs.skip-files }}"
+          for file in "${SKIP_FILES[@]}"; do
+            TRIVY_ARGS="${TRIVY_ARGS} --skip-files ${file}"
+          done
+        fi
+
+        # Add exit-code
+        if [[ -n "${{ inputs.exit-code }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --exit-code ${{ inputs.exit-code }}"
+        fi
+
+        # Add cache directory
+        if [[ -n "${{ inputs.cache-dir }}" ]]; then
+          CACHE_DIR="/workspace/${{ inputs.cache-dir }}"
+          mkdir -p "${CACHE_DIR}"
+          TRIVY_ARGS="${TRIVY_ARGS} --cache-dir ${CACHE_DIR}"
+        fi
+
+        # Add custom DB repository
+        if [[ -n "${{ inputs.db-repository }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --db-repository ${{ inputs.db-repository }}"
+        fi
+
+        # Add .trivyignore file
+        if [[ -n "${{ inputs.trivyignore-file }}" && -f "${{ inputs.trivyignore-file }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile /workspace/${{ inputs.trivyignore-file }}"
+        elif [[ -f ".trivyignore" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile /workspace/.trivyignore"
+        fi
+
+        # Add scan target
+        TRIVY_ARGS="${TRIVY_ARGS} ${{ inputs.scan-target }}"
+
+        echo "Running: trivy ${TRIVY_ARGS}"
+
+        # Prepare Docker run command with appropriate volume mounts
+        DOCKER_ARGS="--rm -v ${PWD}:/workspace -w /workspace"
+
+        # Mount docker socket for image scanning
+        if [[ "${{ inputs.scan-type }}" == "image" ]] || \
+           [[ "${{ inputs.scan-type }}" == "sbom-generate" && "${TRIVY_COMMAND}" == "image" ]]; then
+          DOCKER_ARGS="${DOCKER_ARGS} -v /var/run/docker.sock:/var/run/docker.sock"
+        fi
+
+        # Add GitHub token if provided (for private repositories)
+        if [[ -n "${{ inputs.github-pat }}" ]]; then
+          DOCKER_ARGS="${DOCKER_ARGS} -e GITHUB_TOKEN=${{ inputs.github-pat }}"
+        fi
+
+        # Run trivy via Docker
+        RESULT=$(
+          docker run ${DOCKER_ARGS} ${{ inputs.trivy-image }} ${TRIVY_ARGS} 2>&1
+        ) || true
+
+        EXIT_CODE=$?
+
+        echo "result<<EOF" >> $GITHUB_OUTPUT
+        echo "${RESULT}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+
+        if [[ -n "${{ inputs.output }}" ]]; then
+          echo "output-file=${{ inputs.output }}" >> $GITHUB_OUTPUT
+        fi
+
+        echo "${RESULT}"
+
+        exit ${EXIT_CODE}
