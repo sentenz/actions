@@ -13,7 +13,7 @@ inputs:
   scan-type:
     description: "Type of scan to perform (fs, image, config, repository, rootfs, sbom, sbom-generate)"
     required: false
-    default: fs
+    default: "fs"
   scan-target:
     description: "Target to scan (path for fs/config/rootfs, image name for image, repo URL for repository)"
     required: false
@@ -25,7 +25,7 @@ inputs:
   format:
     description: "Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)"
     required: false
-    default: json
+    default: "json"
   output:
     description: "Output file path (relative to workspace)"
     required: false
@@ -53,19 +53,19 @@ inputs:
   timeout:
     description: "Scan timeout duration"
     required: false
-    default: 5m0s
+    default: "5m0s"
   ignore-unfixed:
     description: "Ignore unfixed vulnerabilities"
     required: false
-    default: false
+    default: "false"
   exit-code:
     description: "Exit code when vulnerabilities are found"
     required: false
-    default: 1
+    default: "1"
   list-all-pkgs:
     description: "List all packages regardless of vulnerabilities"
     required: false
-    default: false
+    default: "false"
   cache-dir:
     description: "Cache directory"
     required: false
@@ -77,11 +77,11 @@ inputs:
   offline-scan:
     description: "Disable external API requests"
     required: false
-    default: false
+    default: "false"
   license-full:
     description: "Show full license information (for license scanning)"
     required: false
-    default: false
+    default: "false"
   ignored-licenses:
     description: "Licenses to ignore (comma-separated)"
     required: false
@@ -89,7 +89,7 @@ inputs:
   license-confidence-level:
     description: "License confidence level (0.0-1.0)"
     required: false
-    default: 0.9
+    default: "0.9"
   trivyignore-file:
     description: "Path to .trivyignore file"
     required: false
