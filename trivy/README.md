@@ -18,8 +18,7 @@ Comprehensive security scanning with Trivy for vulnerability detection, SBOM gen
 - [4. Configuration](#4-configuration)
   - [4.1. Configuration Files](#41-configuration-files)
   - [4.2. Custom Ignore Rules](#42-custom-ignore-rules)
-  - [4.3. Offline Scanning](#43-offline-scanning)
-  - [4.4. Publishing SBOM to Release Notes](#44-publishing-sbom-to-release-notes)
+  - [4.3. Publishing SBOM to Release Notes](#43-publishing-sbom-to-release-notes)
 
 ## 1. Details
 
@@ -44,31 +43,24 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 
 ### 2.1. Inputs
 
-| Input                      | Description                                                                         | Required | Default                            |
-| -------------------------- | ----------------------------------------------------------------------------------- | -------- | ---------------------------------- |
-| `scan-type`                | Type of scan (fs, image, config, repository, rootfs, sbom, sbom-generate)           | No       | `fs`                               |
-| `scan-target`              | Target to scan (path, image name, repo URL)                                         | No       | `.`                                |
-| `trivy-image`              | Trivy Docker image with version tag and digest                                      | No       | `aquasec/trivy:0.68.2@sha256:...`  |
-| `format`                   | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | `json`                             |
-| `output`                   | Output file path (relative to workspace)                                            | No       | ``                                 |
-| `severity`                 | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                             | No       | `UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL` |
-| `vuln-type`                | Vulnerability types (os,library)                                                    | No       | `os,library`                       |
-| `scanners`                 | Scanners to use (vuln,misconfig,secret,license)                                     | No       | `vuln,secret`                      |
-| `skip-dirs`                | Directories to skip (comma-separated)                                               | No       | ``                                 |
-| `skip-files`               | Files to skip (comma-separated)                                                     | No       | ``                                 |
-| `timeout`                  | Scan timeout duration                                                               | No       | `5m0s`                             |
-| `ignore-unfixed`           | Ignore unfixed vulnerabilities                                                      | No       | `false`                            |
-| `exit-code`                | Exit code when vulnerabilities are found                                            | No       | `1`                                |
-| `list-all-pkgs`            | List all packages regardless of vulnerabilities                                     | No       | `false`                            |
-| `cache-dir`                | Cache directory                                                                     | No       | ``                                 |
-| `db-repository`            | Custom database repository                                                          | No       | ``                                 |
-| `offline-scan`             | Disable external API requests                                                       | No       | `false`                            |
-| `license-full`             | Show full license information                                                       | No       | `false`                            |
-| `ignored-licenses`         | Licenses to ignore (comma-separated)                                                | No       | ``                                 |
-| `license-confidence-level` | License confidence level (0.0-1.0)                                                  | No       | `0.9`                              |
-| `trivyignore-file`         | Path to .trivyignore file                                                           | No       | ``                                 |
-| `trivy-config`             | Path to trivy.yaml config file                                                      | No       | ``                                 |
-| `github-pat`               | GitHub Personal Access Token for private repositories                               | No       | ``                                 |
+| Input              | Description                                                                         | Required | Default                           |
+| ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------------------------- |
+| `scan-type`        | Type of scan (fs, image, config, repository, rootfs, sbom, sbom-generate)           | No       | `fs`                              |
+| `scan-target`      | Target to scan (path, image name, repo URL)                                         | No       | `.`                               |
+| `trivy-image`      | Trivy Docker image with version tag and digest                                      | No       | `aquasec/trivy:0.68.2@sha256:...` |
+| `format`           | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | ``                                |
+| `output`           | Output file path (relative to workspace)                                            | No       | ``                                |
+| `severity`         | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                             | No       | ``                                |
+| `vuln-type`        | Vulnerability types (os,library)                                                    | No       | `os,library`                      |
+| `scanners`         | Scanners to use (vuln,misconfig,secret,license)                                     | No       | `vuln,secret`                     |
+| `skip-dirs`        | Directories to skip (comma-separated)                                               | No       | ``                                |
+| `skip-files`       | Files to skip (comma-separated)                                                     | No       | ``                                |
+| `exit-code`        | Exit code when vulnerabilities are found                                            | No       | `1`                               |
+| `cache-dir`        | Cache directory                                                                     | No       | ``                                |
+| `db-repository`    | Custom database repository                                                          | No       | ``                                |
+| `trivyignore-file` | Path to .trivyignore file                                                           | No       | ``                                |
+| `trivy-config`     | Path to trivy.yaml config file                                                      | No       | ``                                |
+| `github-pat`       | GitHub Personal Access Token for private repositories                               | No       | ``                                |
 
 ### 2.2. Outputs
 
@@ -224,8 +216,6 @@ jobs:
           scanners: "license"
           format: "table"
           output: "license-report.txt"
-          license-full: "true"
-          ignored-licenses: "MIT,Apache-2.0"
 ```
 
 ### 3.6. IaC Misconfiguration Scanning
@@ -360,20 +350,7 @@ The action will automatically detect `.trivyignore` in your repository root, or 
 
 A sample ignore file is provided in [`trivy/.trivyignore`](./trivy/.trivyignore).
 
-### 4.3. Offline Scanning
-
-For air-gapped environments, use offline scanning:
-
-```yaml
-- uses: sentenz/actions/trivy@latest
-  with:
-    scan-type: "fs"
-    scan-target: "."
-    offline-scan: "true"
-    cache-dir: ".trivy-cache"
-```
-
-### 4.4. Publishing SBOM to Release Notes
+### 4.3. Publishing SBOM to Release Notes
 
 Complete workflow for generating and publishing SBOM.
 

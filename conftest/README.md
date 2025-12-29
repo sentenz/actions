@@ -28,14 +28,14 @@ The [Conftest Action](./action.yml) runs to validate configuration files against
 
 ### 2.1. Inputs
 
-| Input            | Description                                             | Required | Default                                             |
-| ---------------- | ------------------------------------------------------- | -------- | --------------------------------------------------- |
-| `path`           | Path to the files/directories to test                   | No       | `.`                                                 |
-| `policy-path`    | Path to the policy directory                            | No       | `policy`                                            |
-| `conftest-image` | Conftest Docker image with version tag and digest       | No       | `openpolicyagent/conftest:v0.65.0@sha256:afa...525` |
-| `output-format`  | Output format (stdout, json, tap, table, junit, github) | No       | `github`                                            |
-| `fail-on-warn`   | Fail on warnings                                        | No       | `false`                                             |
-| `all-namespaces` | Use all namespaces                                      | No       | `true`                                              |
+| Input            | Description                                             | Required | Default                                       |
+| ---------------- | ------------------------------------------------------- | -------- | --------------------------------------------- |
+| `path`           | Path to the files/directories to test                   | No       | `.`                                           |
+| `policy-path`    | Path to the policy directory                            | No       | `policy`                                      |
+| `conftest-image` | Conftest Docker image with version tag and digest       | No       | `openpolicyagent/conftest:v0.65.0@sha256:...` |
+| `output-format`  | Output format (stdout, json, tap, table, junit, github) | No       | `github`                                      |
+| `fail-on-warn`   | Fail on warnings                                        | No       | `false`                                       |
+| `all-namespaces` | Use all namespaces                                      | No       | `true`                                        |
 
 ### 2.2. Outputs
 

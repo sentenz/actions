@@ -31,15 +31,15 @@ The [Renovate Action](./action.yml) runs Renovate to automatically create pull r
 
 ### 2.1. Inputs
 
-| Input            | Description                                       | Required | Default                                                 |
-| ---------------- | ------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `token`          | GitHub token for Renovate                         | Yes      | `${{ github.token }}`                                   |
-| `renovate-image` | Renovate Docker image with version tag and digest | No       | `ghcr.io/renovatebot/renovate:42.64.1@sha256:e09...65a` |
-| `autodiscover`   | Autodiscover repositories                         | No       | `true`                                                  |
-| `config-file`    | Path to renovate configuration file               | No       | ``                                                      |
-| `platform`       | Platform to run on (github, gitlab, etc.)         | No       | `github`                                                |
-| `dry-run`        | Run in dry-run mode                               | No       | `false`                                                 |
-| `log-level`      | Log level (debug, info, warn, error)              | No       | `info`                                                  |
+| Input            | Description                                       | Required | Default                                           |
+| ---------------- | ------------------------------------------------- | -------- | ------------------------------------------------- |
+| `token`          | GitHub token for Renovate                         | Yes      | `${{ github.token }}`                             |
+| `renovate-image` | Renovate Docker image with version tag and digest | No       | `ghcr.io/renovatebot/renovate:42.64.1@sha256:...` |
+| `autodiscover`   | Autodiscover repositories                         | No       | `true`                                            |
+| `config-file`    | Path to renovate configuration file               | No       | ``                                                |
+| `platform`       | Platform to run on (github, gitlab, etc.)         | No       | `github`                                          |
+| `dry-run`        | Run in dry-run mode                               | No       | `false`                                           |
+| `log-level`      | Log level (debug, info, warn, error)              | No       | `info`                                            |
 
 ### 2.2. Outputs
 
