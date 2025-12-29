@@ -13,6 +13,8 @@ jobs:
   trivy-fs-scan:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.1
@@ -29,6 +31,8 @@ jobs:
   trivy-config-scan:
     name: Trivy Configuration Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.1
@@ -45,6 +49,8 @@ jobs:
   trivy-sbom-generate:
     name: Trivy SBOM Generation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.1
@@ -80,6 +86,8 @@ jobs:
   trivy-license-scan:
     name: Trivy License Compliance
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.1
