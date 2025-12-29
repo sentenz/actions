@@ -49,7 +49,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `scan-target`      | Target to scan (path, image name, repo URL)                                         | No       | `.`                               |
 | `trivy-image`      | Trivy Docker image with version tag and digest                                      | No       | `aquasec/trivy:0.68.2@sha256:...` |
 | `format`           | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | ``                                |
-| `output`           | Output file path (relative to workspace)                                            | No       | ``                                |
+| `output`           | Output file path                                                                    | No       | ``                                |
 | `severity`         | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                             | No       | ``                                |
 | `scanners`         | Scanners to use (vuln,misconfig,secret,license)                                     | No       | ``                                |
 | `skip-dirs`        | Directories to skip (comma-separated)                                               | No       | ``                                |

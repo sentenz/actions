@@ -26,7 +26,7 @@ inputs:
     required: false
     default: ""
   output:
-    description: "Output file path (relative to workspace)"
+    description: "Output file path"
     required: false
     default: ""
   severity:
@@ -142,9 +142,7 @@ runs:
         # Add config file if specified (Trivy will use this as base configuration)
         # Order of precedence: CLI flags > Environment variables > Config file > Defaults
         if [[ -n "${{ inputs.trivy-config }}" && -f "${{ inputs.trivy-config }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --config /workspace/${{ inputs.trivy-config }}"
-        elif [[ -f "trivy.yaml" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --config /workspace/trivy.yaml"
+          TRIVY_ARGS="${TRIVY_ARGS} --config ${{ inputs.trivy-config }}"
         fi
 
         # Add format
@@ -152,9 +150,9 @@ runs:
 
         # Add output file if specified
         if [[ -n "${{ inputs.output }}" ]]; then
-          OUTPUT_DIR=$(dirname "/workspace/${{ inputs.output }}")
+          OUTPUT_DIR=$(dirname "${{ inputs.output }}")
           mkdir -p "${OUTPUT_DIR}"
-          TRIVY_ARGS="${TRIVY_ARGS} --output /workspace/${{ inputs.output }}"
+          TRIVY_ARGS="${TRIVY_ARGS} --output ${{ inputs.output }}"
         fi
 
         # Add severity filters (only for vuln scanning, not SBOM generation)
@@ -190,7 +188,7 @@ runs:
 
         # Add cache directory
         if [[ -n "${{ inputs.cache-dir }}" ]]; then
-          CACHE_DIR="/workspace/${{ inputs.cache-dir }}"
+          CACHE_DIR="${{ inputs.cache-dir }}"
           mkdir -p "${CACHE_DIR}"
           TRIVY_ARGS="${TRIVY_ARGS} --cache-dir ${CACHE_DIR}"
         fi
@@ -202,9 +200,7 @@ runs:
 
         # Add .trivyignore file
         if [[ -n "${{ inputs.trivyignore-file }}" && -f "${{ inputs.trivyignore-file }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile /workspace/${{ inputs.trivyignore-file }}"
-        elif [[ -f ".trivyignore" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile /workspace/.trivyignore"
+          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile ${{ inputs.trivyignore-file }}"
         fi
 
         # Add scan target
