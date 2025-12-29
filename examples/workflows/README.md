@@ -11,6 +11,7 @@ The examples workflows directory contains files demonstrating how to use the cen
 | [renovate.yml](./renovate.yml)                 | Automated dependency updates workflow           |
 | [semantic-release.yml](./semantic-release.yml) | Automated release workflow                      |
 | [semgrep.yml](./semgrep.yml)                   | Security scanning workflow                      |
+| [trivy.yml](./trivy.yml)                       | SBOM generation, scanning, and license workflow |
 | [ci.yml](./ci.yml)                             | Complete CI pipeline combining multiple actions |
 
 ## 2. Usage
