@@ -24,6 +24,7 @@ jobs:
         with:
           scan-type: fs
           scan-target: "."
+          format: sarif
         continue-on-error: true
 
   trivy-config-scan:
