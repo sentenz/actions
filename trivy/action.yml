@@ -4,7 +4,6 @@ description: >
   Comprehensive security scanning with Trivy: SBOM generation,
   vulnerability scanning, and license compliance
 author: sentenz
-
 branding:
   icon: shield
   color: purple
@@ -25,7 +24,7 @@ inputs:
   format:
     description: "Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)"
     required: false
-    default: "json"
+    default: ""
   output:
     description: "Output file path (relative to workspace)"
     required: false
@@ -33,7 +32,7 @@ inputs:
   severity:
     description: "Severities to report (comma-separated: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)"
     required: false
-    default: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
+    default: ""
   vuln-type:
     description: "Vulnerability types to scan (comma-separated: os,library)"
     required: false
@@ -50,22 +49,10 @@ inputs:
     description: "Files to skip (comma-separated)"
     required: false
     default: ""
-  timeout:
-    description: "Scan timeout duration"
-    required: false
-    default: "5m0s"
-  ignore-unfixed:
-    description: "Ignore unfixed vulnerabilities"
-    required: false
-    default: "false"
   exit-code:
     description: "Exit code when vulnerabilities are found"
     required: false
     default: "1"
-  list-all-pkgs:
-    description: "List all packages regardless of vulnerabilities"
-    required: false
-    default: "false"
   cache-dir:
     description: "Cache directory"
     required: false
@@ -74,22 +61,6 @@ inputs:
     description: "Custom database repository"
     required: false
     default: ""
-  offline-scan:
-    description: "Disable external API requests"
-    required: false
-    default: "false"
-  license-full:
-    description: "Show full license information (for license scanning)"
-    required: false
-    default: "false"
-  ignored-licenses:
-    description: "Licenses to ignore (comma-separated)"
-    required: false
-    default: ""
-  license-confidence-level:
-    description: "License confidence level (0.0-1.0)"
-    required: false
-    default: "0.9"
   trivyignore-file:
     description: "Path to .trivyignore file"
     required: false
@@ -221,24 +192,9 @@ runs:
           done
         fi
 
-        # Add timeout
-        if [[ -n "${{ inputs.timeout }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --timeout ${{ inputs.timeout }}"
-        fi
-
-        # Add ignore-unfixed flag
-        if [[ "${{ inputs.ignore-unfixed }}" == "true" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --ignore-unfixed"
-        fi
-
         # Add exit-code
         if [[ -n "${{ inputs.exit-code }}" ]]; then
           TRIVY_ARGS="${TRIVY_ARGS} --exit-code ${{ inputs.exit-code }}"
-        fi
-
-        # Add list-all-pkgs flag
-        if [[ "${{ inputs.list-all-pkgs }}" == "true" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --list-all-pkgs"
         fi
 
         # Add cache directory
@@ -251,29 +207,6 @@ runs:
         # Add custom DB repository
         if [[ -n "${{ inputs.db-repository }}" ]]; then
           TRIVY_ARGS="${TRIVY_ARGS} --db-repository ${{ inputs.db-repository }}"
-        fi
-
-        # Add offline scan flag
-        if [[ "${{ inputs.offline-scan }}" == "true" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --offline-scan"
-        fi
-
-        # Add license-specific options (when license scanner is enabled)
-        if [[ "${{ inputs.scanners }}" == *"license"* ]]; then
-          if [[ "${{ inputs.license-full }}" == "true" ]]; then
-            TRIVY_ARGS="${TRIVY_ARGS} --license-full"
-          fi
-
-          if [[ -n "${{ inputs.ignored-licenses }}" ]]; then
-            IFS=',' read -ra IGNORED_LICENSES <<< "${{ inputs.ignored-licenses }}"
-            for lic in "${IGNORED_LICENSES[@]}"; do
-              TRIVY_ARGS="${TRIVY_ARGS} --ignored-licenses ${lic}"
-            done
-          fi
-
-          if [[ -n "${{ inputs.license-confidence-level }}" ]]; then
-            TRIVY_ARGS="${TRIVY_ARGS} --license-confidence-level ${{ inputs.license-confidence-level }}"
-          fi
         fi
 
         # Add .trivyignore file
