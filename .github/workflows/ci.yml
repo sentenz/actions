@@ -1,6 +1,4 @@
-# GitHub Actions Repository Workflows
-#
-# This workflow validates the composite actions in this repository.
+# SPDX-License-Identifier: Apache-2.0
 
 name: CI
 
