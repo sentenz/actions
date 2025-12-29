@@ -40,6 +40,7 @@ jobs:
         with:
           scan-type: config
           scan-target: "."
+          format: sarif
         continue-on-error: true
 
   trivy-sbom-generation:
