@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0](https://github.com/sentenz/actions/compare/1.0.4...1.1.0) (2025-12-29)
+
+
+### Features
+
+* add Trivy composite action for SBOM generation, scanning, and license compliance ([#16](https://github.com/sentenz/actions/issues/16)) ([3f1892f](https://github.com/sentenz/actions/commit/3f1892f0164625bb64104cf7428c8a2f1426973a)), closes [#15](https://github.com/sentenz/actions/issues/15)
+
 ## [1.0.4](https://github.com/sentenz/actions/compare/v1.0.3...1.0.4) (2025-12-23)
 
 
