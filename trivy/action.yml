@@ -1,17 +1,19 @@
 # SPDX-License-Identifier: Apache-2.0
-name: "Trivy"
-description: "Comprehensive security scanning with Trivy: SBOM generation, vulnerability scanning, and license compliance"
-author: "sentenz"
+name: Trivy
+description: >
+  Comprehensive security scanning with Trivy: SBOM generation,
+  vulnerability scanning, and license compliance
+author: sentenz
 
 branding:
-  icon: "shield"
-  color: "purple"
+  icon: shield
+  color: purple
 
 inputs:
   scan-type:
     description: "Type of scan to perform (fs, image, config, repository, rootfs, sbom, sbom-generate)"
     required: false
-    default: "fs"
+    default: fs
   scan-target:
     description: "Target to scan (path for fs/config/rootfs, image name for image, repo URL for repository)"
     required: false
@@ -19,11 +21,11 @@ inputs:
   trivy-image:
     description: "Trivy Docker image with version tag and digest"
     required: false
-    default: "aquasec/trivy:0.58.1@sha256:07e4c5a96ba1dae78f85e10c79e87c93c78c958b42a3e65eb3b3824a56311ad3"
+    default: "aquasec/trivy:0.68.2@sha256:05d0126976bdedcd0782a0336f77832dbea1c81b9cc5e4b3a5ea5d2ec863aca7"
   format:
     description: "Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)"
     required: false
-    default: "json"
+    default: json
   output:
     description: "Output file path (relative to workspace)"
     required: false
@@ -51,19 +53,19 @@ inputs:
   timeout:
     description: "Scan timeout duration"
     required: false
-    default: "5m0s"
+    default: 5m0s
   ignore-unfixed:
     description: "Ignore unfixed vulnerabilities"
     required: false
-    default: "false"
+    default: false
   exit-code:
     description: "Exit code when vulnerabilities are found"
     required: false
-    default: "1"
+    default: 1
   list-all-pkgs:
     description: "List all packages regardless of vulnerabilities"
     required: false
-    default: "false"
+    default: false
   cache-dir:
     description: "Cache directory"
     required: false
@@ -75,11 +77,11 @@ inputs:
   offline-scan:
     description: "Disable external API requests"
     required: false
-    default: "false"
+    default: false
   license-full:
     description: "Show full license information (for license scanning)"
     required: false
-    default: "false"
+    default: false
   ignored-licenses:
     description: "Licenses to ignore (comma-separated)"
     required: false
@@ -87,7 +89,7 @@ inputs:
   license-confidence-level:
     description: "License confidence level (0.0-1.0)"
     required: false
-    default: "0.9"
+    default: 0.9
   trivyignore-file:
     description: "Path to .trivyignore file"
     required: false
@@ -248,7 +250,7 @@ runs:
           if [[ "${{ inputs.license-full }}" == "true" ]]; then
             TRIVY_ARGS="${TRIVY_ARGS} --license-full"
           fi
-          
+
           if [[ -n "${{ inputs.ignored-licenses }}" ]]; then
             IFS=',' read -ra IGNORED_LICENSES <<< "${{ inputs.ignored-licenses }}"
             for lic in "${IGNORED_LICENSES[@]}"; do
@@ -273,7 +275,7 @@ runs:
 
         # Prepare Docker run command with appropriate volume mounts
         DOCKER_ARGS="--rm -v ${PWD}:/workspace -w /workspace"
-        
+
         # Mount docker socket for image scanning
         if [[ "${{ inputs.scan-type }}" == "image" || ("${{ inputs.scan-type }}" == "sbom-generate" && "${{ inputs.scan-target }}" =~ ^[a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+$) ]]; then
           DOCKER_ARGS="${DOCKER_ARGS} -v /var/run/docker.sock:/var/run/docker.sock"
@@ -295,7 +297,7 @@ runs:
         echo "${RESULT}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
         echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
-        
+
         if [[ -n "${{ inputs.output }}" ]]; then
           echo "output-file=${{ inputs.output }}" >> $GITHUB_OUTPUT
         fi

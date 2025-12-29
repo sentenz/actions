@@ -48,7 +48,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | --------------------------- | ------------------------------------------------------------------------------------ | -------- | ------------------------------------- |
 | `scan-type`                 | Type of scan (fs, image, config, repository, rootfs, sbom, sbom-generate)           | No       | `fs`                                  |
 | `scan-target`               | Target to scan (path, image name, repo URL)                                          | No       | `.`                                   |
-| `trivy-image`               | Trivy Docker image with version tag and digest                                       | No       | `aquasec/trivy:0.58.1@sha256:...`     |
+| `trivy-image`               | Trivy Docker image with version tag and digest                                       | No       | `aquasec/trivy:0.68.2@sha256:...`     |
 | `format`                    | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | `json`                                |
 | `output`                    | Output file path (relative to workspace)                                             | No       | ``                                    |
 | `severity`                  | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                              | No       | `UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL`    |
