@@ -54,7 +54,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `scanners`         | Scanners to use (vuln,misconfig,secret,license)                                     | No       | ``                                |
 | `skip-dirs`        | Directories to skip (comma-separated)                                               | No       | ``                                |
 | `skip-files`       | Files to skip (comma-separated)                                                     | No       | ``                                |
-| `exit-code`        | Exit code when vulnerabilities are found                                            | No       | `1`                               |
+| `exit-code`        | Exit code when vulnerabilities are found                                            | No       | ``                                |
 | `cache-dir`        | Cache directory                                                                     | No       | ``                                |
 | `db-repository`    | Custom database repository                                                          | No       | ``                                |
 | `trivyignore-file` | Path to .trivyignore file                                                           | No       | ``                                |

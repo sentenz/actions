@@ -48,7 +48,7 @@ inputs:
   exit-code:
     description: "Exit code when vulnerabilities are found"
     required: false
-    default: "1"
+    default: ""
   cache-dir:
     description: "Cache directory"
     required: false
