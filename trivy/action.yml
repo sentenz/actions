@@ -152,8 +152,9 @@ runs:
 
         # Determine the actual scan command based on scan-type
         if [[ "${{ inputs.scan-type }}" == "sbom-generate" ]]; then
-          # For SBOM generation, we use the base scan type (fs or image) with SBOM format
-          if [[ "${{ inputs.scan-target }}" =~ ^[a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+$ ]] || [[ "${{ inputs.scan-target }}" =~ ^[a-zA-Z0-9._/-]+@sha256: ]]; then
+          # For SBOM generation, detect if target is an image or filesystem
+          # Image format: [registry.host:port/]namespace/image[:tag|@digest]
+          if [[ "${{ inputs.scan-target }}" =~ .*:.* ]] && [[ ! -e "${{ inputs.scan-target }}" ]]; then
             TRIVY_COMMAND="image"
           else
             TRIVY_COMMAND="filesystem"
@@ -187,8 +188,8 @@ runs:
           TRIVY_ARGS="${TRIVY_ARGS} --vuln-type ${{ inputs.vuln-type }}"
         fi
 
-        # Add scanners
-        if [[ -n "${{ inputs.scanners }}" ]]; then
+        # Add scanners (only for applicable scan types)
+        if [[ -n "${{ inputs.scanners }}" && "${{ inputs.scan-type }}" != "sbom-generate" ]]; then
           TRIVY_ARGS="${TRIVY_ARGS} --scanners ${{ inputs.scanners }}"
         fi
 
@@ -277,7 +278,8 @@ runs:
         DOCKER_ARGS="--rm -v ${PWD}:/workspace -w /workspace"
 
         # Mount docker socket for image scanning
-        if [[ "${{ inputs.scan-type }}" == "image" || ("${{ inputs.scan-type }}" == "sbom-generate" && "${{ inputs.scan-target }}" =~ ^[a-zA-Z0-9._/-]+:[a-zA-Z0-9._-]+$) ]]; then
+        if [[ "${{ inputs.scan-type }}" == "image" ]] || \
+           [[ "${{ inputs.scan-type }}" == "sbom-generate" && "${TRIVY_COMMAND}" == "image" ]]; then
           DOCKER_ARGS="${DOCKER_ARGS} -v /var/run/docker.sock:/var/run/docker.sock"
         fi
 

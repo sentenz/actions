@@ -145,14 +145,11 @@ jobs:
 
       - name: Attach SBOM to release
         if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v2
+        with:
+          files: sbom.cdx.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: sbom.cdx.json
-          asset_name: sbom-cyclonedx.json
-          asset_content_type: application/json
 ```
 
 ### 3.4. SBOM Generation (SPDX)
