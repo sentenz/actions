@@ -22,10 +22,8 @@ jobs:
       - name: Run Trivy Filesystem Scan
         uses: ./trivy
         with:
-          scan-type: "fs"
+          scan-type: fs
           scan-target: "."
-          format: "table"
-          severity: "HIGH,CRITICAL"
         continue-on-error: true
 
   trivy-config-scan:
@@ -40,13 +38,11 @@ jobs:
       - name: Run Trivy Config Scan
         uses: ./trivy
         with:
-          scan-type: "config"
+          scan-type: config
           scan-target: "."
-          format: "table"
-          severity: "HIGH,CRITICAL"
         continue-on-error: true
 
-  trivy-sbom-generate:
+  trivy-sbom-generation:
     name: Trivy Action - SBOM Generation
     runs-on: ubuntu-latest
     permissions:
@@ -58,7 +54,7 @@ jobs:
       - name: Generate CycloneDX SBOM
         uses: ./trivy
         with:
-          scan-type: "sbom-generate"
+          scan-type: sbom-generate
           scan-target: "."
           format: "cyclonedx"
           output: "sbom.cdx.json"
@@ -67,7 +63,7 @@ jobs:
       - name: Generate SPDX SBOM
         uses: ./trivy
         with:
-          scan-type: "sbom-generate"
+          scan-type: sbom-generate
           scan-target: "."
           format: "spdx-json"
           output: "sbom.spdx.json"
@@ -83,7 +79,7 @@ jobs:
             sbom.spdx.json
         continue-on-error: true
 
-  trivy-license-scan:
+  trivy-license-compliance:
     name: Trivy Action - License Compliance
     runs-on: ubuntu-latest
     permissions:
@@ -95,9 +91,8 @@ jobs:
       - name: Run License Compliance Scan
         uses: ./trivy
         with:
-          scan-type: "fs"
+          scan-type: fs
           scan-target: "."
           scanners: "license"
           format: "table"
-          license-full: "true"
         continue-on-error: true

@@ -13,8 +13,8 @@ on:
     types: [created]
 
 jobs:
-  trivy-vulnerability-scan:
-    name: Trivy Action - Vulnerability Scan
+  trivy-fs-scan:
+    name: Trivy Action - Filesystem Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,7 +30,6 @@ jobs:
           scan-target: .
           format: sarif
           output: trivy-results.sarif
-          severity: HIGH,CRITICAL
 
       - name: Upload results to GitHub Security
         if: always()
@@ -122,11 +121,10 @@ jobs:
           scan-target: .
           scanners: license
           format: table
-          license-full: "true"
         continue-on-error: true
 
-  trivy-iac-scan:
-    name: Trivy Action - IaC Scan
+  trivy-config-scan:
+    name: Trivy Action - Configuration Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -135,7 +133,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run IaC misconfiguration scan
+      - name: Run Trivy Config Scan
         uses: sentenz/actions/trivy@latest
         with:
           scan-type: config
