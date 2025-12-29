@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/sentenz/actions/compare/1.1.2...1.1.3) (2025-12-29)
+
+
+### Bug Fixes
+
+* remove format validation and update format handling in Trivy action ([b064d2d](https://github.com/sentenz/actions/commit/b064d2d9a3be2e04a260c75c62b94c9ed7df598d))
+
 ## [1.1.2](https://github.com/sentenz/actions/compare/1.1.1...1.1.2) (2025-12-29)
 
 
