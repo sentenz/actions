@@ -100,13 +100,6 @@ runs:
           exit 1
         fi
 
-        # Validate format
-        VALID_FORMATS="table json sarif cyclonedx spdx spdx-json github cosign-vuln"
-        if ! echo "${VALID_FORMATS}" | grep -w "${{ inputs.format }}" > /dev/null; then
-          echo "::error::Invalid format '${{ inputs.format }}'. Must be one of: ${VALID_FORMATS}"
-          exit 1
-        fi
-
         # Validate SBOM format for sbom-generate
         if [[ "${{ inputs.scan-type }}" == "sbom-generate" ]]; then
           if [[ "${{ inputs.format }}" != "cyclonedx" && "${{ inputs.format }}" != "spdx" && "${{ inputs.format }}" != "spdx-json" ]]; then
@@ -146,7 +139,9 @@ runs:
         fi
 
         # Add format
-        TRIVY_ARGS="${TRIVY_ARGS} --format ${{ inputs.format }}"
+        if [[ -n "${{ inputs.format }}" ]]; then
+          TRIVY_ARGS="${TRIVY_ARGS} --format ${{ inputs.format }}"
+        fi
 
         # Add output file if specified
         if [[ -n "${{ inputs.output }}" ]]; then
