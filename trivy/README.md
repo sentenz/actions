@@ -51,7 +51,6 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `format`           | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | ``                                |
 | `output`           | Output file path (relative to workspace)                                            | No       | ``                                |
 | `severity`         | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                             | No       | ``                                |
-| `vuln-type`        | Vulnerability types (os,library)                                                    | No       | `os,library`                      |
 | `scanners`         | Scanners to use (vuln,misconfig,secret,license)                                     | No       | `vuln,secret`                     |
 | `skip-dirs`        | Directories to skip (comma-separated)                                               | No       | ``                                |
 | `skip-files`       | Files to skip (comma-separated)                                                     | No       | ``                                |

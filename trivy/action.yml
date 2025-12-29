@@ -33,10 +33,6 @@ inputs:
     description: "Severities to report (comma-separated: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)"
     required: false
     default: ""
-  vuln-type:
-    description: "Vulnerability types to scan (comma-separated: os,library)"
-    required: false
-    default: "os,library"
   scanners:
     description: "Scanners to use (comma-separated: vuln,misconfig,secret,license)"
     required: false
@@ -164,11 +160,6 @@ runs:
         # Add severity filters (only for vuln scanning, not SBOM generation)
         if [[ "${{ inputs.scan-type }}" != "sbom-generate" && -n "${{ inputs.severity }}" ]]; then
           TRIVY_ARGS="${TRIVY_ARGS} --severity ${{ inputs.severity }}"
-        fi
-
-        # Add vuln-type (only for vuln scanning)
-        if [[ "${{ inputs.scan-type }}" != "sbom-generate" && -n "${{ inputs.vuln-type }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --vuln-type ${{ inputs.vuln-type }}"
         fi
 
         # Add scanners (only for applicable scan types)
