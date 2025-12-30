@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/sentenz/actions/compare/1.1.3...1.1.4) (2025-12-30)
+
+
+### Bug Fixes
+
+* add allowance for direct dependency types in Dependabot configuration ([19012a2](https://github.com/sentenz/actions/commit/19012a2bb96dee2e9dea8fd928ebf24db07e88fd))
+
 ## [1.1.3](https://github.com/sentenz/actions/compare/1.1.2...1.1.3) (2025-12-29)
 
 
