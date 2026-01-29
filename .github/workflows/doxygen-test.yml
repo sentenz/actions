@@ -10,6 +10,42 @@ on:
       - main
 
 jobs:
+  doxygen-cpp-example:
+    name: Doxygen Action - C++ API Example
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Generate Documentation from C++ Example
+        uses: ./doxygen
+        with:
+          doxyfile-path: tests/doxygen/cpp-example/Doxyfile
+          source-dir: tests/doxygen/cpp-example
+          output-dir: tests/doxygen/cpp-example/docs
+
+      - name: Verify Documentation
+        run: |
+          if [ -d "tests/doxygen/cpp-example/docs/html" ]; then
+            echo "✅ C++ API documentation generated successfully"
+            echo "Checking for key files..."
+            [ -f "tests/doxygen/cpp-example/docs/html/index.html" ] && echo "  ✓ index.html"
+            [ -d "tests/doxygen/cpp-example/docs/html/search" ] && echo "  ✓ search directory"
+            ls -lh tests/doxygen/cpp-example/docs/html/*.html | head -5
+          else
+            echo "❌ Documentation generation failed"
+            exit 1
+          fi
+
+      - name: Upload C++ Example Documentation
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: cpp-api-documentation
+          path: tests/doxygen/cpp-example/docs/html
+
   doxygen-basic:
     name: Doxygen Action - Basic Documentation
     runs-on: ubuntu-latest

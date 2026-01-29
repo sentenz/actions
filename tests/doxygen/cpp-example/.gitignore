@@ -1,0 +1,21 @@
+# Generated documentation
+docs/
+
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so
+*.dylib
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Doxygen temporary files
+Doxyfile.tmp
