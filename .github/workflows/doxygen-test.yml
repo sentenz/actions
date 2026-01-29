@@ -1,0 +1,157 @@
+name: Doxygen Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  doxygen-basic:
+    name: Doxygen Action - Basic Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Create sample source code
+        run: |
+          mkdir -p test-src
+          cat > test-src/example.h << 'EOF'
+          /**
+           * @file example.h
+           * @brief Example header file for testing Doxygen
+           */
+
+          #ifndef EXAMPLE_H
+          #define EXAMPLE_H
+
+          /**
+           * @brief A simple example class
+           */
+          class ExampleClass {
+          public:
+              /**
+               * @brief Constructor
+               */
+              ExampleClass();
+
+              /**
+               * @brief Destructor
+               */
+              ~ExampleClass();
+
+              /**
+               * @brief A sample method
+               * @param value An integer value
+               * @return The processed result
+               */
+              int processValue(int value);
+
+          private:
+              int data; ///< Internal data member
+          };
+
+          #endif // EXAMPLE_H
+          EOF
+
+          cat > test-src/example.cpp << 'EOF'
+          /**
+           * @file example.cpp
+           * @brief Implementation of ExampleClass
+           */
+
+          #include "example.h"
+
+          ExampleClass::ExampleClass() : data(0) {
+          }
+
+          ExampleClass::~ExampleClass() {
+          }
+
+          int ExampleClass::processValue(int value) {
+              return value * 2;
+          }
+          EOF
+
+      - name: Generate Documentation
+        uses: ./doxygen
+        with:
+          source-dir: test-src
+          output-dir: test-docs
+          project-name: Test Project
+          project-version: 1.0.0
+          generate-html: true
+          recursive: true
+          extract-all: true
+        continue-on-error: true
+
+      - name: Verify Documentation
+        run: |
+          if [ -d "test-docs/html" ]; then
+            echo "✅ Documentation generated successfully"
+            ls -lah test-docs/html
+          else
+            echo "❌ Documentation generation failed"
+            exit 1
+          fi
+
+      - name: Upload Documentation
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: test-documentation
+          path: test-docs/html
+        continue-on-error: true
+
+  doxygen-custom-doxyfile:
+    name: Doxygen Action - Custom Doxyfile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Create sample source code
+        run: |
+          mkdir -p test-src
+          cat > test-src/sample.c << 'EOF'
+          /**
+           * @file sample.c
+           * @brief Sample C file
+           */
+
+          #include <stdio.h>
+
+          /**
+           * @brief Main function
+           * @return Exit code
+           */
+          int main(void) {
+              printf("Hello, Doxygen!\n");
+              return 0;
+          }
+          EOF
+
+      - name: Generate Documentation with Custom Doxyfile
+        uses: ./doxygen
+        with:
+          doxyfile-path: doxygen/config/Doxyfile
+          source-dir: test-src
+          output-dir: custom-docs
+        continue-on-error: true
+
+      - name: Verify Documentation
+        run: |
+          if [ -d "custom-docs/html" ]; then
+            echo "✅ Custom Doxyfile documentation generated"
+          else
+            echo "❌ Documentation with custom Doxyfile failed"
+            exit 1
+          fi

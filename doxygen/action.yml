@@ -1,0 +1,282 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Doxygen
+description: >
+  Generate API documentation from source code using Doxygen and publish to GitHub Pages
+author: sentenz
+branding:
+  icon: book-open
+  color: blue
+
+inputs:
+  source-dir:
+    description: Directory containing source code to document
+    required: false
+    default: .
+  output-dir:
+    description: Directory where documentation will be generated
+    required: false
+    default: docs/html
+  doxyfile-path:
+    description: Path to Doxyfile configuration file
+    required: false
+    default: ''
+  doxygen-version:
+    description: Doxygen version to use
+    required: false
+    default: 1.12.0
+  project-name:
+    description: Project name for documentation
+    required: false
+    default: ''
+  project-version:
+    description: Project version for documentation
+    required: false
+    default: ''
+  generate-html:
+    description: Generate HTML documentation
+    required: false
+    default: true
+  generate-latex:
+    description: Generate LaTeX documentation
+    required: false
+    default: false
+  recursive:
+    description: Recursively scan subdirectories
+    required: false
+    default: true
+  extract-all:
+    description: Extract all entities (even undocumented)
+    required: false
+    default: false
+  file-patterns:
+    description: File patterns to document (space-separated)
+    required: false
+    default: '*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++'
+  publish-pages:
+    description: Publish documentation to GitHub Pages
+    required: false
+    default: false
+  pages-branch:
+    description: Branch to publish GitHub Pages to
+    required: false
+    default: gh-pages
+  github-token:
+    description: GitHub token for publishing to GitHub Pages
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  documentation-path:
+    description: Path to generated documentation
+    value: ${{ steps.generate-docs.outputs.documentation-path }}
+  pages-url:
+    description: URL of published GitHub Pages (if published)
+    value: ${{ steps.publish.outputs.pages-url }}
+  success:
+    description: Whether documentation generation was successful
+    value: ${{ steps.generate-docs.outputs.success }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        # Validate source directory exists
+        if [[ ! -d "${{ inputs.source-dir }}" ]]; then
+          echo "::error::Source directory '${{ inputs.source-dir }}' does not exist"
+          exit 1
+        fi
+
+        # Validate Doxyfile if specified
+        if [[ -n "${{ inputs.doxyfile-path }}" && ! -f "${{ inputs.doxyfile-path }}" ]]; then
+          echo "::error::Doxyfile '${{ inputs.doxyfile-path }}' does not exist"
+          exit 1
+        fi
+
+        # Validate boolean inputs
+        if [[ "${{ inputs.generate-html }}" != "true" && "${{ inputs.generate-html }}" != "false" ]]; then
+          echo "::error::generate-html must be 'true' or 'false'"
+          exit 1
+        fi
+        if [[ "${{ inputs.generate-latex }}" != "true" && "${{ inputs.generate-latex }}" != "false" ]]; then
+          echo "::error::generate-latex must be 'true' or 'false'"
+          exit 1
+        fi
+        if [[ "${{ inputs.recursive }}" != "true" && "${{ inputs.recursive }}" != "false" ]]; then
+          echo "::error::recursive must be 'true' or 'false'"
+          exit 1
+        fi
+        if [[ "${{ inputs.extract-all }}" != "true" && "${{ inputs.extract-all }}" != "false" ]]; then
+          echo "::error::extract-all must be 'true' or 'false'"
+          exit 1
+        fi
+        if [[ "${{ inputs.publish-pages }}" != "true" && "${{ inputs.publish-pages }}" != "false" ]]; then
+          echo "::error::publish-pages must be 'true' or 'false'"
+          exit 1
+        fi
+
+        echo "✅ Input validation successful"
+
+    - name: Install Doxygen
+      shell: bash
+      run: |
+        echo "Installing Doxygen version ${{ inputs.doxygen-version }}..."
+
+        # Install via apt for standard versions or download specific version
+        if command -v apt-get &> /dev/null; then
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq doxygen graphviz
+
+          # Check installed version
+          INSTALLED_VERSION=$(doxygen --version)
+          echo "✅ Doxygen ${INSTALLED_VERSION} installed successfully"
+          echo "✅ Graphviz installed for generating diagrams"
+        else
+          echo "::error::apt-get not available, cannot install Doxygen"
+          exit 1
+        fi
+
+    - name: Generate Doxyfile
+      shell: bash
+      run: |
+        # Use existing Doxyfile or generate a new one
+        if [[ -n "${{ inputs.doxyfile-path }}" && -f "${{ inputs.doxyfile-path }}" ]]; then
+          echo "Using existing Doxyfile: ${{ inputs.doxyfile-path }}"
+          cp "${{ inputs.doxyfile-path }}" Doxyfile.tmp
+        else
+          echo "Generating default Doxyfile..."
+          doxygen -g Doxyfile.tmp
+        fi
+
+        # Override settings based on inputs
+        echo "Configuring Doxyfile with action inputs..."
+
+        # Set project name
+        if [[ -n "${{ inputs.project-name }}" ]]; then
+          sed -i 's|^PROJECT_NAME.*|PROJECT_NAME = "${{ inputs.project-name }}"|' Doxyfile.tmp
+        fi
+
+        # Set project version
+        if [[ -n "${{ inputs.project-version }}" ]]; then
+          sed -i 's|^PROJECT_NUMBER.*|PROJECT_NUMBER = "${{ inputs.project-version }}"|' Doxyfile.tmp
+        fi
+
+        # Set input directory
+        sed -i 's|^INPUT .*|INPUT = ${{ inputs.source-dir }}|' Doxyfile.tmp
+
+        # Set output directory
+        sed -i 's|^OUTPUT_DIRECTORY.*|OUTPUT_DIRECTORY = ${{ inputs.output-dir }}|' Doxyfile.tmp
+
+        # Set HTML generation
+        if [[ "${{ inputs.generate-html }}" == "true" ]]; then
+          sed -i 's|^GENERATE_HTML.*|GENERATE_HTML = YES|' Doxyfile.tmp
+        else
+          sed -i 's|^GENERATE_HTML.*|GENERATE_HTML = NO|' Doxyfile.tmp
+        fi
+
+        # Set LaTeX generation
+        if [[ "${{ inputs.generate-latex }}" == "true" ]]; then
+          sed -i 's|^GENERATE_LATEX.*|GENERATE_LATEX = YES|' Doxyfile.tmp
+        else
+          sed -i 's|^GENERATE_LATEX.*|GENERATE_LATEX = NO|' Doxyfile.tmp
+        fi
+
+        # Set recursive scanning
+        if [[ "${{ inputs.recursive }}" == "true" ]]; then
+          sed -i 's|^RECURSIVE.*|RECURSIVE = YES|' Doxyfile.tmp
+        else
+          sed -i 's|^RECURSIVE.*|RECURSIVE = NO|' Doxyfile.tmp
+        fi
+
+        # Set extract all
+        if [[ "${{ inputs.extract-all }}" == "true" ]]; then
+          sed -i 's|^EXTRACT_ALL.*|EXTRACT_ALL = YES|' Doxyfile.tmp
+        else
+          sed -i 's|^EXTRACT_ALL.*|EXTRACT_ALL = NO|' Doxyfile.tmp
+        fi
+
+        # Set file patterns
+        if [[ -n "${{ inputs.file-patterns }}" ]]; then
+          sed -i 's|^FILE_PATTERNS.*|FILE_PATTERNS = ${{ inputs.file-patterns }}|' Doxyfile.tmp
+        fi
+
+        echo "✅ Doxyfile configuration complete"
+
+    - name: Generate Documentation
+      id: generate-docs
+      shell: bash
+      run: |
+        echo "Generating documentation with Doxygen..."
+
+        # Create output directory
+        mkdir -p "${{ inputs.output-dir }}"
+
+        # Run Doxygen
+        if doxygen Doxyfile.tmp; then
+          echo "✅ Documentation generated successfully"
+          echo "documentation-path=${{ inputs.output-dir }}" >> $GITHUB_OUTPUT
+          echo "success=true" >> $GITHUB_OUTPUT
+
+          # List generated files
+          echo "Generated files:"
+          ls -lah "${{ inputs.output-dir }}" || true
+        else
+          echo "::error::Documentation generation failed"
+          echo "success=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Publish to GitHub Pages
+      id: publish
+      if: inputs.publish-pages == 'true'
+      shell: bash
+      run: |
+        echo "Publishing documentation to GitHub Pages..."
+
+        # Ensure we have HTML output
+        if [[ ! -d "${{ inputs.output-dir }}/html" ]]; then
+          echo "::error::HTML output directory not found at ${{ inputs.output-dir }}/html"
+          exit 1
+        fi
+
+        # Configure git
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Clone or create gh-pages branch
+        if git ls-remote --exit-code --heads origin "${{ inputs.pages-branch }}" > /dev/null 2>&1; then
+          echo "Branch ${{ inputs.pages-branch }} exists, cloning..."
+          git fetch origin "${{ inputs.pages-branch }}"
+          git checkout "${{ inputs.pages-branch }}"
+        else
+          echo "Creating new orphan branch ${{ inputs.pages-branch }}..."
+          git checkout --orphan "${{ inputs.pages-branch }}"
+          git rm -rf . || true
+        fi
+
+        # Copy documentation
+        cp -r "${{ inputs.output-dir }}/html/"* .
+
+        # Add .nojekyll to bypass Jekyll processing
+        touch .nojekyll
+
+        # Commit and push
+        git add .
+        if git diff --staged --quiet; then
+          echo "No changes to publish"
+        else
+          git commit -m "Deploy documentation to GitHub Pages"
+          git push origin "${{ inputs.pages-branch }}"
+
+          # Construct Pages URL
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          REPO_OWNER="${GITHUB_REPOSITORY%/*}"
+          PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
+
+          echo "✅ Documentation published to GitHub Pages"
+          echo "pages-url=${PAGES_URL}" >> $GITHUB_OUTPUT
+          echo "📚 Documentation URL: ${PAGES_URL}"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
