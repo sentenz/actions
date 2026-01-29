@@ -251,7 +251,9 @@ runs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
         # Set up authenticated remote URL
-        git remote set-url origin "https://x-access-token:${{ inputs.github-token }}@github.com/${GITHUB_REPOSITORY}.git"
+        REMOTE_URL="https://x-access-token:${{ inputs.github-token }}"
+        REMOTE_URL="${REMOTE_URL}@github.com/${GITHUB_REPOSITORY}.git"
+        git remote set-url origin "${REMOTE_URL}"
 
         # Clone or create gh-pages branch
         if git ls-remote --exit-code --heads origin "${{ inputs.pages-branch }}" > /dev/null 2>&1; then
