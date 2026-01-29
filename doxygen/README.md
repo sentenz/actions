@@ -39,7 +39,7 @@ The [Doxygen Action](./action.yml) generates API documentation from source code 
 | Input             | Description                                         | Required | Default                                        |
 | ----------------- | --------------------------------------------------- | -------- | ---------------------------------------------- |
 | `source-dir`      | Directory containing source code to document        | No       | `.`                                            |
-| `output-dir`      | Directory where documentation will be generated     | No       | `docs/html`                                    |
+| `output-dir`      | Directory where documentation will be generated     | No       | `docs`                                         |
 | `doxyfile-path`   | Path to Doxyfile configuration file                 | No       | ``                                             |
 | `doxygen-version` | Doxygen version to use                              | No       | `1.12.0`                                       |
 | `project-name`    | Project name for documentation                      | No       | ``                                             |

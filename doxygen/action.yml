@@ -15,7 +15,7 @@ inputs:
   output-dir:
     description: Directory where documentation will be generated
     required: false
-    default: docs/html
+    default: docs
   doxyfile-path:
     description: Path to Doxyfile configuration file
     required: false
@@ -137,7 +137,7 @@ runs:
           exit 1
         fi
 
-    - name: Generate Doxyfile
+    - name: Configure Doxyfile
       shell: bash
       run: |
         # Use existing Doxyfile or generate a new one
@@ -154,51 +154,56 @@ runs:
 
         # Set project name
         if [[ -n "${{ inputs.project-name }}" ]]; then
-          sed -i 's|^PROJECT_NAME.*|PROJECT_NAME = "${{ inputs.project-name }}"|' Doxyfile.tmp
+          PROJECT_NAME=$(echo "${{ inputs.project-name }}" | sed 's/[\/&]/\\&/g')
+          sed -i "s|^PROJECT_NAME[[:space:]]*=.*|PROJECT_NAME = \"${PROJECT_NAME}\"|" Doxyfile.tmp
         fi
 
         # Set project version
         if [[ -n "${{ inputs.project-version }}" ]]; then
-          sed -i 's|^PROJECT_NUMBER.*|PROJECT_NUMBER = "${{ inputs.project-version }}"|' Doxyfile.tmp
+          PROJECT_VERSION=$(echo "${{ inputs.project-version }}" | sed 's/[\/&]/\\&/g')
+          sed -i "s|^PROJECT_NUMBER[[:space:]]*=.*|PROJECT_NUMBER = \"${PROJECT_VERSION}\"|" Doxyfile.tmp
         fi
 
         # Set input directory
-        sed -i 's|^INPUT .*|INPUT = ${{ inputs.source-dir }}|' Doxyfile.tmp
+        INPUT_DIR=$(echo "${{ inputs.source-dir }}" | sed 's/[\/&]/\\&/g')
+        sed -i "s|^INPUT[[:space:]]*=.*|INPUT = ${INPUT_DIR}|" Doxyfile.tmp
 
         # Set output directory
-        sed -i 's|^OUTPUT_DIRECTORY.*|OUTPUT_DIRECTORY = ${{ inputs.output-dir }}|' Doxyfile.tmp
+        OUTPUT_DIR=$(echo "${{ inputs.output-dir }}" | sed 's/[\/&]/\\&/g')
+        sed -i "s|^OUTPUT_DIRECTORY[[:space:]]*=.*|OUTPUT_DIRECTORY = ${OUTPUT_DIR}|" Doxyfile.tmp
 
         # Set HTML generation
         if [[ "${{ inputs.generate-html }}" == "true" ]]; then
-          sed -i 's|^GENERATE_HTML.*|GENERATE_HTML = YES|' Doxyfile.tmp
+          sed -i 's|^GENERATE_HTML[[:space:]]*=.*|GENERATE_HTML = YES|' Doxyfile.tmp
         else
-          sed -i 's|^GENERATE_HTML.*|GENERATE_HTML = NO|' Doxyfile.tmp
+          sed -i 's|^GENERATE_HTML[[:space:]]*=.*|GENERATE_HTML = NO|' Doxyfile.tmp
         fi
 
         # Set LaTeX generation
         if [[ "${{ inputs.generate-latex }}" == "true" ]]; then
-          sed -i 's|^GENERATE_LATEX.*|GENERATE_LATEX = YES|' Doxyfile.tmp
+          sed -i 's|^GENERATE_LATEX[[:space:]]*=.*|GENERATE_LATEX = YES|' Doxyfile.tmp
         else
-          sed -i 's|^GENERATE_LATEX.*|GENERATE_LATEX = NO|' Doxyfile.tmp
+          sed -i 's|^GENERATE_LATEX[[:space:]]*=.*|GENERATE_LATEX = NO|' Doxyfile.tmp
         fi
 
         # Set recursive scanning
         if [[ "${{ inputs.recursive }}" == "true" ]]; then
-          sed -i 's|^RECURSIVE.*|RECURSIVE = YES|' Doxyfile.tmp
+          sed -i 's|^RECURSIVE[[:space:]]*=.*|RECURSIVE = YES|' Doxyfile.tmp
         else
-          sed -i 's|^RECURSIVE.*|RECURSIVE = NO|' Doxyfile.tmp
+          sed -i 's|^RECURSIVE[[:space:]]*=.*|RECURSIVE = NO|' Doxyfile.tmp
         fi
 
         # Set extract all
         if [[ "${{ inputs.extract-all }}" == "true" ]]; then
-          sed -i 's|^EXTRACT_ALL.*|EXTRACT_ALL = YES|' Doxyfile.tmp
+          sed -i 's|^EXTRACT_ALL[[:space:]]*=.*|EXTRACT_ALL = YES|' Doxyfile.tmp
         else
-          sed -i 's|^EXTRACT_ALL.*|EXTRACT_ALL = NO|' Doxyfile.tmp
+          sed -i 's|^EXTRACT_ALL[[:space:]]*=.*|EXTRACT_ALL = NO|' Doxyfile.tmp
         fi
 
         # Set file patterns
         if [[ -n "${{ inputs.file-patterns }}" ]]; then
-          sed -i 's|^FILE_PATTERNS.*|FILE_PATTERNS = ${{ inputs.file-patterns }}|' Doxyfile.tmp
+          FILE_PATTERNS=$(echo "${{ inputs.file-patterns }}" | sed 's/[\/&]/\\&/g')
+          sed -i "s|^FILE_PATTERNS[[:space:]]*=.*|FILE_PATTERNS = ${FILE_PATTERNS}|" Doxyfile.tmp
         fi
 
         echo "✅ Doxyfile configuration complete"
@@ -215,7 +220,8 @@ runs:
         # Run Doxygen
         if doxygen Doxyfile.tmp; then
           echo "✅ Documentation generated successfully"
-          echo "documentation-path=${{ inputs.output-dir }}" >> $GITHUB_OUTPUT
+          # Output both the base output directory and the HTML directory
+          echo "documentation-path=${{ inputs.output-dir }}/html" >> $GITHUB_OUTPUT
           echo "success=true" >> $GITHUB_OUTPUT
 
           # List generated files
@@ -240,9 +246,12 @@ runs:
           exit 1
         fi
 
-        # Configure git
+        # Configure git with authentication
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Set up authenticated remote URL
+        git remote set-url origin "https://x-access-token:${{ inputs.github-token }}@github.com/${GITHUB_REPOSITORY}.git"
 
         # Clone or create gh-pages branch
         if git ls-remote --exit-code --heads origin "${{ inputs.pages-branch }}" > /dev/null 2>&1; then
@@ -255,8 +264,8 @@ runs:
           git rm -rf . || true
         fi
 
-        # Copy documentation
-        cp -r "${{ inputs.output-dir }}/html/"* .
+        # Copy documentation (using . to include hidden files)
+        cp -r "${{ inputs.output-dir }}/html/." .
 
         # Add .nojekyll to bypass Jekyll processing
         touch .nojekyll
@@ -278,5 +287,3 @@ runs:
           echo "pages-url=${PAGES_URL}" >> $GITHUB_OUTPUT
           echo "📚 Documentation URL: ${PAGES_URL}"
         fi
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}

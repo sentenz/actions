@@ -89,7 +89,6 @@ jobs:
           generate-html: true
           recursive: true
           extract-all: true
-        continue-on-error: true
 
       - name: Verify Documentation
         run: |
@@ -145,7 +144,6 @@ jobs:
           doxyfile-path: doxygen/config/Doxyfile
           source-dir: test-src
           output-dir: custom-docs
-        continue-on-error: true
 
       - name: Verify Documentation
         run: |
