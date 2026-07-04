@@ -24,4 +24,3 @@ jobs:
         uses: ./renovate
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          autodiscover: "true"
