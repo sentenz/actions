@@ -44,7 +44,7 @@ runs:
         RENOVATE_TOKEN: ${{ inputs.token }}
       run: |
         # Setup arguments
-        DOCKER_ARGS=("--rm" "-e" "RENOVATE_TOKEN=${{ inputs.token }}")
+        DOCKER_ARGS=("--rm" -e LOG_LEVEL=debug "-e" "RENOVATE_TOKEN=${{ inputs.token }}")
         RENOVATE_ARGS=("--platform=${{ inputs.platform }}")
 
         if [[ "${{ inputs.autodiscover }}" == "true" ]]; then
