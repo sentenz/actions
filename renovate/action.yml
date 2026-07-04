@@ -56,7 +56,8 @@ runs:
 
         # Prevent script from crashing prematurely so outputs can be saved
         set +e
-        docker run --rm -e LOG_LEVEL=debug -e RENOVATE_TOKEN=${{ inputs.token }} ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
+        # docker run --rm -e LOG_LEVEL=debug -e RENOVATE_TOKEN=${{ inputs.token }} ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
+        docker run -t --env RENOVATE_TOKEN=${{ inputs.token }} --env LOG_LEVEL=debug --volume /tmp:/tmp --rm ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
         EXIT_CODE=$?
         set -e
 
