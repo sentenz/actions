@@ -42,7 +42,6 @@ runs:
       shell: bash
       env:
         RENOVATE_TOKEN: ${{ inputs.token }}
-        LOG_LEVEL: debug
       run: |
         # Setup arguments
         RENOVATE_ARGS=("--platform=${{ inputs.platform }}")
@@ -57,7 +56,7 @@ runs:
 
         # Prevent script from crashing prematurely so outputs can be saved
         set +e
-        docker run --rm ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
+        docker run --rm -e LOG_LEVEL=debug -e RENOVATE_TOKEN=${{ inputs.token }} ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
         EXIT_CODE=$?
         set -e
 
