@@ -94,7 +94,9 @@ runs:
 
         echo "Running: regal ${REGAL_ARGS}"
 
-        RESULT=$(regal ${REGAL_ARGS} 2>&1) || true
+        RESULT=$(
+          regal ${REGAL_ARGS} 2>&1
+        ) || true
         EXIT_CODE=$?
 
         echo "result<<EOF" >> $GITHUB_OUTPUT
