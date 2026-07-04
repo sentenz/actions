@@ -35,7 +35,7 @@ The [Renovate Action](./action.yml) runs Renovate to automatically create pull r
 | -------------- | ------------------------------------------------- | -------- | ------------------------------ |
 | `token`        | GitHub token for Renovate                         | Yes      | `${{ github.token }}`          |
 | `image`        | Renovate Docker image with version tag and digest | No       | `ghcr.io/renovatebot/renovate` |
-| `autodiscover` | Autodiscover repositories                         | No       | `true`                         |
+| `autodiscover` | Autodiscover repositories                         | No       | `false`                        |
 | `config-file`  | Path to renovate configuration file               | No       | ``                             |
 | `platform`     | Platform to run on (github, gitlab, etc.)         | No       | `github`                       |
 
