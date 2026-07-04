@@ -28,6 +28,10 @@ inputs:
     description: "Platform to run on (github, gitlab, gitea, bitbucket)"
     required: false
     default: "github"
+  repositories:
+    description: "Specific repositories to process (comma-separated)"
+    required: false
+    default: ""
 
 outputs:
   exit-code:
@@ -52,6 +56,10 @@ runs:
 
         if [[ -n "${{ inputs.config-file }}" ]]; then
           RENOVATE_ARGS+=("--config-file=${{ inputs.config-file }}")
+        fi
+
+        if [[ -n "${{ inputs.repositories }}" ]]; then
+          RENOVATE_ARGS+=("--repositories=${{ inputs.repositories }}")
         fi
 
         # Prevent script from crashing prematurely so outputs can be saved

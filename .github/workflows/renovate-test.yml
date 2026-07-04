@@ -24,3 +24,5 @@ jobs:
         uses: ./renovate
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          repositories: ${{ github.repository }}
+          autodiscover: "false"
