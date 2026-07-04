@@ -23,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run Trivy Filesystem Scan
+      - name: Trivy Filesystem Scan
         uses: sentenz/actions/trivy@latest
         with:
           scan-type: fs
@@ -48,7 +48,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run Trivy Config Scan
+      - name: Trivy Config Scan
         uses: sentenz/actions/trivy@latest
         with:
           scan-type: config
@@ -140,7 +140,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run License Compliance Scan
+      - name: License Compliance Scan
         uses: sentenz/actions/trivy@latest
         with:
           scan-type: fs

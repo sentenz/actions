@@ -62,6 +62,6 @@ jobs:
       - name: Install yamllint
         run: pip install yamllint
 
-      - name: Run yamllint
+      - name: Yamllint
         run: yamllint -c .yamllint.yml .
         continue-on-error: true

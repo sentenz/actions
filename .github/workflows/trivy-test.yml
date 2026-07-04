@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Run Trivy Filesystem Scan
+      - name: Trivy Filesystem Scan
         uses: ./trivy
         with:
           scan-type: fs
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Run Trivy Config Scan
+      - name: Trivy Config Scan
         uses: ./trivy
         with:
           scan-type: config
@@ -90,7 +90,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Run License Compliance Scan
+      - name: License Compliance Scan
         uses: ./trivy
         with:
           scan-type: fs

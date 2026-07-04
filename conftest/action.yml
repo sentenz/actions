@@ -63,7 +63,7 @@ runs:
           echo "::warning::Policy path '${{ inputs.policy-path }}' does not exist. Using default configuration."
         fi
 
-    - name: Run Conftest
+    - name: Conftest
       id: conftest
       shell: bash
       run: |

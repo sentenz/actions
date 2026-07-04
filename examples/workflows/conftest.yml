@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Run Conftest
+      - name: Conftest
         uses: sentenz/actions/conftest@latest
         with:
           policy-path: "./tests/policy"

@@ -56,7 +56,7 @@ runs:
           echo "::warning::Path '${{ inputs.path }}' does not exist or is not a directory"
         fi
 
-    - name: Run Regal
+    - name: Regal
       id: regal
       shell: bash
       run: |

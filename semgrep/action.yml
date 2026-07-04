@@ -86,7 +86,7 @@ runs:
           echo "::warning::Path '${{ inputs.path }}' does not exist"
         fi
 
-    - name: Run Semgrep
+    - name: Semgrep
       id: semgrep
       shell: bash
       run: |

@@ -37,7 +37,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Run Renovate
+    - name: Renovate
       id: renovate
       shell: bash
       env:

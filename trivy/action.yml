@@ -108,7 +108,7 @@ runs:
           fi
         fi
 
-    - name: Run Trivy
+    - name: Trivy
       id: trivy
       shell: bash
       run: |
