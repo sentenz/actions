@@ -38,7 +38,6 @@ The [Renovate Action](./action.yml) runs Renovate to automatically create pull r
 | `autodiscover` | Autodiscover repositories                         | No       | `true`                         |
 | `config-file`  | Path to renovate configuration file               | No       | ``                             |
 | `platform`     | Platform to run on (github, gitlab, etc.)         | No       | `github`                       |
-| `log-level`    | Log level (debug, info, warn, error)              | No       | `info`                         |
 
 ### 2.2. Outputs
 

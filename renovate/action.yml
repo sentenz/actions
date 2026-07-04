@@ -28,14 +28,6 @@ inputs:
     description: "Platform to run on (github, gitlab, gitea, bitbucket)"
     required: false
     default: "github"
-  log-level:
-    description: "Log level (debug, info, warn, error)"
-    required: false
-    default: "info"
-  timezone:
-    description: "Timezone for scheduling"
-    required: false
-    default: "UTC"
 
 outputs:
   exit-code:
@@ -52,8 +44,8 @@ runs:
         RENOVATE_TOKEN: ${{ inputs.token }}
       run: |
         # Setup arguments
-        DOCKER_ARGS=("--rm" "-e" "TZ=${{ inputs.timezone }}" "-e" "RENOVATE_TOKEN")
-        RENOVATE_ARGS=("--platform=${{ inputs.platform }}" "--log-level=${{ inputs.log-level }}")
+        DOCKER_ARGS=("--rm" "-e" "RENOVATE_TOKEN=${{ inputs.token }}")
+        RENOVATE_ARGS=("--platform=${{ inputs.platform }}")
 
         if [[ "${{ inputs.autodiscover }}" == "true" ]]; then
           RENOVATE_ARGS+=("--autodiscover=true")
