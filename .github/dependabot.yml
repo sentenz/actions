@@ -3,7 +3,8 @@
 
 version: 2
 updates:
-  - package-ecosystem: github-actions
+  - &github-actions-base
+    package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
@@ -31,158 +32,20 @@ updates:
         update-types:
           - major
 
-  - package-ecosystem: github-actions
+  - <<: *github-actions-base
     directory: /conftest
-    schedule:
-      interval: weekly
-      day: monday
-      time: 03:00
-    labels:
-      - dependencies
-      - github-actions
-    commit-message:
-      prefix: chore
-      include: scope
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
-    groups:
-      github-actions-patch:
-        update-types:
-          - patch
-      github-actions-minor:
-        update-types:
-          - minor
-      github-actions-major:
-        update-types:
-          - major
 
-  - package-ecosystem: github-actions
+  - <<: *github-actions-base
     directory: /regal
-    schedule:
-      interval: weekly
-      day: monday
-      time: 03:00
-    labels:
-      - dependencies
-      - github-actions
-    commit-message:
-      prefix: chore
-      include: scope
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
-    groups:
-      github-actions-patch:
-        update-types:
-          - patch
-      github-actions-minor:
-        update-types:
-          - minor
-      github-actions-major:
-        update-types:
-          - major
 
-  - package-ecosystem: github-actions
+  - <<: *github-actions-base
     directory: /renovate
-    schedule:
-      interval: weekly
-      day: monday
-      time: 03:00
-    labels:
-      - dependencies
-      - github-actions
-    commit-message:
-      prefix: chore
-      include: scope
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
-    groups:
-      github-actions-patch:
-        update-types:
-          - patch
-      github-actions-minor:
-        update-types:
-          - minor
-      github-actions-major:
-        update-types:
-          - major
 
-  - package-ecosystem: github-actions
+  - <<: *github-actions-base
     directory: /semantic-release
-    schedule:
-      interval: weekly
-      day: monday
-      time: 03:00
-    labels:
-      - dependencies
-      - github-actions
-    commit-message:
-      prefix: chore
-      include: scope
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
-    groups:
-      github-actions-patch:
-        update-types:
-          - patch
-      github-actions-minor:
-        update-types:
-          - minor
-      github-actions-major:
-        update-types:
-          - major
 
-  - package-ecosystem: github-actions
+  - <<: *github-actions-base
     directory: /semgrep
-    schedule:
-      interval: weekly
-      day: monday
-      time: 03:00
-    labels:
-      - dependencies
-      - github-actions
-    commit-message:
-      prefix: chore
-      include: scope
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
-    groups:
-      github-actions-patch:
-        update-types:
-          - patch
-      github-actions-minor:
-        update-types:
-          - minor
-      github-actions-major:
-        update-types:
-          - major
 
-  - package-ecosystem: github-actions
+  - <<: *github-actions-base
     directory: /trivy
-    schedule:
-      interval: weekly
-      day: monday
-      time: 03:00
-    labels:
-      - dependencies
-      - github-actions
-    commit-message:
-      prefix: chore
-      include: scope
-    open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
-    groups:
-      github-actions-patch:
-        update-types:
-          - patch
-      github-actions-minor:
-        update-types:
-          - minor
-      github-actions-major:
-        update-types:
-          - major
