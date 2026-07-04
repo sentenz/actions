@@ -4,7 +4,14 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /conftest
+      - /regal
+      - /renovate
+      - /semantic-release
+      - /semgrep
+      - /trivy
     schedule:
       interval: weekly
       day: monday
