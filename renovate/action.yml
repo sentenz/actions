@@ -44,7 +44,7 @@ runs:
         RENOVATE_TOKEN: ${{ inputs.token }}
       run: |
         # Setup arguments
-        DOCKER_ARGS=("--rm" -e LOG_LEVEL=debug "-e" "RENOVATE_TOKEN=${{ inputs.token }}")
+        DOCKER_ARGS=("--rm" -e LOG_LEVEL=debug ")
         RENOVATE_ARGS=("--platform=${{ inputs.platform }}")
 
         if [[ "${{ inputs.autodiscover }}" == "true" ]]; then
@@ -57,7 +57,7 @@ runs:
 
         # Prevent script from crashing prematurely so outputs can be saved
         set +e
-        docker run "${DOCKER_ARGS[@]}" ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
+        docker run -e "RENOVATE_TOKEN=${{ inputs.token }}" "${DOCKER_ARGS[@]}" ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
         EXIT_CODE=$?
         set -e
 
