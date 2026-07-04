@@ -4,6 +4,7 @@
     "config:recommended"
   ],
   "autoDiscover": true,
+  "logLevel": "info",
   "rebaseWhen": "auto",
   "minimumReleaseAge": "1 day",
   "dependencyDashboard": false,
