@@ -17,7 +17,7 @@ inputs:
     description: "Target to scan (path for fs/config/rootfs, image name for image, repo URL for repository)"
     required: false
     default: "."
-  trivy-image:
+  image:
     description: "Trivy Docker image with version tag and digest"
     required: false
     default: "aquasec/trivy:0.68.2@sha256:05d0126976bdedcd0782a0336f77832dbea1c81b9cc5e4b3a5ea5d2ec863aca7"
@@ -219,7 +219,7 @@ runs:
 
         # Run trivy via Docker
         RESULT=$(
-          docker run ${DOCKER_ARGS} ${{ inputs.trivy-image }} ${TRIVY_ARGS} 2>&1
+          docker run ${DOCKER_ARGS} ${{ inputs.image }} ${TRIVY_ARGS} 2>&1
         ) || true
 
         EXIT_CODE=$?

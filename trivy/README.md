@@ -43,23 +43,23 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 
 ### 2.1. Inputs
 
-| Input              | Description                                                                         | Required | Default                           |
-| ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------------------------- |
-| `scan-type`        | Type of scan (fs, image, config, repository, rootfs, sbom, sbom-generate)           | No       | `fs`                              |
-| `scan-target`      | Target to scan (path, image name, repo URL)                                         | No       | `.`                               |
-| `trivy-image`      | Trivy Docker image with version tag and digest                                      | No       | `aquasec/trivy:0.68.2@sha256:...` |
-| `format`           | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | ``                                |
-| `output`           | Output file path                                                                    | No       | ``                                |
-| `severity`         | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                             | No       | ``                                |
-| `scanners`         | Scanners to use (vuln,misconfig,secret,license)                                     | No       | ``                                |
-| `skip-dirs`        | Directories to skip (comma-separated)                                               | No       | ``                                |
-| `skip-files`       | Files to skip (comma-separated)                                                     | No       | ``                                |
-| `exit-code`        | Exit code when vulnerabilities are found                                            | No       | ``                                |
-| `cache-dir`        | Cache directory                                                                     | No       | ``                                |
-| `db-repository`    | Custom database repository                                                          | No       | ``                                |
-| `trivyignore-file` | Path to .trivyignore file                                                           | No       | ``                                |
-| `trivy-config`     | Path to trivy.yaml config file                                                      | No       | ``                                |
-| `github-pat`       | GitHub Personal Access Token for private repositories                               | No       | ``                                |
+| Input              | Description                                                                         | Required | Default         |
+| ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------- |
+| `scan-type`        | Type of scan (fs, image, config, repository, rootfs, sbom, sbom-generate)           | No       | `fs`            |
+| `scan-target`      | Target to scan (path, image name, repo URL)                                         | No       | `.`             |
+| `image`            | Trivy Docker image with version tag and digest                                      | No       | `aquasec/trivy` |
+| `format`           | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | ``              |
+| `output`           | Output file path                                                                    | No       | ``              |
+| `severity`         | Severities to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)                             | No       | ``              |
+| `scanners`         | Scanners to use (vuln,misconfig,secret,license)                                     | No       | ``              |
+| `skip-dirs`        | Directories to skip (comma-separated)                                               | No       | ``              |
+| `skip-files`       | Files to skip (comma-separated)                                                     | No       | ``              |
+| `exit-code`        | Exit code when vulnerabilities are found                                            | No       | ``              |
+| `cache-dir`        | Cache directory                                                                     | No       | ``              |
+| `db-repository`    | Custom database repository                                                          | No       | ``              |
+| `trivyignore-file` | Path to .trivyignore file                                                           | No       | ``              |
+| `trivy-config`     | Path to trivy.yaml config file                                                      | No       | ``              |
+| `github-pat`       | GitHub Personal Access Token for private repositories                               | No       | ``              |
 
 ### 2.2. Outputs
 

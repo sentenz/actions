@@ -27,5 +27,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           autodiscover: "true"
-          dry-run: "false"
           log-level: "info"

@@ -16,7 +16,7 @@ inputs:
     description: "Path to the policy directory"
     required: false
     default: "policy"
-  conftest-image:
+  image:
     description: "Conftest Docker image with version tag and digest"
     required: false
     default: "openpolicyagent/conftest:v0.65.0@sha256:afa510df6d4562ebe24fb3e457da6f6d6924124140a13b51b950cc6cb1d25525"
@@ -111,7 +111,7 @@ runs:
 
         # Run conftest via Docker
         RESULT=$(
-          docker run --rm -v "${PWD}:/workspace" -w /workspace ${{ inputs.conftest-image }} ${CONFTEST_ARGS} 2>&1
+          docker run --rm -v "${PWD}:/workspace" -w /workspace ${{ inputs.image }} ${CONFTEST_ARGS} 2>&1
         ) || true
 
         EXIT_CODE=$?
