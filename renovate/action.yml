@@ -57,7 +57,7 @@ runs:
 
         # Prevent script from crashing prematurely so outputs can be saved
         set +e
-        docker run "${DOCKER_ARGS[@]}" -e RENOVATE_TOKEN=${{ inputs.token }} ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
+        docker run "${DOCKER_ARGS[@]}" ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
         EXIT_CODE=$?
         set -e
 
