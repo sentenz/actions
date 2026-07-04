@@ -3,9 +3,15 @@
 
 version: 2
 updates:
-  - &github-actions-base
-    package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /conftest
+      - /regal
+      - /renovate
+      - /semantic-release
+      - /semgrep
+      - /trivy
     schedule:
       interval: weekly
       day: monday
@@ -31,21 +37,3 @@ updates:
       github-actions-major:
         update-types:
           - major
-
-  - <<: *github-actions-base
-    directory: /conftest
-
-  - <<: *github-actions-base
-    directory: /regal
-
-  - <<: *github-actions-base
-    directory: /renovate
-
-  - <<: *github-actions-base
-    directory: /semantic-release
-
-  - <<: *github-actions-base
-    directory: /semgrep
-
-  - <<: *github-actions-base
-    directory: /trivy
