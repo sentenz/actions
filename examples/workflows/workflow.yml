@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Workflow
+
+"on":
+  workflow_dispatch:
+    inputs:
+      run-conftest:
+        description: Run Conftest policy tests.
+        required: false
+        type: boolean
+        default: true
+      run-regal:
+        description: Run Regal policy linting.
+        required: false
+        type: boolean
+        default: true
+      run-renovate:
+        description: Run Renovate dependency updates.
+        required: false
+        type: boolean
+        default: false
+      run-semantic-release:
+        description: Run semantic-release.
+        required: false
+        type: boolean
+        default: false
+      run-semgrep:
+        description: Run Semgrep static analysis.
+        required: false
+        type: boolean
+        default: true
+      run-trivy:
+        description: Run Trivy security scanning.
+        required: false
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  workflow:
+    name: Workflow
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: sentenz/actions/.github/workflows/workflow.yml@main
+    with:
+      run-conftest: ${{ github.event_name == 'schedule' || inputs.run-conftest }}
+      run-regal: ${{ github.event_name == 'schedule' || inputs.run-regal }}
+      run-renovate: ${{ github.event_name == 'workflow_dispatch' && inputs.run-renovate }}
+      run-semantic-release: ${{ github.event_name == 'workflow_dispatch' && inputs.run-semantic-release }}
+      run-semgrep: ${{ github.event_name == 'schedule' || inputs.run-semgrep }}
+      run-trivy: ${{ github.event_name == 'schedule' || inputs.run-trivy }}
+    secrets:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      renovate_token: ${{ secrets.RENOVATE_TOKEN }}
+      semantic_release_token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+      trivy_github_pat: ${{ secrets.TRIVY_GITHUB_PAT }}
