@@ -10,5 +10,7 @@ on:
 jobs:
   renovate:
     uses: ./.github/workflows/renovate.yml
+    permissions:
+      contents: read
     secrets:
       renovate-token: ${{ secrets.RENOVATE_TOKEN }}
