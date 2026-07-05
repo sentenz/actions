@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.5](https://github.com/sentenz/actions/compare/1.1.4...1.1.5) (2026-07-05)
+
+
+### Bug Fixes
+
+* update Renovate action inputs and streamline execution steps ([26e51ca](https://github.com/sentenz/actions/commit/26e51ca06eb46d9e9dbe15d505b479e5ba63f871))
+
+
+### Reverts
+
+* commit ffe34f9b51d178f8fd56f2e4c47108983b99b383 ([c35a1ee](https://github.com/sentenz/actions/commit/c35a1ee7a68e19a3a4423c09e3fc956af3e1b898))
+
 ## [1.1.4](https://github.com/sentenz/actions/compare/1.1.3...1.1.4) (2025-12-30)
 
 
