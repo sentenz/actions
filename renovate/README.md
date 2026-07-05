@@ -50,7 +50,7 @@ on:
 
 jobs:
   renovate:
-    uses: sentenz/actions/.github/workflows/renovate.yml@main
+    uses: sentenz/actions/.github/workflows/renovate.yml@11092628d8ef7a1710ed9ccfed957ad50a8ce9d1 # main
     secrets:
       renovate-token: ${{ secrets.RENOVATE_TOKEN }}
 ```

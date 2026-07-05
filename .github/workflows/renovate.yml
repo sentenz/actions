@@ -21,6 +21,6 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Renovate
-        uses: sentenz/actions/renovate@main
+        uses: sentenz/actions/renovate@11092628d8ef7a1710ed9ccfed957ad50a8ce9d1 # main
         with:
           token: ${{ secrets.renovate-token }}
