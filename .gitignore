@@ -1,21 +1,28 @@
-# Dependencies
-node_modules/
-vendor/
+# https://www.toptal.com/developers/gitignore/
 
-# Build artifacts
+### Miscellaneous ###
+logs/
+*.log
+
 dist/
 build/
 out/
 
-# Logs
-*.log
-logs/
-
-# Test artifacts
-coverage/
-.nyc_output/
-
-# Temporary files
 tmp/
 temp/
 *.tmp
+
+### dotenv ###
+# Ignore dotenv files (unencrypted), allow encrypted files with .enc
+.env
+.env.*
+!.env.enc
+!.env.*.enc
+
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
