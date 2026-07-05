@@ -12,10 +12,10 @@ inputs:
     description: "GitHub token for Renovate"
     required: true
     default: "${{ github.token }}"
-  image:
-    description: "Renovate Docker image with version tag and digest"
+  version:
+    description: "Renovate version"
     required: false
-    default: "docker.io/renovate/renovate:43.225.0@sha256:d5a3ed86911403b2e3b82fdc3784d1e2d5817bf9a417bb68f148068a200a6731"
+    default: "46.1.17"
   autodiscover:
     description: "Autodiscover repositories"
     required: false
@@ -29,38 +29,22 @@ inputs:
     required: false
     default: "github"
 
-outputs:
-  exit-code:
-    description: "Renovate exit code"
-    value: ${{ steps.renovate.outputs.exit-code }}
-
 runs:
   using: "composite"
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.token }}" ]]; then
+          echo "Error: GitHub token is required"
+          exit 1
+        fi
+
     - name: Renovate
       id: renovate
-      shell: bash
+      uses: renovatebot/github-action@v46.1.17
+      with:
+        token: ${{ inputs.token }}
       env:
-        RENOVATE_TOKEN: ${{ inputs.token }}
-      run: |
-        # Setup arguments
-        RENOVATE_ARGS=("--platform=${{ inputs.platform }}")
-
-        if [[ "${{ inputs.autodiscover }}" == "true" ]]; then
-          RENOVATE_ARGS+=("--autodiscover=true")
-        fi
-
-        if [[ -n "${{ inputs.config-file }}" ]]; then
-          RENOVATE_ARGS+=("--config-file=${{ inputs.config-file }}")
-        fi
-
-        # Prevent script from crashing prematurely so outputs can be saved
-        set +e
-        # docker run --rm -e LOG_LEVEL=debug -e RENOVATE_TOKEN=${{ inputs.token }} ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
-        docker run -t --env RENOVATE_TOKEN=${{ inputs.token }} --env LOG_LEVEL=debug --volume /tmp:/tmp --rm ${{ inputs.image }} "${RENOVATE_ARGS[@]}"
-        EXIT_CODE=$?
-        set -e
-
-        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
-
-        exit ${EXIT_CODE}
+        LOG_LEVEL: "debug"
+        RENOVATE_REPOSITORIES: ${{ github.repository }}

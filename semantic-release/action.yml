@@ -83,7 +83,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Validate inputs
+    - name: Validate Inputs
       shell: bash
       run: |
         if [[ -z "${{ inputs.github-token }}" ]]; then
