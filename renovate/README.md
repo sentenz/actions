@@ -50,19 +50,9 @@ on:
 
 jobs:
   renovate:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Renovate
-        uses: sentenz/actions/renovate@latest
-        with:
-          token: ${{ secrets.RENOVATE_TOKEN }}
+    uses: sentenz/actions/.github/workflows/renovate.yml@main
+    secrets:
+      renovate-token: ${{ secrets.RENOVATE_TOKEN }}
 ```
 
 ## 4. Configuration

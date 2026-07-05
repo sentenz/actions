@@ -5,20 +5,10 @@ name: Renovate Test
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 18 * * 6"
+    - cron: 0 18 * * 6
 
 jobs:
   renovate:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Renovate Test
-        uses: ./renovate
-        with:
-          token: ${{ secrets.RENOVATE_TOKEN }}
+    uses: ./.github/workflows/renovate.yml
+    secrets:
+      renovate-token: ${{ secrets.RENOVATE_TOKEN }}
