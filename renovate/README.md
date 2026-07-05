@@ -5,7 +5,6 @@ Automated dependency updates using Renovate.
 - [1. Details](#1-details)
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -39,31 +38,33 @@ The [Renovate Action](./action.yml) runs Renovate to automatically create pull r
 | `config-file`  | Path to renovate configuration file       | No       | ``                    |
 | `platform`     | Platform to run on (github, gitlab, etc.) | No       | `github`              |
 
-### 2.2. Outputs
-
-| Output      | Description               |
-| ----------- | ------------------------- |
-| `result`    | Renovate execution result |
-| `exit-code` | Renovate exit code        |
-
 ## 3. Usage
 
 ```yaml
+name: Renovate Test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 18 * * 6"
+
 jobs:
   renovate:
     runs-on: ubuntu-latest
+
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
       issues: write
-      checks: read
-      id-token: write
+
     steps:
-      - uses: actions/checkout@v6.0.1
-      - uses: sentenz/actions/renovate@latest
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Renovate
+        uses: sentenz/actions/renovate@latest
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          autodiscover: "true"
+          token: ${{ secrets.RENOVATE_TOKEN }}
 ```
 
 ## 4. Configuration
