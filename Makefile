@@ -23,6 +23,20 @@ help:
 	@awk '/^##/{c=substr($$0,3);next}c&&/^[[:alpha:]][[:alnum:]_-]+:/{print "$(shell tput -Txterm setaf 6)\t" substr($$1,1,index($$1,":")) "$(shell tput -Txterm sgr0)",c}1{c=0}' $(MAKEFILE_LIST) | column -s: -t
 .PHONY: help
 
+# ── Setup & Teardown ─────────────────────────────────────────────────────────────────────────────
+
+## Initialize a software development workspace with requisites
+bootstrap:
+.PHONY: bootstrap
+
+## Install and configure all dependencies essential for development
+setup:
+.PHONY: setup
+
+## Remove development artifacts and restore the host to its pre-setup state
+teardown:
+.PHONY: teardown
+
 # ── Git Hooks Manager ────────────────────────────────────────────────────────────────────────────
 
 ## Initialize Lefthook Git hooks in the local repository
@@ -61,7 +75,7 @@ dependency-renovate-update:
 # ── Secrets Manager ──────────────────────────────────────────────────────────────────────────────
 
 SECRETS_IMAGE_SOPS ?= ghcr.io/getsops/sops:v3.13.1@sha256:320f253aced1393537b1e90c77eb48295204d805d4c68933264cd1285192465d
-SECRETS_SOPS_UID ?= sops-dx
+SECRETS_SOPS_UID ?= sops-actions
 
 # Usage: make secrets-gpg-generate SECRETS_SOPS_UID=<uid>
 #
