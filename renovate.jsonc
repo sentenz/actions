@@ -5,7 +5,12 @@
   ],
   "rebaseWhen": "auto",
   "minimumReleaseAge": "1 day",
-  "dependencyDashboard": false,
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "internalChecksFilter": "strict",
+  "dependencyDashboard": true,
+  "gitIgnoredAuthors": [
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "ignorePaths": [
@@ -34,12 +39,12 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Update container image references in GitHub Actions files",
+      "description": "Update versioned container image references in GitHub Actions files",
       "managerFilePatterns": [
-        "**/action.ya?ml$"
+        "**/action.{yml,yaml}"
       ],
       "matchStrings": [
-        "(?<depName>(?:(?:[A-Za-z0-9.-]+(?::[0-9]+)?/)?[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*)):(?<currentValue>[^@\\s\"']+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"
+        "(?<depName>(?:(?:[A-Za-z0-9.-]+(?::[0-9]+)?/)?[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*)):(?<currentValue>v?\\d[0-9A-Za-z_.-]*)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"
       ],
       "autoReplaceStringTemplate": "{{{depName}}}:{{{newValue}}}{{#if newDigest}}@{{{newDigest}}}{{else}}{{#if currentDigest}}@{{{currentDigest}}}{{/if}}{{/if}}",
       "datasourceTemplate": "docker",
@@ -47,14 +52,14 @@
     },
     {
       "customType": "regex",
-      "description": "Update container image references in Makefiles",
+      "description": "Update versioned container image references in Makefiles",
       "managerFilePatterns": [
         "**/[Mm]akefile",
         "**/GNUMakefile",
         "**/*.mk"
       ],
       "matchStrings": [
-        "(?<depName>(?:(?:docker\\.io|ghcr\\.io|quay\\.io|gcr\\.io|mcr\\.microsoft\\.com|registry\\.gitlab\\.com|cgr\\.dev|oci\\.io)/)?[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+):(?<currentValue>[^@\\s]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"
+        "(?<depName>(?:(?:docker\\.io|ghcr\\.io|quay\\.io|gcr\\.io|mcr\\.microsoft\\.com|registry\\.gitlab\\.com|cgr\\.dev|oci\\.io)/)?[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+):(?<currentValue>v?\\d[0-9A-Za-z_.-]*)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"
       ],
       "autoReplaceStringTemplate": "{{depName}}:{{newValue}}{{#if newDigest}}@{{newDigest}}{{else}}{{#if currentDigest}}@{{currentDigest}}{{/if}}{{/if}}",
       "datasourceTemplate": "docker",
@@ -140,7 +145,7 @@
         "docker"
       ],
       "matchFileNames": [
-        "**/action.ya?ml"
+        "**/action.{yml,yaml}"
       ],
       "matchUpdateTypes": [
         "major",
