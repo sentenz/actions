@@ -20,7 +20,7 @@ inputs:
   image:
     description: "Trivy Docker image with version tag and digest"
     required: false
-    default: "aquasec/trivy:0.68.2@sha256:05d0126976bdedcd0782a0336f77832dbea1c81b9cc5e4b3a5ea5d2ec863aca7"
+    default: "aquasec/trivy:0.72.0@sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f"
   format:
     description: "Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln)"
     required: false
