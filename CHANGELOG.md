@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/sentenz/actions/compare/1.1.5...1.1.6) (2026-07-07)
+
+
+### Bug Fixes
+
+* **actions:** update github actions container images ([#36](https://github.com/sentenz/actions/issues/36)) ([6d8eb70](https://github.com/sentenz/actions/commit/6d8eb70670704ae3af4518588782cc7fc6c2db33))
+
 ## [1.1.5](https://github.com/sentenz/actions/compare/1.1.4...1.1.5) (2026-07-05)
 
 
