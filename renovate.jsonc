@@ -8,9 +8,6 @@
   "minimumReleaseAgeBehaviour": "timestamp-required",
   "internalChecksFilter": "strict",
   "dependencyDashboard": true,
-  "gitIgnoredAuthors": [
-    "41898282+github-actions[bot]@users.noreply.github.com"
-  ],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "ignorePaths": [
