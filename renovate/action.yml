@@ -42,7 +42,7 @@ runs:
 
     - name: Renovate
       id: renovate
-      uses: renovatebot/github-action@v46.1.18
+      uses: renovatebot/github-action@v46.1.19
       with:
         token: ${{ inputs.token }}
       env:
