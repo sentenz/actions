@@ -25,7 +25,7 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 - [Semantic Versioning](https://semver.org/)
   > A versioning scheme that communicates compatibility through major, minor, and patch versions.
 
-- [Keeping a Changelog](https://keepachangelog.com/en/1.0.0/) 
+- [Keeping a Changelog](https://keepachangelog.com/en/1.0.0/)
   > A guide for maintaining a changelog that is easy to read and understand.
 
 ## 2. Action
@@ -44,7 +44,7 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 | `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                    | No       | `false`               |
 | `extends`            | Shareable semantic-release configurations (multiline)              | No       | ``                    |
 | `extra-plugins`      | Additional npm packages installed before semantic-release          | No       | See `action.yml`      |
-| `use-default-config` | Use the internal configuration when no repository config is found  | No       | `true`                |
+| `use-default-config` | Use the internal configuration when no external config is found    | No       | `true`                |
 | `working-directory`  | Repository-relative directory in which semantic-release runs       | No       | `.`                   |
 | `tag-format`         | Override the tag format; empty preserves repository configuration  | No       | ``                    |
 | `repository-url`     | Override the Git repository URL                                    | No       | ``                    |
@@ -87,15 +87,15 @@ jobs:
 
 ## 4. Configuration
 
-### 4.1. Internal
+### 4.1. Internal Configuration
 
-When no semantic-release configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/.releaserc.json`](./config/.releaserc.json) into the working directory.
+When `use-default-config` is `true`, the action uses [`config/.releaserc.json`](./config/.releaserc.json) only when no semantic-release configuration exists in the working directory or its repository ancestors and no `extends` input is supplied.
 
 The internal configuration uses the `conventionalcommits` preset, supports the `main`, `next`, `beta`, and `alpha` release branches, and generates `CHANGELOG.md` and GitHub releases.
 
 Set `use-default-config: "false"` to require an external repository configuration.
 
-### 4.2. External
+### 4.2. External Configuration
 
 Create a `.releaserc.json` file in your repository:
 
