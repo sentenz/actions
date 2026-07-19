@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.9](https://github.com/sentenz/actions/compare/1.1.8...1.1.9) (2026-07-19)
+
+
+### Bug Fixes
+
+* update tag format in .releaserc.json ([b72d3d4](https://github.com/sentenz/actions/commit/b72d3d4de7f85a8b9de575265d953d8ceb341fd6))
+
 # [1.1.0](https://github.com/sentenz/actions/compare/v1.0.3...v1.1.0) (2026-07-19)
 
 
