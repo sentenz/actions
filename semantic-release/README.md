@@ -1,6 +1,6 @@
 # Semantic-Release Composite Action
 
-Automated semantic versioning and releases using semantic-release.
+Automated semantic versioning and releases using [semantic-release](https://github.com/semantic-release/semantic-release).
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
@@ -14,58 +14,57 @@ Automated semantic versioning and releases using semantic-release.
 ## 1. Details
 
 - [Semantic-Release](https://github.com/semantic-release/semantic-release)
-    > An open-source tool that automates the versioning and release process of software projects based on semantic versioning and conventional commits.
-
-- [Semantic-Release Documentation](https://semantic-release.gitbook.io/)
-  > Comprehensive documentation for using and configuring semantic-release.
+  > An open-source tool that automates versioning and releases based on Semantic Versioning and Conventional Commits.
 
 - [Semantic-Release Configuration](https://semantic-release.gitbook.io/semantic-release/usage/configuration)
-  > Configuration options for customizing semantic-release behavior.
-
-- [Semantic-Release Plugins](https://semantic-release.gitbook.io/semantic-release/usage/plugins)
-  > A list of official and community plugins for extending semantic-release functionality.
+  > Configuration options for release branches, tags, plugins, and repository-specific behavior.
 
 - [Conventional Commits](https://www.conventionalcommits.org/)
-  > A specification for adding human and machine-readable meaning to commit messages.
+  > A specification for adding human-readable and machine-readable meaning to commit messages.
 
 - [Semantic Versioning](https://semver.org/)
-  > A versioning scheme for software that conveys meaning about the underlying changes.
+  > A versioning scheme that communicates compatibility through major, minor, and patch versions.
 
 - [Keeping a Changelog](https://keepachangelog.com/en/1.0.0/)
   > A guide for maintaining a changelog that is easy to read and understand.
 
 ## 2. Action
 
-The [Semantic-Release Action](./action.yml) runs semantic-release to automate version management and package publishing based on conventional commits.
+The [Semantic-Release Action](./action.yml) runs semantic-release with validated inputs, repository-level configuration support, and Conventional Commits defaults.
 
 ### 2.1. Inputs
 
-| Input               | Description                          | Required | Default               |
-| ------------------- | ------------------------------------ | -------- | --------------------- |
-| `github-token`      | GitHub token for releases            | Yes      | `${{ github.token }}` |
-| `semantic-version`  | semantic-release version             | No       | `25.0.2`              |
-| `branches`          | Release branches (JSON array)        | No       | `["main"]`            |
-| `dry-run`           | Run in dry-run mode                  | No       | `false`               |
-| `extra-plugins`     | Extra plugins to install (multiline) | No       | See action.yml        |
-| `working-directory` | Working directory                    | No       | `.`                   |
-| `tag-format`        | Tag format                           | No       | `${version}`          |
+| Input                | Description                                                        | Required | Default               |
+| -------------------- | ------------------------------------------------------------------ | -------- | --------------------- |
+| `github-token`       | GitHub token used by semantic-release                              | No       | `${{ github.token }}` |
+| `semantic-version`   | semantic-release version or version range                          | No       | `25`                  |
+| `branches`           | Release branches; empty preserves repository configuration         | No       | ``                    |
+| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                  | No       | ``                    |
+| `ci`                 | Override CI mode (`true`, `false`, or empty)                       | No       | ``                    |
+| `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                    | No       | `false`               |
+| `extends`            | Shareable semantic-release configurations (multiline)              | No       | ``                    |
+| `extra-plugins`      | Additional npm packages installed before semantic-release          | No       | See `action.yml`      |
+| `use-default-config` | Use the internal configuration when no external config is found    | No       | `true`                |
+| `working-directory`  | Repository-relative directory in which semantic-release runs       | No       | `.`                   |
+| `tag-format`         | Override the tag format; empty preserves repository configuration  | No       | ``                    |
+| `repository-url`     | Override the Git repository URL                                    | No       | ``                    |
 
 ### 2.2. Outputs
 
 | Output                      | Description                         |
 | --------------------------- | ----------------------------------- |
 | `new-release-published`     | Whether a new release was published |
-| `new-release-version`       | The new release version             |
-| `new-release-major-version` | The new release major version       |
-| `new-release-minor-version` | The new release minor version       |
-| `new-release-patch-version` | The new release patch version       |
-| `new-release-channel`       | The new release channel             |
-| `new-release-notes`         | The new release notes               |
-| `new-release-git-head`      | The git HEAD of the new release     |
-| `new-release-git-tag`       | The git tag of the new release      |
-| `last-release-version`      | The last release version            |
-| `last-release-git-head`     | The git HEAD of the last release    |
-| `last-release-git-tag`      | The git tag of the last release     |
+| `new-release-version`       | New release version                 |
+| `new-release-major-version` | New release major version           |
+| `new-release-minor-version` | New release minor version           |
+| `new-release-patch-version` | New release patch version           |
+| `new-release-channel`       | New release distribution channel    |
+| `new-release-notes`         | Generated release notes             |
+| `new-release-git-head`      | Git commit included in the release  |
+| `new-release-git-tag`       | Git tag associated with the release |
+| `last-release-version`      | Previous release version            |
+| `last-release-git-head`     | Previous release Git commit         |
+| `last-release-git-tag`      | Previous release Git tag            |
 
 ## 3. Usage
 
@@ -77,7 +76,6 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
-      id-token: write
     steps:
       - uses: actions/checkout@v6.0.1
         with:
@@ -91,7 +89,11 @@ jobs:
 
 ### 4.1. Internal Configuration
 
-<!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
+When `use-default-config` is `true`, the action uses [`config/.releaserc.json`](./config/.releaserc.json) only when no semantic-release configuration exists in the working directory or its repository ancestors and no `extends` input is supplied.
+
+The internal configuration uses the `conventionalcommits` preset, supports the `main`, `next`, `beta`, and `alpha` release branches, and generates `CHANGELOG.md` and GitHub releases.
+
+Set `use-default-config: "false"` to require an external repository configuration.
 
 ### 4.2. External Configuration
 
@@ -101,11 +103,23 @@ Create a `.releaserc.json` file in your repository:
 {
   "branches": ["main"],
   "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
     "@semantic-release/changelog",
     "@semantic-release/github",
     "@semantic-release/git"
   ]
 }
 ```
+
+When `extra-plugins` is overridden, include all packages required by the active semantic-release configuration. The internal configuration requires `@semantic-release/changelog`, `@semantic-release/git`, and `conventional-changelog-conventionalcommits`.
