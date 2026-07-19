@@ -86,64 +86,37 @@ jobs:
 
 ### 4.1. Internal Configuration
 
-When no semantic-release configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/release.config.cjs`](./config/release.config.cjs) into the working directory.
+When no semantic-release configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/.releaserc.json`](./config/.releaserc.json) into the working directory.
 
-The internal configuration supports the `main`, `next`, `beta`, and `alpha` release branches, generates `CHANGELOG.md` and GitHub releases, and explicitly parses breaking-change headers in both forms:
-
-```text
-refactor!: replace the deployment backend
-```
-
-```text
-refactor(scope)!: replace the deployment backend
-```
+The internal configuration uses the `conventionalcommits` preset, supports the `main`, `next`, `beta`, and `alpha` release branches, and generates `CHANGELOG.md` and GitHub releases.
 
 Set `use-default-config: "false"` to require an external repository configuration.
 
 ### 4.2. External Configuration
 
-Create a `release.config.cjs` file in your repository:
+Create a `.releaserc.json` file in your repository:
 
-```js
-const parserOpts = {
-  headerPattern: /^(\w*)(?:\((.*)\))?!?: (.*)$/,
-  breakingHeaderPattern: /^(\w*)(?:\((.*)\))?!: (.*)$/,
-  headerCorrespondence: ["type", "scope", "subject"],
-  noteKeywords: ["BREAKING CHANGE", "BREAKING-CHANGE"],
-};
-
-module.exports = {
-  branches: ["main"],
-  plugins: [
+```json
+{
+  "branches": ["main"],
+  "plugins": [
     [
       "@semantic-release/commit-analyzer",
       {
-        preset: "conventionalcommits",
-        parserOpts,
-      },
+        "preset": "conventionalcommits"
+      }
     ],
     [
       "@semantic-release/release-notes-generator",
       {
-        preset: "conventionalcommits",
-        parserOpts,
-      },
+        "preset": "conventionalcommits"
+      }
     ],
     "@semantic-release/changelog",
     "@semantic-release/github",
-    "@semantic-release/git",
-  ],
-};
+    "@semantic-release/git"
+  ]
+}
 ```
 
-A preset declaration alone does not reliably parse bang-marked breaking headers in current `@semantic-release/commit-analyzer` releases. The explicit parser options work around [semantic-release/commit-analyzer#759](https://github.com/semantic-release/commit-analyzer/issues/759).
-
-Avoid negative rules such as `{ type: "refactor", release: false }` when the same type may contain a breaking marker. Such rules can suppress the major release; see [semantic-release/commit-analyzer#805](https://github.com/semantic-release/commit-analyzer/issues/805).
-
-A `BREAKING CHANGE:` footer remains the most portable form:
-
-```text
-refactor: replace the deployment backend
-
-BREAKING CHANGE: local development now requires Kind instead of K3s.
-```
+When `extra-plugins` is overridden, include all packages required by the active semantic-release configuration. The internal configuration requires `@semantic-release/changelog`, `@semantic-release/git`, and `conventional-changelog-conventionalcommits`.
