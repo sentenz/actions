@@ -1,67 +1,69 @@
 # Semantic-Release Composite Action
 
-Run [semantic-release](https://github.com/semantic-release/semantic-release) with validated inputs and Conventional Commits defaults.
+Automated semantic versioning and releases using [semantic-release](https://github.com/semantic-release/semantic-release).
 
-- [1. Behavior](#1-behavior)
-- [2. Inputs](#2-inputs)
-- [3. Outputs](#3-outputs)
-- [4. Usage](#4-usage)
-- [5. Configuration](#5-configuration)
-  - [5.1. Repository configuration](#51-repository-configuration)
-  - [5.2. Default configuration](#52-default-configuration)
-  - [5.3. Breaking changes](#53-breaking-changes)
+- [1. Details](#1-details)
+- [2. Action](#2-action)
+  - [2.1. Inputs](#21-inputs)
+  - [2.2. Outputs](#22-outputs)
+- [3. Usage](#3-usage)
+- [4. Configuration](#4-configuration)
+  - [4.1. Internal Configuration](#41-internal-configuration)
+  - [4.2. External Configuration](#42-external-configuration)
 
-## 1. Behavior
+## 1. Details
 
-The action wraps [`cycjimmy/semantic-release-action`](https://github.com/cycjimmy/semantic-release-action) and:
+- [Semantic-Release](https://github.com/semantic-release/semantic-release)
+    > An open-source tool that automates versioning and releases based on Semantic Versioning and Conventional Commits.
 
-- validates boolean inputs and the working directory;
-- preserves repository-level semantic-release settings unless an explicit override is supplied;
-- installs the Conventional Commits preset and the changelog and Git plugins by default;
-- uses [`config/release.config.cjs`](./config/release.config.cjs) when no semantic-release configuration exists in the working directory;
-- removes the temporary fallback configuration after semantic-release completes.
+- [Semantic-Release Configuration](https://semantic-release.gitbook.io/semantic-release/usage/configuration)
+    > Configuration options for release branches, tags, plugins, and repository-specific behavior.
 
-A full Git history is required so semantic-release can inspect tags and commits.
+- [Conventional Commits](https://www.conventionalcommits.org/)
+    > A specification for adding human-readable and machine-readable meaning to commit messages.
 
-## 2. Inputs
+- [Semantic Versioning](https://semver.org/)
+    > A versioning scheme that communicates compatibility through major, minor, and patch versions.
 
-| Input | Description | Required | Default |
-| --- | --- | --- | --- |
-| `github-token` | GitHub token used by semantic-release | No | `${{ github.token }}` |
-| `semantic-version` | semantic-release version or version range | No | `25` |
-| `branches` | Release branches; empty preserves repository configuration | No | Empty |
-| `dry-run` | Override `dryRun`: `true`, `false`, or empty | No | Empty |
-| `ci` | Override CI mode: `true`, `false`, or empty | No | Empty |
-| `unset-gha-env` | Unset `GITHUB_ACTIONS` before semantic-release runs | No | `false` |
-| `extends` | Shareable semantic-release configurations, one package per line | No | Empty |
-| `extra-plugins` | Additional npm packages installed before semantic-release | No | See `action.yml` |
-| `use-default-config` | Use the bundled configuration when the repository has no release configuration | No | `true` |
-| `working-directory` | Repository-relative directory in which semantic-release runs | No | `.` |
-| `tag-format` | Override `tagFormat`; empty preserves repository configuration | No | Empty |
-| `repository-url` | Override the Git repository URL | No | Empty |
+## 2. Action
 
-Supplying `branches`, `dry-run`, `ci`, `tag-format`, or `repository-url` overrides the corresponding repository configuration. Leaving these inputs empty allows semantic-release to resolve them from the repository configuration or its own defaults.
+The [Semantic-Release Action](./action.yml) runs semantic-release with validated inputs, repository-level configuration support, and Conventional Commits defaults.
 
-When `extra-plugins` is replaced, include every package required by the active semantic-release configuration. The bundled configuration requires `@semantic-release/changelog`, `@semantic-release/git`, and `conventional-changelog-conventionalcommits`.
+### 2.1. Inputs
 
-## 3. Outputs
+| Input                | Description                                                        | Required | Default               |
+| -------------------- | ------------------------------------------------------------------ | -------- | --------------------- |
+| `github-token`       | GitHub token used by semantic-release                              | No       | `${{ github.token }}` |
+| `semantic-version`   | semantic-release version or version range                          | No       | `25`                  |
+| `branches`           | Release branches; empty preserves repository configuration         | No       | ``                    |
+| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                   | No       | ``                    |
+| `ci`                 | Override CI mode (`true`, `false`, or empty)                        | No       | ``                    |
+| `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                    | No       | `false`               |
+| `extends`            | Shareable semantic-release configurations (multiline)              | No       | ``                    |
+| `extra-plugins`      | Additional npm packages installed before semantic-release          | No       | See `action.yml`      |
+| `use-default-config` | Use the internal configuration when no repository config is found  | No       | `true`                |
+| `working-directory`  | Repository-relative directory in which semantic-release runs       | No       | `.`                   |
+| `tag-format`         | Override the tag format; empty preserves repository configuration  | No       | ``                    |
+| `repository-url`     | Override the Git repository URL                                    | No       | ``                    |
 
-| Output | Description |
-| --- | --- |
-| `new-release-published` | Whether a new release was published |
-| `new-release-version` | New release version |
-| `new-release-major-version` | New release major version |
-| `new-release-minor-version` | New release minor version |
-| `new-release-patch-version` | New release patch version |
-| `new-release-channel` | New release distribution channel |
-| `new-release-notes` | Generated release notes |
-| `new-release-git-head` | Git commit included in the new release |
-| `new-release-git-tag` | Git tag associated with the new release |
-| `last-release-version` | Previous release version |
-| `last-release-git-head` | Git commit associated with the previous release |
-| `last-release-git-tag` | Git tag associated with the previous release |
+### 2.2. Outputs
 
-## 4. Usage
+| Output                      | Description                         |
+| --------------------------- | ----------------------------------- |
+| `new-release-published`     | Whether a new release was published |
+| `new-release-version`       | New release version                 |
+| `new-release-major-version` | New release major version           |
+| `new-release-minor-version` | New release minor version           |
+| `new-release-patch-version` | New release patch version           |
+| `new-release-channel`       | New release distribution channel    |
+| `new-release-notes`         | Generated release notes             |
+| `new-release-git-head`      | Git commit included in the release  |
+| `new-release-git-tag`       | Git tag associated with the release |
+| `last-release-version`      | Previous release version            |
+| `last-release-git-head`     | Previous release Git commit         |
+| `last-release-git-tag`      | Previous release Git tag            |
+
+## 3. Usage
 
 ```yaml
 jobs:
@@ -72,31 +74,35 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - name: Checkout full history
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
-
-      - name: Semantic Release
-        id: release
-        uses: sentenz/actions/semantic-release@latest
+      - uses: sentenz/actions/semantic-release@latest
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-For protected branches, use credentials permitted to push release commits and tags. When using `@semantic-release/git` with an alternative token, configure checkout credentials accordingly.
+## 4. Configuration
 
-## 5. Configuration
+### 4.1. Internal Configuration
 
-### 5.1. Repository configuration
+When no semantic-release configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/release.config.cjs`](./config/release.config.cjs) into the working directory.
 
-Repository configuration takes precedence. Supported semantic-release configuration locations include:
+The internal configuration supports the `main`, `next`, `beta`, and `alpha` release branches, generates `CHANGELOG.md` and GitHub releases, and explicitly parses breaking-change headers in both forms:
 
-- `.releaserc`, `.releaserc.json`, `.releaserc.yaml`, `.releaserc.yml`, `.releaserc.js`, `.releaserc.cjs`, or `.releaserc.mjs`;
-- `release.config.js`, `release.config.cjs`, or `release.config.mjs`;
-- the `release` property in `package.json`.
+```text
+refactor!: replace the deployment backend
+```
 
-A preset declaration alone is not sufficient for reliable `type!:` handling with current `@semantic-release/commit-analyzer` releases. Configure the parser expressions explicitly in a JavaScript configuration file:
+```text
+refactor(scope)!: replace the deployment backend
+```
+
+Set `use-default-config: "false"` to require an external repository configuration.
+
+### 4.2. External Configuration
+
+Create a `release.config.cjs` file in your repository:
 
 ```js
 const parserOpts = {
@@ -130,37 +136,14 @@ module.exports = {
 };
 ```
 
-The explicit parser configuration works around [`semantic-release/commit-analyzer#759`](https://github.com/semantic-release/commit-analyzer/issues/759), where bang-marked headers can otherwise be ignored even when the `conventionalcommits` preset is selected.
+A preset declaration alone does not reliably parse bang-marked breaking headers in current `@semantic-release/commit-analyzer` releases. The explicit parser options work around [semantic-release/commit-analyzer#759](https://github.com/semantic-release/commit-analyzer/issues/759).
 
-Avoid custom rules such as `{ type: "refactor", release: false }` when the same type may carry a breaking marker. A matching `release: false` rule can suppress the breaking-major rule; see [`semantic-release/commit-analyzer#805`](https://github.com/semantic-release/commit-analyzer/issues/805). The default analyzer rules already leave non-release types such as `refactor`, `docs`, `test`, and `chore` unreleased unless they contain a parsed breaking note.
+Avoid negative rules such as `{ type: "refactor", release: false }` when the same type may contain a breaking marker. Such rules can suppress the major release; see [semantic-release/commit-analyzer#805](https://github.com/semantic-release/commit-analyzer/issues/805).
 
-Set `use-default-config: "false"` to require an explicit repository configuration.
-
-### 5.2. Default configuration
-
-When no repository configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/release.config.cjs`](./config/release.config.cjs) into the working directory.
-
-The bundled configuration:
-
-- explicitly parses both `type!:` and `type(scope)!:` headers;
-- releases `feat` commits as minor versions;
-- releases `fix`, `perf`, and `revert` commits as patch versions;
-- releases parsed breaking changes as major versions;
-- supports `main`, `next`, `beta`, and `alpha` release branches;
-- generates `CHANGELOG.md` and GitHub releases.
-
-### 5.3. Breaking changes
-
-With the explicit parser configuration, both breaking-change forms are recognized:
-
-```text
-refactor!: replace the deployment backend
-```
+A `BREAKING CHANGE:` footer remains the most portable form:
 
 ```text
 refactor: replace the deployment backend
 
 BREAKING CHANGE: local development now requires Kind instead of K3s.
 ```
-
-The `BREAKING CHANGE:` footer remains the most portable form across semantic-release and conventional-changelog versions. Including both the `!` marker and footer is acceptable when the compatibility impact should be unambiguous.
