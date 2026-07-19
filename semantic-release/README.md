@@ -14,16 +14,19 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 ## 1. Details
 
 - [Semantic-Release](https://github.com/semantic-release/semantic-release)
-    > An open-source tool that automates versioning and releases based on Semantic Versioning and Conventional Commits.
+  > An open-source tool that automates versioning and releases based on Semantic Versioning and Conventional Commits.
 
 - [Semantic-Release Configuration](https://semantic-release.gitbook.io/semantic-release/usage/configuration)
-    > Configuration options for release branches, tags, plugins, and repository-specific behavior.
+  > Configuration options for release branches, tags, plugins, and repository-specific behavior.
 
 - [Conventional Commits](https://www.conventionalcommits.org/)
-    > A specification for adding human-readable and machine-readable meaning to commit messages.
+  > A specification for adding human-readable and machine-readable meaning to commit messages.
 
 - [Semantic Versioning](https://semver.org/)
-    > A versioning scheme that communicates compatibility through major, minor, and patch versions.
+  > A versioning scheme that communicates compatibility through major, minor, and patch versions.
+
+- [Keeping a Changelog](https://keepachangelog.com/en/1.0.0/) 
+  > A guide for maintaining a changelog that is easy to read and understand.
 
 ## 2. Action
 
@@ -36,8 +39,8 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 | `github-token`       | GitHub token used by semantic-release                              | No       | `${{ github.token }}` |
 | `semantic-version`   | semantic-release version or version range                          | No       | `25`                  |
 | `branches`           | Release branches; empty preserves repository configuration         | No       | ``                    |
-| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                   | No       | ``                    |
-| `ci`                 | Override CI mode (`true`, `false`, or empty)                        | No       | ``                    |
+| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                  | No       | ``                    |
+| `ci`                 | Override CI mode (`true`, `false`, or empty)                       | No       | ``                    |
 | `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                    | No       | `false`               |
 | `extends`            | Shareable semantic-release configurations (multiline)              | No       | ``                    |
 | `extra-plugins`      | Additional npm packages installed before semantic-release          | No       | See `action.yml`      |
@@ -84,7 +87,7 @@ jobs:
 
 ## 4. Configuration
 
-### 4.1. Internal Configuration
+### 4.1. Internal
 
 When no semantic-release configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/.releaserc.json`](./config/.releaserc.json) into the working directory.
 
@@ -92,7 +95,7 @@ The internal configuration uses the `conventionalcommits` preset, supports the `
 
 Set `use-default-config: "false"` to require an external repository configuration.
 
-### 4.2. External Configuration
+### 4.2. External
 
 Create a `.releaserc.json` file in your repository:
 
