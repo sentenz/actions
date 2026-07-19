@@ -34,20 +34,20 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 
 ### 2.1. Inputs
 
-| Input                | Description                                                        | Required | Default               |
-| -------------------- | ------------------------------------------------------------------ | -------- | --------------------- |
-| `github-token`       | GitHub token used by semantic-release                              | No       | `${{ github.token }}` |
-| `semantic-version`   | semantic-release version or version range                          | No       | `25`                  |
-| `branches`           | Release branches; empty preserves repository configuration         | No       | ``                    |
-| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                  | No       | ``                    |
-| `ci`                 | Override CI mode (`true`, `false`, or empty)                       | No       | ``                    |
-| `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                    | No       | `false`               |
-| `extends`            | Shareable semantic-release configurations (multiline)              | No       | ``                    |
-| `extra-plugins`      | Additional npm packages installed before semantic-release          | No       | See `action.yml`      |
-| `use-default-config` | Use the internal configuration when no external config is found    | No       | `true`                |
-| `working-directory`  | Repository-relative directory in which semantic-release runs       | No       | `.`                   |
-| `tag-format`         | Override the tag format; empty preserves repository configuration  | No       | ``                    |
-| `repository-url`     | Override the Git repository URL                                    | No       | ``                    |
+| Input                | Description                                                          | Required | Default               |
+| -------------------- | -------------------------------------------------------------------- | -------- | --------------------- |
+| `github-token`       | GitHub token used by semantic-release                                | No       | `${{ github.token }}` |
+| `semantic-version`   | semantic-release version or version range                            | No       | `25`                  |
+| `branches`           | Release branches; empty preserves repository configuration           | No       | ``                    |
+| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                    | No       | ``                    |
+| `ci`                 | Override CI mode (`true`, `false`, or empty)                         | No       | ``                    |
+| `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                      | No       | `false`               |
+| `extends`            | Shareable semantic-release configurations (multiline)                | No       | ``                    |
+| `extra-plugins`      | Additional npm packages installed before semantic-release            | No       | See `action.yml`      |
+| `use-default-config` | Use the internal configuration when no external config is found      | No       | `true`                |
+| `working-directory`  | Repository-relative directory in which semantic-release runs         | No       | `.`                   |
+| `tag-format`         | Tag format; pass an empty value to preserve repository configuration | No       | `${version}`          |
+| `repository-url`     | Override the Git repository URL                                      | No       | ``                    |
 
 ### 2.2. Outputs
 
@@ -91,7 +91,9 @@ jobs:
 
 When `use-default-config` is `true`, the action uses [`config/.releaserc.json`](./config/.releaserc.json) only when no semantic-release configuration exists in the working directory or its repository ancestors and no `extends` input is supplied.
 
-The internal configuration uses the `conventionalcommits` preset, supports the `main`, `next`, `beta`, and `alpha` release branches, and generates `CHANGELOG.md` and GitHub releases.
+The internal configuration uses the `conventionalcommits` preset, supports the `main`, `next`, `beta`, and `alpha` release branches, generates `CHANGELOG.md` and GitHub releases, and emits unprefixed semantic version tags such as `1.2.3`.
+
+The `tag-format` input defaults to `${version}` for compatibility with releases created by earlier versions of this action. Pass `tag-format: ""` to defer to a repository configuration or semantic-release's native `v${version}` default.
 
 Set `use-default-config: "false"` to require an external repository configuration.
 
