@@ -18,7 +18,7 @@ The action wraps [`cycjimmy/semantic-release-action`](https://github.com/cycjimm
 - validates boolean inputs and the working directory;
 - preserves repository-level semantic-release settings unless an explicit override is supplied;
 - installs the Conventional Commits preset and the changelog and Git plugins by default;
-- uses [`config/.releaserc.json`](./config/.releaserc.json) when no semantic-release configuration exists in the working directory;
+- uses [`config/release.config.cjs`](./config/release.config.cjs) when no semantic-release configuration exists in the working directory;
 - removes the temporary fallback configuration after semantic-release completes.
 
 A full Git history is required so semantic-release can inspect tags and commits.
@@ -92,52 +92,66 @@ For protected branches, use credentials permitted to push release commits and ta
 
 Repository configuration takes precedence. Supported semantic-release configuration locations include:
 
-- `.releaserc`, `.releaserc.json`, `.releaserc.yaml`, `.releaserc.yml`, `.releaserc.js`, or `.releaserc.cjs`;
-- `release.config.js` or `release.config.cjs`;
+- `.releaserc`, `.releaserc.json`, `.releaserc.yaml`, `.releaserc.yml`, `.releaserc.js`, `.releaserc.cjs`, or `.releaserc.mjs`;
+- `release.config.js`, `release.config.cjs`, or `release.config.mjs`;
 - the `release` property in `package.json`.
 
-Example:
+A preset declaration alone is not sufficient for reliable `type!:` handling with current `@semantic-release/commit-analyzer` releases. Configure the parser expressions explicitly in a JavaScript configuration file:
 
-```json
-{
-  "branches": ["main"],
-  "plugins": [
+```js
+const parserOpts = {
+  headerPattern: /^(\w*)(?:\((.*)\))?!?: (.*)$/,
+  breakingHeaderPattern: /^(\w*)(?:\((.*)\))?!: (.*)$/,
+  headerCorrespondence: ["type", "scope", "subject"],
+  noteKeywords: ["BREAKING CHANGE", "BREAKING-CHANGE"],
+};
+
+module.exports = {
+  branches: ["main"],
+  plugins: [
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "conventionalcommits"
-      }
+        preset: "conventionalcommits",
+        parserOpts,
+      },
     ],
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "conventionalcommits"
-      }
+        preset: "conventionalcommits",
+        parserOpts,
+      },
     ],
     "@semantic-release/changelog",
     "@semantic-release/github",
-    "@semantic-release/git"
-  ]
-}
+    "@semantic-release/git",
+  ],
+};
 ```
+
+The explicit parser configuration works around [`semantic-release/commit-analyzer#759`](https://github.com/semantic-release/commit-analyzer/issues/759), where bang-marked headers can otherwise be ignored even when the `conventionalcommits` preset is selected.
+
+Avoid custom rules such as `{ type: "refactor", release: false }` when the same type may carry a breaking marker. A matching `release: false` rule can suppress the breaking-major rule; see [`semantic-release/commit-analyzer#805`](https://github.com/semantic-release/commit-analyzer/issues/805). The default analyzer rules already leave non-release types such as `refactor`, `docs`, `test`, and `chore` unreleased unless they contain a parsed breaking note.
 
 Set `use-default-config: "false"` to require an explicit repository configuration.
 
 ### 5.2. Default configuration
 
-When no repository configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/.releaserc.json`](./config/.releaserc.json) into the working directory.
+When no repository configuration exists and `use-default-config` is `true`, the action temporarily copies [`config/release.config.cjs`](./config/release.config.cjs) into the working directory.
 
 The bundled configuration:
 
+- explicitly parses both `type!:` and `type(scope)!:` headers;
 - releases `feat` commits as minor versions;
 - releases `fix`, `perf`, and `revert` commits as patch versions;
-- releases breaking changes as major versions;
+- releases parsed breaking changes as major versions;
 - supports `main`, `next`, `beta`, and `alpha` release branches;
 - generates `CHANGELOG.md` and GitHub releases.
 
 ### 5.3. Breaking changes
 
-The Conventional Commits preset recognizes both breaking-change forms:
+With the explicit parser configuration, both breaking-change forms are recognized:
 
 ```text
 refactor!: replace the deployment backend
@@ -149,4 +163,4 @@ refactor: replace the deployment backend
 BREAKING CHANGE: local development now requires Kind instead of K3s.
 ```
 
-For the most portable commit history, include a `BREAKING CHANGE:` footer even when the `!` marker is present.
+The `BREAKING CHANGE:` footer remains the most portable form across semantic-release and conventional-changelog versions. Including both the `!` marker and footer is acceptable when the compatibility impact should be unambiguous.
