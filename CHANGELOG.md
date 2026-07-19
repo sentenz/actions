@@ -1,5 +1,30 @@
 # Changelog
 
+# [1.1.0](https://github.com/sentenz/actions/compare/v1.0.3...v1.1.0) (2026-07-19)
+
+
+### Bug Fixes
+
+* **actions:** update docker.io/semgrep/semgrep docker tag to v1.169.0 ([#41](https://github.com/sentenz/actions/issues/41)) ([17123e4](https://github.com/sentenz/actions/commit/17123e4eae1becaada3c33ac8f009be7bb22a1c2))
+* **actions:** update docker.io/semgrep/semgrep docker tag to v1.170.0 ([#45](https://github.com/sentenz/actions/issues/45)) ([c6ac08a](https://github.com/sentenz/actions/commit/c6ac08a8ad9721a7f0b822770c5b14e0da4e8f06))
+* **actions:** update github actions container images ([#36](https://github.com/sentenz/actions/issues/36)) ([6d8eb70](https://github.com/sentenz/actions/commit/6d8eb70670704ae3af4518588782cc7fc6c2db33))
+* add allowance for direct dependency types in Dependabot configuration ([19012a2](https://github.com/sentenz/actions/commit/19012a2bb96dee2e9dea8fd928ebf24db07e88fd))
+* refine action inputs and descriptions for clarity and consistency ([7ea128a](https://github.com/sentenz/actions/commit/7ea128a505683509540d53ea011e16b2f7b3a41f))
+* remove `/workspace/` directory in Trivy action ([44dcc6a](https://github.com/sentenz/actions/commit/44dcc6a4431a33056f1ce3ac1873b4a2ecfd688c))
+* remove format validation and update format handling in Trivy action ([b064d2d](https://github.com/sentenz/actions/commit/b064d2d9a3be2e04a260c75c62b94c9ed7df598d))
+* update default exit code to empty in Trivy action inputs ([ccde002](https://github.com/sentenz/actions/commit/ccde0029d28df6f40b9686aa1bd0badced336a3d))
+* update Renovate action inputs and streamline execution steps ([26e51ca](https://github.com/sentenz/actions/commit/26e51ca06eb46d9e9dbe15d505b479e5ba63f871))
+
+
+### Features
+
+* add Trivy composite action for SBOM generation, scanning, and license compliance ([#16](https://github.com/sentenz/actions/issues/16)) ([3f1892f](https://github.com/sentenz/actions/commit/3f1892f0164625bb64104cf7428c8a2f1426973a)), closes [#15](https://github.com/sentenz/actions/issues/15)
+
+
+### Reverts
+
+* commit ffe34f9b51d178f8fd56f2e4c47108983b99b383 ([c35a1ee](https://github.com/sentenz/actions/commit/c35a1ee7a68e19a3a4423c09e3fc956af3e1b898))
+
 ## [1.1.8](https://github.com/sentenz/actions/compare/1.1.7...1.1.8) (2026-07-18)
 
 
