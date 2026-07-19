@@ -194,10 +194,10 @@ runs:
 
         if [[ "${config_found}" == "false" ]]; then
           cp -- \
-            "${ACTION_PATH}/config/release.config.cjs" \
-            "${WORKING_DIRECTORY}/release.config.cjs"
+            "${ACTION_PATH}/config/.releaserc.json" \
+            "${WORKING_DIRECTORY}/.releaserc.json"
           echo "created=true" >> "${GITHUB_OUTPUT}"
-          echo "path=${WORKING_DIRECTORY}/release.config.cjs" >> "${GITHUB_OUTPUT}"
+          echo "path=${WORKING_DIRECTORY}/.releaserc.json" >> "${GITHUB_OUTPUT}"
           echo "::notice::Using the action's Conventional Commits semantic-release configuration"
         else
           echo "created=false" >> "${GITHUB_OUTPUT}"
