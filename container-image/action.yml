@@ -1,0 +1,188 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Container Image
+description: Build an OCI container image and optionally publish versioned and latest tags to GHCR
+author: sentenz
+
+branding:
+  icon: package
+  color: blue
+
+inputs:
+  github-token:
+    description: GitHub token used to authenticate to GHCR
+    required: false
+    default: ${{ github.token }}
+  version:
+    description: Current image version tag, for example 1.4.2
+    required: true
+  context:
+    description: Docker build context
+    required: false
+    default: .
+  file:
+    description: Path to the Dockerfile
+    required: false
+    default: Dockerfile
+  image-name:
+    description: Optional GHCR package name without registry, owner, or tag
+    required: false
+    default: ""
+  platforms:
+    description: Comma-separated target platforms
+    required: false
+    default: linux/amd64
+  build-args:
+    description: Optional newline-delimited Docker build arguments
+    required: false
+    default: ""
+  target:
+    description: Optional Docker build target
+    required: false
+    default: ""
+  push:
+    description: Publish the image to GHCR; set to false for build-only validation
+    required: false
+    default: "true"
+
+outputs:
+  image:
+    description: Fully qualified resolved GHCR image name
+    value: ${{ steps.metadata.outputs.image }}
+  tags:
+    description: Newline-delimited resolved image tags
+    value: ${{ steps.metadata.outputs.tags }}
+  digest:
+    description: Image manifest digest returned by Docker Buildx
+    value: ${{ steps.build.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs and resolve image metadata
+      id: metadata
+      shell: bash
+      env:
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_CONTEXT: ${{ inputs.context }}
+        INPUT_FILE: ${{ inputs.file }}
+        INPUT_IMAGE_NAME: ${{ inputs.image-name }}
+        INPUT_PLATFORMS: ${{ inputs.platforms }}
+        INPUT_TARGET: ${{ inputs.target }}
+        INPUT_PUSH: ${{ inputs.push }}
+        REPOSITORY: ${{ github.repository }}
+        REPOSITORY_OWNER: ${{ github.repository_owner }}
+      run: |
+        set -euo pipefail
+
+        trim() {
+          local value="$1"
+          value="${value#"${value%%[![:space:]]*}"}"
+          value="${value%"${value##*[![:space:]]}"}"
+          printf '%s' "${value}"
+        }
+
+        version="$(trim "${INPUT_VERSION}")"
+        context="$(trim "${INPUT_CONTEXT}")"
+        dockerfile="$(trim "${INPUT_FILE}")"
+        platforms="$(trim "${INPUT_PLATFORMS}")"
+        target="$(trim "${INPUT_TARGET}")"
+        push="$(trim "${INPUT_PUSH}")"
+        image_name="$(trim "${INPUT_IMAGE_NAME}")"
+
+        if [[ -z "${version}" ]]; then
+          echo "::error::version must not be empty"
+          exit 1
+        fi
+
+        if [[ ! "${version}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "::error::version must be a valid Docker tag"
+          exit 1
+        fi
+
+        if [[ "${version,,}" == "latest" ]]; then
+          echo "::error::version must be distinct from the reserved latest tag"
+          exit 1
+        fi
+
+        if [[ -z "${context}" ]]; then
+          echo "::error::context must not be empty"
+          exit 1
+        fi
+
+        if [[ -z "${dockerfile}" ]]; then
+          echo "::error::file must not be empty"
+          exit 1
+        fi
+
+        if [[ -z "${platforms}" ]]; then
+          echo "::error::platforms must not be empty"
+          exit 1
+        fi
+
+        case "${push}" in
+          true | false) ;;
+          *)
+            echo "::error::push must be true or false"
+            exit 1
+            ;;
+        esac
+
+        if [[ "${push}" == "true" && -z "${INPUT_GITHUB_TOKEN}" ]]; then
+          echo "::error::github-token must not be empty when push is true"
+          exit 1
+        fi
+
+        if [[ -z "${image_name}" ]]; then
+          image_name="${REPOSITORY#*/}"
+        fi
+
+        owner="${REPOSITORY_OWNER,,}"
+        image_name="${image_name,,}"
+
+        if [[ ! "${image_name}" =~ ^[a-z0-9]+(([._]|__|[-]+)[a-z0-9]+)*$ ]]; then
+          echo "::error::image-name must contain only a GHCR package name without registry, owner, tag, or digest"
+          exit 1
+        fi
+
+        image="ghcr.io/${owner}/${image_name}"
+
+        {
+          echo "image=${image}"
+          echo "context=${context}"
+          echo "file=${dockerfile}"
+          echo "platforms=${platforms}"
+          echo "target=${target}"
+          echo "push=${push}"
+        } >> "${GITHUB_OUTPUT}"
+        {
+          echo "tags<<EOF"
+          echo "${image}:latest"
+          echo "${image}:${version}"
+          echo "EOF"
+        } >> "${GITHUB_OUTPUT}"
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
+    - name: Log in to GHCR
+      if: ${{ steps.metadata.outputs.push == 'true' }}
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.github-token }}
+
+    - name: Build and publish container image
+      id: build
+      uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+      with:
+        context: ${{ steps.metadata.outputs.context }}
+        file: ${{ steps.metadata.outputs.file }}
+        platforms: ${{ steps.metadata.outputs.platforms }}
+        build-args: ${{ inputs.build-args }}
+        target: ${{ steps.metadata.outputs.target }}
+        push: ${{ steps.metadata.outputs.push }}
+        tags: ${{ steps.metadata.outputs.tags }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
