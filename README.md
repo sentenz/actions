@@ -11,6 +11,7 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
   - [1.4. Semantic Release](#14-semantic-release)
   - [1.5. Semgrep](#15-semgrep)
   - [1.6. Trivy](#16-trivy)
+  - [1.7. Container Image](#17-container-image)
 - [2. References](#2-references)
 
 ## 1. Composite Actions
@@ -44,6 +45,11 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
 
 - [Trivy Action](./trivy/README.md)
   > Comprehensive security scanning with Trivy for SBOM generation, vulnerability scanning, and license compliance.
+
+### 1.7. Container Image
+
+- [Container Image Action](./container-image/README.md)
+  > Build OCI container images and publish versioned and latest tags to GitHub Container Registry.
 
 ## 2. References
 
