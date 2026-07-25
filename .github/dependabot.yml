@@ -1,7 +1,3 @@
-# Dependabot configuration for automated dependency updates
-# Reference: GitHub Dependabot version updates configuration
-# https://docs.github.com/code-security/dependabot
-
 version: 2
 updates:
   - package-ecosystem: github-actions
