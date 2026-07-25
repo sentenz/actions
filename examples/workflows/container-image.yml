@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: Container Image
+
+on:
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Container Image
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Validate container build
+        uses: sentenz/actions/container-image@latest
+        with:
+          version: 0.0.0-pr-${{ github.event.pull_request.number }}
+          context: .
+          file: Dockerfile
+          push: false
+
+  publish:
+    name: Publish Container Image
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Build and publish image
+        id: image
+        uses: sentenz/actions/container-image@latest
+        with:
+          version: ${{ github.event.release.tag_name }}
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report published image
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+          TAGS: ${{ steps.image.outputs.tags }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          {
+            echo "### Published container image"
+            echo
+            echo "- Image: \`${IMAGE}\`"
+            echo "- Digest: \`${DIGEST}\`"
+            echo
+            echo '```text'
+            printf '%s\n' "${TAGS}"
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
