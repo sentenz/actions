@@ -1,0 +1,98 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: Container Image Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "container-image/**"
+      - ".github/workflows/container-image-test.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "container-image/**"
+      - ".github/workflows/container-image-test.yml"
+
+jobs:
+  container-image:
+    name: Container Image Action
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Build with repository image name
+        id: repository-name
+        uses: ./container-image
+        with:
+          version: 0.0.0-ci
+          context: container-image/test
+          file: container-image/test/Dockerfile
+          push: false
+
+      - name: Validate repository image metadata
+        env:
+          IMAGE: ${{ steps.repository-name.outputs.image }}
+          TAGS: ${{ steps.repository-name.outputs.tags }}
+        run: |
+          set -euo pipefail
+          expected_image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          [[ "${IMAGE}" == "${expected_image}" ]]
+          grep -Fx "${expected_image}:latest" <<< "${TAGS}"
+          grep -Fx "${expected_image}:0.0.0-ci" <<< "${TAGS}"
+
+      - name: Build with custom image name
+        id: custom-name
+        uses: ./container-image
+        with:
+          version: v1.2.3-ci
+          image-name: CI-Image
+          context: container-image/test
+          file: container-image/test/Dockerfile
+          push: false
+
+      - name: Validate custom image metadata
+        env:
+          IMAGE: ${{ steps.custom-name.outputs.image }}
+          TAGS: ${{ steps.custom-name.outputs.tags }}
+        run: |
+          set -euo pipefail
+          expected_image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/ci-image"
+          [[ "${IMAGE}" == "${expected_image}" ]]
+          grep -Fx "${expected_image}:latest" <<< "${TAGS}"
+          grep -Fx "${expected_image}:v1.2.3-ci" <<< "${TAGS}"
+
+      - name: Reject empty version
+        id: empty-version
+        continue-on-error: true
+        uses: ./container-image
+        with:
+          version: ""
+          context: container-image/test
+          file: container-image/test/Dockerfile
+          push: false
+
+      - name: Verify empty version rejection
+        env:
+          OUTCOME: ${{ steps.empty-version.outcome }}
+        run: test "${OUTCOME}" = failure
+
+      - name: Reject malformed image name
+        id: malformed-name
+        continue-on-error: true
+        uses: ./container-image
+        with:
+          version: 1.0.0
+          image-name: ghcr.io/example/api:latest
+          context: container-image/test
+          file: container-image/test/Dockerfile
+          push: false
+
+      - name: Verify malformed image name rejection
+        env:
+          OUTCOME: ${{ steps.malformed-name.outcome }}
+        run: test "${OUTCOME}" = failure
