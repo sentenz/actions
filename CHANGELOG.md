@@ -1,5 +1,18 @@
 # Changelog
 
+# [1.2.0](https://github.com/sentenz/actions/compare/1.1.9...1.2.0) (2026-07-26)
+
+
+### Bug Fixes
+
+* **container-image:** scope build cache by image ([b5ddddc](https://github.com/sentenz/actions/commit/b5ddddcd06cf2d3c962acfb22db8348bc6735d8a))
+
+
+### Features
+
+* add container image composite action ([f9ae929](https://github.com/sentenz/actions/commit/f9ae9295044fecf3a96df91e68a07c9afe736825))
+* **container-image:** support authenticated multi-platform builds ([ab94c60](https://github.com/sentenz/actions/commit/ab94c60d8433392f124d4f440ae29629f9cc38f2))
+
 ## [1.1.9](https://github.com/sentenz/actions/compare/1.1.8...1.1.9) (2026-07-19)
 
 
