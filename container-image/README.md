@@ -1,204 +1,127 @@
 # Container Image Composite Action
 
-Build OCI container images with Docker Buildx and optionally publish versioned and `latest` tags to GitHub Container Registry (GHCR).
+Build, publish, and promote OCI container images with Docker Buildx and GitHub Container Registry (GHCR).
 
-- [1. Details](#1-details)
-- [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
-- [3. Usage](#3-usage)
-  - [3.1. Publish Using the Repository Name](#31-publish-using-the-repository-name)
-  - [3.2. Publish Using a Custom Image Name](#32-publish-using-a-custom-image-name)
-  - [3.3. Build Without Publishing](#33-build-without-publishing)
-  - [3.4. Build for Multiple Platforms](#34-build-for-multiple-platforms)
-  - [3.5. Build a Dockerfile Target](#35-build-a-dockerfile-target)
-- [4. Configuration](#4-configuration)
-  - [4.1. Workflow Permissions](#41-workflow-permissions)
-  - [4.2. Image Naming](#42-image-naming)
-  - [4.3. Registry Authentication](#43-registry-authentication)
-  - [4.4. Validation](#44-validation)
+The action owns container-release mechanics so calling workflows only declare triggers, permissions, and image-specific build inputs.
 
-## 1. Details
+## Operations
 
-- [Docker Buildx](https://docs.docker.com/build/buildx/)
-  > A Docker CLI extension for advanced builds, including multi-platform images, build caching, and BuildKit features.
+| Operation | Behavior |
+| --- | --- |
+| `build` | Builds the configured platforms without publishing. |
+| `publish` | Builds and publishes the immutable version tag and, when enabled, `latest`. |
+| `promote` | Retags an existing immutable version as `latest` without rebuilding. |
+| `auto` | Publishes on tag refs and builds on other refs. |
 
-- [GitHub Container Registry](https://docs.github.com/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
-  > GitHub's OCI-compatible container registry for publishing and managing container images.
+When `operation` is omitted, the legacy `push` input remains supported: `push: true` resolves to `publish`, and `push: false` resolves to `build`.
 
-- [Publishing Docker Images](https://docs.github.com/actions/publishing-packages/publishing-docker-images)
-  > GitHub Actions guidance for authenticating, building, and publishing container images.
+## Inputs
 
-- [Docker Build Push Action](https://github.com/docker/build-push-action)
-  > A GitHub Action for building and publishing container images with Docker Buildx.
+| Input | Description | Default |
+| --- | --- | --- |
+| `operation` | `auto`, `build`, `publish`, or `promote`; supersedes `push` when set | `` |
+| `version` | Docker tag. `auto`/`build` derives `sha-<commit>` when omitted; tag refs derive the ref name | `` |
+| `publish-latest` | `auto`, `true`, or `false`. `auto` publishes `latest` only for stable semantic-version tag refs | `true` |
+| `immutable` | Refuse to overwrite an existing version tag during publication | `false` |
+| `github-token` | Token used to authenticate to GHCR | `${{ github.token }}` |
+| `registry-username` | GHCR username associated with the token | `${{ github.actor }}` |
+| `context` | Docker build context | `.` |
+| `file` | Dockerfile path | `Dockerfile` |
+| `image-name` | Package name within the calling repository owner's GHCR namespace | Calling repository name |
+| `platforms` | Comma-separated target platforms | `linux/amd64` |
+| `build-args` | Newline-delimited Docker build arguments | `` |
+| `labels` | Additional newline-delimited OCI image labels | `` |
+| `target` | Optional Dockerfile target | `` |
+| `push` | Legacy build/publish selector used only when `operation` is omitted | `true` |
 
-## 2. Action
+## Outputs
 
-The [Container Image Action](./action.yml) builds an OCI container image and optionally publishes it to the calling repository owner's GHCR namespace.
+| Output | Description |
+| --- | --- |
+| `operation` | Resolved operation |
+| `version` | Resolved version |
+| `image` | Fully qualified GHCR image name |
+| `tags` | Newline-delimited tags used for the operation |
+| `digest` | Buildx digest for build/publish operations; empty for promotion-only operations |
 
-A publishing run applies `latest` and the supplied version tag to the same build result. The action uses the calling repository name as the default package name, supports an optional package name under the same owner namespace, and provides multi-platform builds, build arguments, Dockerfile targets, per-image GitHub Actions cache storage, and build-only validation through `push: false`.
-
-All third-party actions are pinned to immutable commit SHAs.
-
-### 2.1. Inputs
-
-| Input               | Description                                                                 | Required | Default                 |
-| ------------------- | --------------------------------------------------------------------------- | -------- | ----------------------- |
-| `github-token`      | GitHub token used to authenticate to `ghcr.io`                              | No       | `${{ github.token }}`   |
-| `registry-username` | GHCR username associated with `github-token`                                | No       | `${{ github.actor }}`   |
-| `version`           | Current Docker tag, such as `1.4.2` or `v1.4.2`; must differ from `latest` | Yes      | —                       |
-| `context`           | Docker build context                                                        | No       | `.`                     |
-| `file`              | Path to the Dockerfile                                                       | No       | `Dockerfile`            |
-| `image-name`        | GHCR package name without registry, owner, tag, or digest                   | No       | Calling repository name |
-| `platforms`         | Comma-separated target platforms                                            | No       | `linux/amd64`           |
-| `build-args`        | Newline-delimited Docker build arguments                                    | No       | ``                      |
-| `target`            | Dockerfile build target                                                      | No       | ``                      |
-| `push`              | Publish the image to GHCR; set to `false` for build-only validation         | No       | `true`                  |
-
-### 2.2. Outputs
-
-| Output   | Description                                                                                   |
-| -------- | --------------------------------------------------------------------------------------------- |
-| `image`  | Fully qualified resolved image name, such as `ghcr.io/sentenz/example`                       |
-| `tags`   | Newline-delimited `latest` and version tags                                                   |
-| `digest` | Image manifest digest returned by Docker Buildx; may be empty for some build-only operations |
-
-## 3. Usage
-
-### 3.1. Publish Using the Repository Name
+## Recommended workflow
 
 ```yaml
-name: Publish Container Image
+name: Container Image
 
 on:
-  release:
-    types: [published]
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [build, publish, promote]
+        default: build
+      version:
+        type: string
+        required: false
+      publish_latest:
+        type: choice
+        options: [auto, "true", "false"]
+        default: auto
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  publish:
+  image:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Build and publish image
-        id: image
-        uses: sentenz/actions/container-image@main
+      - uses: sentenz/actions/container-image@main
         with:
-          version: ${{ github.event.release.tag_name }}
+          operation: ${{ inputs.operation || 'auto' }}
+          version: ${{ inputs.version }}
+          publish-latest: ${{ inputs.publish_latest || 'auto' }}
+          immutable: true
+          platforms: linux/amd64,linux/arm64
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Report digest
-        run: echo "${{ steps.image.outputs.digest }}"
 ```
 
-### 3.2. Publish Using a Custom Image Name
+For normal pull-request and branch runs, `auto` performs a build-only validation. Tag runs publish the tag and update `latest` only for stable semantic versions. Manual runs explicitly select build, publish, or promotion behavior.
 
-```yaml
-- name: Build and publish API image
-  uses: sentenz/actions/container-image@main
-  with:
-    version: ${{ github.event.release.tag_name }}
-    image-name: api
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-```
+## Publication guarantees
 
-### 3.3. Build Without Publishing
+With `immutable: true`, the action checks GHCR before publishing and fails when the requested version tag already exists. Promotion verifies that the immutable source tag exists before retagging it as `latest`.
 
-Use build-only mode for pull requests and other untrusted or non-release events:
+Published builds enable maximum provenance and SBOM generation. Build-only validation disables attestations. The action applies standard OCI source, URL, version, and revision labels and accepts additional labels through `labels`. Buildx cache storage is scoped by the resolved image name.
+
+## Permissions
+
+Build-only operations require:
 
 ```yaml
 permissions:
   contents: read
-
-steps:
-  - name: Checkout
-    uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-  - name: Validate container build
-    uses: sentenz/actions/container-image@main
-    with:
-      version: 0.0.0-pr
-      push: false
 ```
 
-### 3.4. Build for Multiple Platforms
-
-```yaml
-- name: Build and publish multi-platform image
-  uses: sentenz/actions/container-image@main
-  with:
-    version: ${{ github.event.release.tag_name }}
-    platforms: linux/amd64,linux/arm64
-    build-args: |
-      APP_VERSION=${{ github.event.release.tag_name }}
-      VCS_REF=${{ github.sha }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### 3.5. Build a Dockerfile Target
-
-```yaml
-- name: Build production target
-  uses: sentenz/actions/container-image@main
-  with:
-    version: ${{ github.event.release.tag_name }}
-    target: production
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-```
-
-## 4. Configuration
-
-### 4.1. Workflow Permissions
-
-Publishing requires package write access in the calling workflow:
+Publish and promote operations additionally require:
 
 ```yaml
 permissions:
-  contents: read
   packages: write
 ```
 
-A composite action cannot grant workflow permissions. Build-only jobs generally require only `contents: read`.
+A composite action cannot grant workflow permissions. The supplied token must have access to the calling repository and its GHCR package namespace.
 
-### 4.2. Image Naming
+## Validation
 
-The action derives the registry owner from `${{ github.repository_owner }}` and normalizes the owner and package names to lowercase.
+The action rejects:
 
-With no `image-name`, the calling repository name is used:
-
-```text
-ghcr.io/<owner>/<repository>:latest
-ghcr.io/<owner>/<repository>:<version>
-```
-
-With `image-name: api`, the package remains in the same owner namespace:
-
-```text
-ghcr.io/<owner>/api:latest
-ghcr.io/<owner>/api:<version>
-```
-
-The `image-name` input accepts only a package-name component. Values containing a registry prefix, owner path, tag, digest, whitespace, or unsupported characters are rejected before authentication and build execution.
-
-### 4.3. Registry Authentication
-
-The package is created under the calling repository owner's GHCR namespace. Package visibility and repository access are managed in GitHub package settings, and organization policies may restrict package creation or visibility.
-
-For private repositories, the supplied token must have access to the repository and permission to write packages. The default `${{ github.token }}` is normally sufficient when the calling workflow declares `packages: write`.
-
-A personal access token is necessary only when publishing across permission boundaries not covered by the workflow token. When supplying a PAT, set `registry-username` to the account that owns the token.
-
-### 4.4. Validation
-
-The action fails before authentication or build execution when:
-
-- `version`, `context`, `file`, or `platforms` is empty;
-- `version` is not a valid Docker tag or resolves to `latest`;
-- `push` is not exactly `true` or `false`;
-- `registry-username` is empty while `push` is `true`; or
-- `image-name` contains a registry prefix, owner path, tag, digest, whitespace, or unsupported characters.
+- unsupported operations;
+- missing explicit versions for manual publish and promote operations;
+- invalid Docker tags or the reserved `latest` version;
+- invalid `publish-latest`, `immutable`, or legacy `push` values;
+- malformed package names containing registry, owner, tag, or digest components;
+- missing registry credentials for publish and promote operations;
+- empty build context, Dockerfile, or platforms for build and publish operations.
