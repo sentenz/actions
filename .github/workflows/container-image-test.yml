@@ -25,8 +25,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Build with repository image name
-        id: repository-name
+      - name: Build with legacy inputs
+        id: legacy
         uses: ./container-image
         with:
           version: 0.0.0-ci
@@ -35,39 +35,66 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: false
 
-      - name: Validate repository image metadata
+      - name: Validate legacy metadata
         env:
-          IMAGE: ${{ steps.repository-name.outputs.image }}
-          TAGS: ${{ steps.repository-name.outputs.tags }}
+          IMAGE: ${{ steps.legacy.outputs.image }}
+          OPERATION: ${{ steps.legacy.outputs.operation }}
+          TAGS: ${{ steps.legacy.outputs.tags }}
+          VERSION: ${{ steps.legacy.outputs.version }}
         run: |
           set -euo pipefail
           expected_image="ghcr.io/${GITHUB_REPOSITORY,,}"
           [[ "${IMAGE}" == "${expected_image}" ]]
-          grep -Fx "${expected_image}:latest" <<< "${TAGS}"
+          [[ "${OPERATION}" == build ]]
+          [[ "${VERSION}" == 0.0.0-ci ]]
           grep -Fx "${expected_image}:0.0.0-ci" <<< "${TAGS}"
+          grep -Fx "${expected_image}:latest" <<< "${TAGS}"
 
-      - name: Build with custom image name
-        id: custom-name
+      - name: Build with automatic operation
+        id: automatic
         uses: ./container-image
         with:
-          version: v1.2.3-ci
+          operation: auto
+          publish-latest: auto
           image-name: CI-Image
           context: container-image/test
           file: container-image/test/Dockerfile
-          push: false
 
-      - name: Validate custom image metadata
+      - name: Validate automatic metadata
         env:
-          IMAGE: ${{ steps.custom-name.outputs.image }}
-          TAGS: ${{ steps.custom-name.outputs.tags }}
+          IMAGE: ${{ steps.automatic.outputs.image }}
+          OPERATION: ${{ steps.automatic.outputs.operation }}
+          TAGS: ${{ steps.automatic.outputs.tags }}
+          VERSION: ${{ steps.automatic.outputs.version }}
         run: |
           set -euo pipefail
           expected_image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/ci-image"
           [[ "${IMAGE}" == "${expected_image}" ]]
-          grep -Fx "${expected_image}:latest" <<< "${TAGS}"
-          grep -Fx "${expected_image}:v1.2.3-ci" <<< "${TAGS}"
+          [[ "${OPERATION}" == build ]]
+          [[ "${VERSION}" == "sha-${GITHUB_SHA}" ]]
+          grep -Fx "${expected_image}:sha-${GITHUB_SHA}" <<< "${TAGS}"
+          ! grep -Fx "${expected_image}:latest" <<< "${TAGS}"
 
-      - name: Reject empty version
+      - name: Build immutable version without latest
+        id: immutable
+        uses: ./container-image
+        with:
+          operation: build
+          version: v1.2.3-ci
+          publish-latest: false
+          immutable: true
+          context: container-image/test
+          file: container-image/test/Dockerfile
+
+      - name: Validate immutable metadata
+        env:
+          TAGS: ${{ steps.immutable.outputs.tags }}
+        run: |
+          set -euo pipefail
+          grep -Fx "ghcr.io/${GITHUB_REPOSITORY,,}:v1.2.3-ci" <<< "${TAGS}"
+          ! grep -F ':latest' <<< "${TAGS}"
+
+      - name: Reject empty legacy version
         id: empty-version
         continue-on-error: true
         uses: ./container-image
@@ -77,7 +104,7 @@ jobs:
           file: container-image/test/Dockerfile
           push: false
 
-      - name: Verify empty version rejection
+      - name: Verify empty legacy version rejection
         env:
           OUTCOME: ${{ steps.empty-version.outcome }}
         run: test "${OUTCOME}" = failure
@@ -87,13 +114,28 @@ jobs:
         continue-on-error: true
         uses: ./container-image
         with:
+          operation: build
           version: 1.0.0
           image-name: ghcr.io/example/api:latest
           context: container-image/test
           file: container-image/test/Dockerfile
-          push: false
 
       - name: Verify malformed image name rejection
         env:
           OUTCOME: ${{ steps.malformed-name.outcome }}
+        run: test "${OUTCOME}" = failure
+
+      - name: Reject unsupported operation
+        id: unsupported-operation
+        continue-on-error: true
+        uses: ./container-image
+        with:
+          operation: delete
+          version: 1.0.0
+          context: container-image/test
+          file: container-image/test/Dockerfile
+
+      - name: Verify unsupported operation rejection
+        env:
+          OUTCOME: ${{ steps.unsupported-operation.outcome }}
         run: test "${OUTCOME}" = failure
