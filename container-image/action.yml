@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Container Image
-description: Build an OCI container image and optionally publish versioned and latest tags to GHCR
+description: Build, publish, or promote an OCI container image in GHCR
 author: sentenz
 
 branding:
@@ -16,9 +16,22 @@ inputs:
     description: GHCR username associated with github-token
     required: false
     default: ${{ github.actor }}
+  operation:
+    description: "Optional operation override: auto, build, publish, or promote"
+    required: false
+    default: ""
   version:
-    description: Current image version tag, for example 1.4.2
-    required: true
+    description: Image version tag; auto mode derives tags from GitHub context when omitted
+    required: false
+    default: ""
+  publish-latest:
+    description: "Publish or promote latest: auto, true, or false"
+    required: false
+    default: "true"
+  immutable:
+    description: Refuse to overwrite an existing version tag
+    required: false
+    default: "false"
   context:
     description: Docker build context
     required: false
@@ -39,16 +52,26 @@ inputs:
     description: Optional newline-delimited Docker build arguments
     required: false
     default: ""
+  labels:
+    description: Optional newline-delimited OCI image labels
+    required: false
+    default: ""
   target:
     description: Optional Docker build target
     required: false
     default: ""
   push:
-    description: Publish the image to GHCR; set to false for build-only validation
+    description: Legacy build/publish selector used when operation is omitted
     required: false
     default: "true"
 
 outputs:
+  operation:
+    description: Resolved operation
+    value: ${{ steps.metadata.outputs.operation }}
+  version:
+    description: Resolved image version
+    value: ${{ steps.metadata.outputs.version }}
   image:
     description: Fully qualified resolved GHCR image name
     value: ${{ steps.metadata.outputs.image }}
@@ -62,13 +85,16 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Validate inputs and resolve image metadata
+    - name: Resolve operation and image metadata
       id: metadata
       shell: bash
       env:
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
         INPUT_REGISTRY_USERNAME: ${{ inputs.registry-username }}
+        INPUT_OPERATION: ${{ inputs.operation }}
         INPUT_VERSION: ${{ inputs.version }}
+        INPUT_PUBLISH_LATEST: ${{ inputs.publish-latest }}
+        INPUT_IMMUTABLE: ${{ inputs.immutable }}
         INPUT_CONTEXT: ${{ inputs.context }}
         INPUT_FILE: ${{ inputs.file }}
         INPUT_IMAGE_NAME: ${{ inputs.image-name }}
@@ -77,6 +103,9 @@ runs:
         INPUT_PUSH: ${{ inputs.push }}
         REPOSITORY: ${{ github.repository }}
         REPOSITORY_OWNER: ${{ github.repository_owner }}
+        REF_NAME: ${{ github.ref_name }}
+        REF_TYPE: ${{ github.ref_type }}
+        COMMIT_SHA: ${{ github.sha }}
       run: |
         set -euo pipefail
 
@@ -87,7 +116,10 @@ runs:
           printf '%s' "${value}"
         }
 
+        operation="$(trim "${INPUT_OPERATION}")"
         version="$(trim "${INPUT_VERSION}")"
+        publish_latest="$(trim "${INPUT_PUBLISH_LATEST}")"
+        immutable="$(trim "${INPUT_IMMUTABLE}")"
         context="$(trim "${INPUT_CONTEXT}")"
         dockerfile="$(trim "${INPUT_FILE}")"
         platforms="$(trim "${INPUT_PLATFORMS}")"
@@ -95,36 +127,6 @@ runs:
         push="$(trim "${INPUT_PUSH}")"
         registry_username="$(trim "${INPUT_REGISTRY_USERNAME}")"
         image_name="$(trim "${INPUT_IMAGE_NAME}")"
-
-        if [[ -z "${version}" ]]; then
-          echo "::error::version must not be empty"
-          exit 1
-        fi
-
-        if [[ ! "${version}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
-          echo "::error::version must be a valid Docker tag"
-          exit 1
-        fi
-
-        if [[ "${version,,}" == "latest" ]]; then
-          echo "::error::version must be distinct from the reserved latest tag"
-          exit 1
-        fi
-
-        if [[ -z "${context}" ]]; then
-          echo "::error::context must not be empty"
-          exit 1
-        fi
-
-        if [[ -z "${dockerfile}" ]]; then
-          echo "::error::file must not be empty"
-          exit 1
-        fi
-
-        if [[ -z "${platforms}" ]]; then
-          echo "::error::platforms must not be empty"
-          exit 1
-        fi
 
         case "${push}" in
           true | false) ;;
@@ -134,14 +136,103 @@ runs:
             ;;
         esac
 
-        if [[ "${push}" == "true" ]]; then
-          if [[ -z "${INPUT_GITHUB_TOKEN}" ]]; then
-            echo "::error::github-token must not be empty when push is true"
+        legacy=false
+        if [[ -z "${operation}" ]]; then
+          legacy=true
+          if [[ "${push}" == true ]]; then
+            operation=publish
+          else
+            operation=build
+          fi
+        elif [[ "${operation}" == auto ]]; then
+          if [[ "${REF_TYPE}" == tag ]]; then
+            operation=publish
+          else
+            operation=build
+          fi
+        fi
+
+        case "${operation}" in
+          build | publish | promote) ;;
+          *)
+            echo "::error::operation must be auto, build, publish, or promote"
+            exit 1
+            ;;
+        esac
+
+        if [[ -z "${version}" ]]; then
+          if [[ "${legacy}" == true ]]; then
+            echo "::error::version must not be empty when operation is omitted"
+            exit 1
+          elif [[ "${REF_TYPE}" == tag ]]; then
+            version="${REF_NAME}"
+          elif [[ "${operation}" == build ]]; then
+            version="sha-${COMMIT_SHA}"
+          else
+            echo "::error::version is required for explicit publish and promote operations"
             exit 1
           fi
+        fi
 
+        if [[ ! "${version}" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+          echo "::error::version must be a valid Docker tag"
+          exit 1
+        fi
+
+        if [[ "${version,,}" == latest ]]; then
+          echo "::error::version must be distinct from the reserved latest tag"
+          exit 1
+        fi
+
+        if [[ "${operation}" == promote ]]; then
+          publish_latest=true
+        else
+          case "${publish_latest}" in
+            auto)
+              if [[ "${operation}" == publish && "${REF_TYPE}" == tag && "${version}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                publish_latest=true
+              else
+                publish_latest=false
+              fi
+              ;;
+            true | false) ;;
+            *)
+              echo "::error::publish-latest must be auto, true, or false"
+              exit 1
+              ;;
+          esac
+        fi
+
+        case "${immutable}" in
+          true | false) ;;
+          *)
+            echo "::error::immutable must be true or false"
+            exit 1
+            ;;
+        esac
+
+        if [[ "${operation}" != promote ]]; then
+          if [[ -z "${context}" ]]; then
+            echo "::error::context must not be empty"
+            exit 1
+          fi
+          if [[ -z "${dockerfile}" ]]; then
+            echo "::error::file must not be empty"
+            exit 1
+          fi
+          if [[ -z "${platforms}" ]]; then
+            echo "::error::platforms must not be empty"
+            exit 1
+          fi
+        fi
+
+        if [[ "${operation}" == publish || "${operation}" == promote ]]; then
+          if [[ -z "${INPUT_GITHUB_TOKEN}" ]]; then
+            echo "::error::github-token must not be empty for publish and promote operations"
+            exit 1
+          fi
           if [[ -z "${registry_username}" ]]; then
-            echo "::error::registry-username must not be empty when push is true"
+            echo "::error::registry-username must not be empty for publish and promote operations"
             exit 1
           fi
         fi
@@ -159,47 +250,117 @@ runs:
         fi
 
         image="ghcr.io/${owner}/${image_name}"
+        if [[ "${operation}" == publish ]]; then
+          resolved_push=true
+        else
+          resolved_push=false
+        fi
 
         {
+          echo "operation=${operation}"
+          echo "version=${version}"
           echo "image=${image}"
           echo "context=${context}"
           echo "file=${dockerfile}"
           echo "platforms=${platforms}"
           echo "target=${target}"
-          echo "push=${push}"
+          echo "push=${resolved_push}"
+          echo "publish_latest=${publish_latest}"
+          echo "immutable=${immutable}"
           echo "registry_username=${registry_username}"
         } >> "${GITHUB_OUTPUT}"
+
         {
           echo "tags<<EOF"
-          echo "${image}:latest"
           echo "${image}:${version}"
+          if [[ "${publish_latest}" == true && "${operation}" != promote ]]; then
+            echo "${image}:latest"
+          fi
           echo "EOF"
         } >> "${GITHUB_OUTPUT}"
 
     - name: Set up QEMU
+      if: ${{ steps.metadata.outputs.operation != 'promote' }}
       uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
     - name: Log in to GHCR
-      if: ${{ steps.metadata.outputs.push == 'true' }}
+      if: ${{ steps.metadata.outputs.operation == 'publish' || steps.metadata.outputs.operation == 'promote' }}
       uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
       with:
         registry: ghcr.io
         username: ${{ steps.metadata.outputs.registry_username }}
         password: ${{ inputs.github-token }}
 
-    - name: Build and publish container image
+    - name: Validate registry operation
+      if: ${{ steps.metadata.outputs.operation == 'promote' || (steps.metadata.outputs.operation == 'publish' && steps.metadata.outputs.immutable == 'true') }}
+      shell: bash
+      env:
+        IMAGE: ${{ steps.metadata.outputs.image }}
+        VERSION: ${{ steps.metadata.outputs.version }}
+        OPERATION: ${{ steps.metadata.outputs.operation }}
+      run: |
+        set -euo pipefail
+        version_image="${IMAGE}:${VERSION}"
+
+        if [[ "${OPERATION}" == promote ]]; then
+          if ! docker buildx imagetools inspect "${version_image}" >/dev/null 2>&1; then
+            echo "::error::cannot promote missing immutable tag: ${version_image}"
+            exit 1
+          fi
+        elif docker buildx imagetools inspect "${version_image}" >/dev/null 2>&1; then
+          echo "::error::refusing to overwrite existing immutable tag: ${version_image}"
+          exit 1
+        fi
+
+    - name: Build container image
       id: build
+      if: ${{ steps.metadata.outputs.operation != 'promote' }}
       uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
       with:
         context: ${{ steps.metadata.outputs.context }}
         file: ${{ steps.metadata.outputs.file }}
         platforms: ${{ steps.metadata.outputs.platforms }}
         build-args: ${{ inputs.build-args }}
+        labels: |
+          org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
+          org.opencontainers.image.version=${{ steps.metadata.outputs.version }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          ${{ inputs.labels }}
         target: ${{ steps.metadata.outputs.target }}
         push: ${{ steps.metadata.outputs.push }}
         tags: ${{ steps.metadata.outputs.tags }}
+        provenance: ${{ steps.metadata.outputs.push == 'true' && 'mode=max' || 'false' }}
+        sbom: ${{ steps.metadata.outputs.push == 'true' && 'true' || 'false' }}
         cache-from: type=gha,scope=${{ steps.metadata.outputs.image }}
         cache-to: type=gha,mode=max,scope=${{ steps.metadata.outputs.image }}
+
+    - name: Promote immutable version to latest
+      if: ${{ steps.metadata.outputs.operation == 'promote' }}
+      shell: bash
+      env:
+        IMAGE: ${{ steps.metadata.outputs.image }}
+        VERSION: ${{ steps.metadata.outputs.version }}
+      run: |
+        set -euo pipefail
+        docker buildx imagetools create \
+          --tag "${IMAGE}:latest" \
+          "${IMAGE}:${VERSION}"
+        docker buildx imagetools inspect "${IMAGE}:latest"
+
+    - name: Verify published image
+      if: ${{ steps.metadata.outputs.operation == 'publish' }}
+      shell: bash
+      env:
+        IMAGE: ${{ steps.metadata.outputs.image }}
+        VERSION: ${{ steps.metadata.outputs.version }}
+        PUBLISH_LATEST: ${{ steps.metadata.outputs.publish_latest }}
+      run: |
+        set -euo pipefail
+        docker buildx imagetools inspect "${IMAGE}:${VERSION}"
+        if [[ "${PUBLISH_LATEST}" == true ]]; then
+          docker buildx imagetools inspect "${IMAGE}:latest"
+        fi
