@@ -28,6 +28,7 @@ A composite action cannot grant these permissions. Build-only jobs generally req
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
 | `github-token` | No | `${{ github.token }}` | Token used to authenticate to `ghcr.io`. |
+| `registry-username` | No | `${{ github.actor }}` | GHCR username associated with `github-token`. |
 | `version` | Yes | — | Current Docker tag, such as `1.4.2` or `v1.4.2`. The value must differ from `latest`. |
 | `context` | No | `.` | Docker build context. |
 | `file` | No | `Dockerfile` | Path to the Dockerfile. |
@@ -157,7 +158,7 @@ steps:
 
 The package is created under the calling repository owner's GHCR namespace. Package visibility and repository access are managed in GitHub package settings. Organization policies can restrict package creation or visibility. For private repositories, the supplied token must have access to the repository and permission to write packages.
 
-The default `${{ github.token }}` is normally sufficient when the calling workflow declares `packages: write`. A personal access token is necessary only when publishing across permission boundaries not covered by the workflow token.
+The default `${{ github.token }}` is normally sufficient when the calling workflow declares `packages: write`. A personal access token is necessary only when publishing across permission boundaries not covered by the workflow token. When supplying a PAT, set `registry-username` to the account that owns that token.
 
 ## Validation
 
@@ -166,6 +167,7 @@ The action fails before authentication or build execution when:
 - `version`, `context`, `file`, or `platforms` is empty;
 - `version` is not a valid Docker tag or resolves to `latest`;
 - `push` is not exactly `true` or `false`; or
+- `registry-username` is empty while `push` is `true`; or
 - `image-name` contains a registry prefix, owner path, tag, digest, whitespace, or unsupported characters.
 
 ## References
