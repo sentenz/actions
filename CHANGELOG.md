@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/sentenz/actions/compare/1.2.0...1.2.1) (2026-07-26)
+
+
+### Bug Fixes
+
+* **actions:** update docker.io/semgrep/semgrep docker tag to v1.171.0 ([#54](https://github.com/sentenz/actions/issues/54)) ([f423b97](https://github.com/sentenz/actions/commit/f423b977035d55768588d9984c17e8e24cf5a5fd))
+
 # [1.2.0](https://github.com/sentenz/actions/compare/1.1.9...1.2.0) (2026-07-26)
 
 
