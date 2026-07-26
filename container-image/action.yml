@@ -184,5 +184,5 @@ runs:
         target: ${{ steps.metadata.outputs.target }}
         push: ${{ steps.metadata.outputs.push }}
         tags: ${{ steps.metadata.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=${{ steps.metadata.outputs.image }}
+        cache-to: type=gha,mode=max,scope=${{ steps.metadata.outputs.image }}
