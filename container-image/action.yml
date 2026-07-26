@@ -12,6 +12,10 @@ inputs:
     description: GitHub token used to authenticate to GHCR
     required: false
     default: ${{ github.token }}
+  registry-username:
+    description: GHCR username associated with github-token
+    required: false
+    default: ${{ github.actor }}
   version:
     description: Current image version tag, for example 1.4.2
     required: true
@@ -63,6 +67,7 @@ runs:
       shell: bash
       env:
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_REGISTRY_USERNAME: ${{ inputs.registry-username }}
         INPUT_VERSION: ${{ inputs.version }}
         INPUT_CONTEXT: ${{ inputs.context }}
         INPUT_FILE: ${{ inputs.file }}
@@ -88,6 +93,7 @@ runs:
         platforms="$(trim "${INPUT_PLATFORMS}")"
         target="$(trim "${INPUT_TARGET}")"
         push="$(trim "${INPUT_PUSH}")"
+        registry_username="$(trim "${INPUT_REGISTRY_USERNAME}")"
         image_name="$(trim "${INPUT_IMAGE_NAME}")"
 
         if [[ -z "${version}" ]]; then
@@ -128,9 +134,16 @@ runs:
             ;;
         esac
 
-        if [[ "${push}" == "true" && -z "${INPUT_GITHUB_TOKEN}" ]]; then
-          echo "::error::github-token must not be empty when push is true"
-          exit 1
+        if [[ "${push}" == "true" ]]; then
+          if [[ -z "${INPUT_GITHUB_TOKEN}" ]]; then
+            echo "::error::github-token must not be empty when push is true"
+            exit 1
+          fi
+
+          if [[ -z "${registry_username}" ]]; then
+            echo "::error::registry-username must not be empty when push is true"
+            exit 1
+          fi
         fi
 
         if [[ -z "${image_name}" ]]; then
@@ -154,6 +167,7 @@ runs:
           echo "platforms=${platforms}"
           echo "target=${target}"
           echo "push=${push}"
+          echo "registry_username=${registry_username}"
         } >> "${GITHUB_OUTPUT}"
         {
           echo "tags<<EOF"
@@ -161,6 +175,9 @@ runs:
           echo "${image}:${version}"
           echo "EOF"
         } >> "${GITHUB_OUTPUT}"
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
@@ -170,7 +187,7 @@ runs:
       uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
+        username: ${{ steps.metadata.outputs.registry_username }}
         password: ${{ inputs.github-token }}
 
     - name: Build and publish container image
