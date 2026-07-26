@@ -4,70 +4,61 @@ name: Container Image
 
 on:
   pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-    tags: ["v*.*.*"]
-  workflow_dispatch:
-    inputs:
-      operation:
-        description: Container image operation
-        type: choice
-        options:
-          - build
-          - publish
-          - promote
-        default: build
-      version:
-        description: Immutable image version for manual publish or promote operations
-        type: string
-        required: false
-      publish_latest:
-        description: Latest-tag policy
-        type: choice
-        options:
-          - auto
-          - "true"
-          - "false"
-        default: auto
+    branches:
+      - main
+  release:
+    types:
+      - published
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
-  image:
-    name: Build or Publish Container Image
+  validate:
+    name: Validate Container Image
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Run container image operation
-        id: image
-        uses: sentenz/actions/container-image@latest
+      - name: Validate container build
+        uses: sentenz/actions/container-image@main
         with:
-          operation: ${{ inputs.operation || 'auto' }}
-          version: ${{ inputs.version }}
-          publish-latest: ${{ inputs.publish_latest || 'auto' }}
+          operation: build
+          version: sha-${{ github.sha }}
+          push: false
+
+  publish:
+    name: Publish Container Image
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build and publish image
+        id: image
+        uses: sentenz/actions/container-image@main
+        with:
+          operation: publish
+          version: ${{ github.event.release.tag_name }}
           immutable: true
-          platforms: linux/amd64,linux/arm64
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Report image
+      - name: Report published image
         env:
-          OPERATION: ${{ steps.image.outputs.operation }}
           IMAGE: ${{ steps.image.outputs.image }}
-          VERSION: ${{ steps.image.outputs.version }}
           TAGS: ${{ steps.image.outputs.tags }}
           DIGEST: ${{ steps.image.outputs.digest }}
         run: |
           {
-            echo "### Container image"
+            echo "### Published container image"
             echo
-            echo "- Operation: \`${OPERATION}\`"
             echo "- Image: \`${IMAGE}\`"
-            echo "- Version: \`${VERSION}\`"
             echo "- Digest: \`${DIGEST}\`"
             echo
             echo '```text'
