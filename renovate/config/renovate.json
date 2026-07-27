@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Default Renovate configuration for centralized actions",
+  "description": "Example self-hosted Renovate configuration for centralized actions",
   "extends": [
     "config:recommended",
     ":semanticCommits",
@@ -73,17 +73,21 @@
       "rangeStrategy": "pin"
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "description": "Update Docker images in shell scripts",
-      "fileMatch": [
-        "(^|/).*\\.sh$",
-        "(^|/)Makefile$"
+      "customType": "regex",
+      "description": "Update digest-pinned Docker images in shell scripts and Makefiles",
+      "managerFilePatterns": [
+        "**/*.sh",
+        "**/[Mm]akefile",
+        "**/GNUMakefile",
+        "**/*.mk"
       ],
       "matchStrings": [
-        "(?<depName>[a-z0-9.-]+/[a-z0-9.-]+):(?<currentValue>[a-z0-9.-]+)@(?<currentDigest>sha256:[a-f0-9]+)"
+        "(?<depName>(?:[a-z0-9.-]+(?::[0-9]+)?/)?[a-z0-9._-]+(?:/[a-z0-9._-]+)+):(?<currentValue>[A-Za-z0-9._-]+)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
-      "datasourceTemplate": "docker"
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
     }
   ]
 }
