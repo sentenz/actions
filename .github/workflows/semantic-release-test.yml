@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Semantic Release Test
+      - name: Run Semantic Release Test
         uses: ./semantic-release
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -85,10 +85,9 @@ jobs:
             exit 1
           fi
 
-      - name: Run Renovate
+      - name: Run Renovate Test
         uses: ./renovate
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
-          platform: github
           log-level: debug

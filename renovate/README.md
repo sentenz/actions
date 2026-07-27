@@ -7,20 +7,18 @@ Run self-hosted Renovate with explicit authentication and repository selection.
   - [2.1. Inputs](#21-inputs)
   - [2.2. Authentication](#22-authentication)
 - [3. Usage](#3-usage)
-  - [3.1. Personal access token](#31-personal-access-token)
-  - [3.2. GitHub App installation token](#32-github-app-installation-token)
+  - [3.1. Personal Access Token](#31-personal-access-token)
+  - [3.2. GitHub App Installation Token](#32-github-app-installation-token)
 - [4. Configuration](#4-configuration)
-  - [4.1. Repository configuration](#41-repository-configuration)
-  - [4.2. Self-hosted configuration](#42-self-hosted-configuration)
-  - [4.3. Repository selection](#43-repository-selection)
-- [5. Validation](#5-validation)
+  - [4.1. Repository Configuration](#41-repository-configuration)
+  - [4.2. Self-hosted Configuration](#42-self-hosted-configuration)
 
 ## 1. Details
 
 - [Renovate](https://github.com/renovatebot/renovate)
   > An open-source dependency automation tool that creates pull requests for dependency updates.
 
-- [Renovate documentation](https://docs.renovatebot.com/)
+- [Renovate Documentation](https://docs.renovatebot.com/)
   > Configuration, managers, datasources, and self-hosting guidance.
 
 - [Renovate GitHub Action](https://github.com/renovatebot/github-action)
@@ -32,14 +30,13 @@ The [Renovate Action](./action.yml) validates authentication, selects either the
 
 ### 2.1. Inputs
 
-| Input | Description | Required | Default |
-| --- | --- | --- | --- |
-| `token` | Platform access token used by Renovate | Yes | — |
-| `version` | Renovate CLI version or image tag | No | `43` |
-| `autodiscover` | Discover all repositories accessible to the token | No | `false` |
-| `config-file` | Path to a self-hosted/global Renovate configuration file | No | `` |
-| `platform` | Renovate platform identifier | No | `github` |
-| `log-level` | Renovate log level | No | `info` |
+| Input          | Description                                              | Required | Default |
+| -------------- | -------------------------------------------------------- | -------- | ------- |
+| `token`        | Platform access token used by Renovate                   | Yes      | —       |
+| `version`      | Renovate CLI version or image tag                        | No       | `43`    |
+| `autodiscover` | Discover all repositories accessible to the token        | No       | `false` |
+| `config-file`  | Path to a self-hosted/global Renovate configuration file | No       | ``      |
+| `log-level`    | Renovate log level                                       | No       | `info`  |
 
 The `version` input controls the Renovate CLI container version. It is independent of the `renovatebot/github-action` release used internally.
 
@@ -58,7 +55,9 @@ The caller workflow may retain `permissions: contents: read`; those permissions 
 
 ## 3. Usage
 
-### 3.1. Personal access token
+### 3.1. Personal Access Token
+
+With `autodiscover: "false"`, the action limits Renovate to `${{ github.repository }}`.
 
 ```yaml
 name: Renovate
@@ -92,13 +91,12 @@ jobs:
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
-          platform: github
           log-level: info
 ```
 
-With `autodiscover: "false"`, the action limits Renovate to `${{ github.repository }}`.
+### 3.2. GitHub App Installation Token
 
-### 3.2. GitHub App installation token
+Configure the GitHub App with access to the target repositories and the repository permissions Renovate requires.
 
 ```yaml
 steps:
@@ -123,11 +121,9 @@ steps:
       autodiscover: "false"
 ```
 
-Configure the GitHub App with access to the target repositories and the repository permissions Renovate requires.
-
 ## 4. Configuration
 
-### 4.1. Repository configuration
+### 4.1. Repository Configuration
 
 Renovate automatically reads a repository configuration file such as `renovate.json`, `renovate.json5`, or `renovate.jsonc` from the target repository. This file controls dependency rules for that repository and does not need to be supplied through `config-file`.
 
@@ -138,7 +134,7 @@ Renovate automatically reads a repository configuration file such as `renovate.j
 }
 ```
 
-### 4.2. Self-hosted configuration
+### 4.2. Self-hosted Configuration
 
 Use `config-file` only for Renovate's self-hosted/global configuration:
 
@@ -151,22 +147,3 @@ Use `config-file` only for Renovate's self-hosted/global configuration:
 ```
 
 The path is resolved from the checked-out caller repository. Checkout is therefore required when `config-file` references a repository file.
-
-### 4.3. Repository selection
-
-The default behavior is deliberately narrow:
-
-- `autodiscover: "false"` sets `RENOVATE_REPOSITORIES` to the current repository.
-- `autodiscover: "true"` enables `RENOVATE_AUTODISCOVER` and clears the explicit repository list.
-
-Autodiscovery should only be enabled when the supplied token is intended to access and manage every discovered repository.
-
-## 5. Validation
-
-The action fails before starting Renovate when:
-
-- `token` is empty;
-- the supplied token is the workflow's `GITHUB_TOKEN`; or
-- `autodiscover` is not `true` or `false`.
-
-The repository test workflow validates these failure modes and runs a scheduled integration test with `RENOVATE_TOKEN`.

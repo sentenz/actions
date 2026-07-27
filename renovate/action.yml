@@ -9,26 +9,22 @@ branding:
 
 inputs:
   token:
-    description: "Platform access token for Renovate; GitHub GITHUB_TOKEN is not supported"
+    description: "Platform access token for Renovate. GitHub GITHUB_TOKEN is not supported."
     required: true
   version:
-    description: "Renovate CLI version or image tag"
+    description: "Renovate CLI version or image tag."
     required: false
     default: "43"
   autodiscover:
-    description: "Autodiscover repositories instead of limiting Renovate to the current repository"
+    description: "Autodiscover repositories instead of limiting Renovate to the current repository."
     required: false
     default: "false"
   config-file:
-    description: "Path to the self-hosted Renovate configuration file"
+    description: "Path to the self-hosted Renovate configuration file."
     required: false
     default: ""
-  platform:
-    description: "Renovate platform"
-    required: false
-    default: "github"
   log-level:
-    description: "Renovate log level"
+    description: "Renovate log level. Options: trace, debug, info, warn, error, fatal"
     required: false
     default: "info"
 
@@ -82,4 +78,3 @@ runs:
         configurationFile: ${{ inputs.config-file }}
       env:
         LOG_LEVEL: ${{ inputs.log-level }}
-        RENOVATE_PLATFORM: ${{ inputs.platform }}
