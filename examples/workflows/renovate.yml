@@ -8,7 +8,7 @@ on:
     - cron: "0 4 * * 0"
 
 concurrency:
-  group: renovate
+  group: renovate-test-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -31,5 +31,4 @@ jobs:
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
-          platform: github
           log-level: info
