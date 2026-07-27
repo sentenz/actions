@@ -9,12 +9,12 @@ branding:
 
 inputs:
   token:
-    description: "Personal access token or GitHub App installation token for Renovate; GITHUB_TOKEN is not supported"
+    description: "Platform access token for Renovate; GitHub GITHUB_TOKEN is not supported"
     required: true
   version:
-    description: "Renovate version"
+    description: "Renovate CLI version or image tag"
     required: false
-    default: "46.1.17"
+    default: "43"
   autodiscover:
     description: "Autodiscover repositories instead of limiting Renovate to the current repository"
     required: false
@@ -24,7 +24,7 @@ inputs:
     required: false
     default: ""
   platform:
-    description: "Platform to run on (github, gitlab, gitea, bitbucket)"
+    description: "Renovate platform"
     required: false
     default: "github"
   log-level:
@@ -43,7 +43,7 @@ runs:
         WORKFLOW_GITHUB_TOKEN: ${{ github.token }}
       run: |
         if [[ -z "${INPUT_TOKEN}" ]]; then
-          echo "::error::A Personal Access Token or GitHub App installation token is required."
+          echo "::error::A platform access token is required."
           exit 1
         fi
 
