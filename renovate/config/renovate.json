@@ -1,89 +1,161 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Default Renovate configuration for centralized actions",
   "extends": [
-    "config:recommended",
-    ":semanticCommits",
-    ":semanticCommitTypeAll(chore)",
-    ":separateMajorReleases",
-    ":separateMultipleMajorReleases",
-    "group:allNonMajor",
-    "schedule:weekly"
+    "config:recommended"
   ],
-  "labels": [
-    "dependencies",
-    "renovate"
-  ],
+  "rebaseWhen": "auto",
+  "minimumReleaseAge": "1 day",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "internalChecksFilter": "strict",
+  "dependencyDashboard": true,
   "prHourlyLimit": 5,
   "prConcurrentLimit": 10,
-  "rebaseWhen": "behind-base-branch",
-  "automerge": false,
-  "platformAutomerge": false,
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": [
-      "before 5am on monday"
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/charts/**",
+    "test/**",
+    "tests/**"
+  ],
+  "nuget": {
+    "ignorePaths": [
+      "tests/**",
+      "**/tests/**"
     ]
   },
+  "labels": [
+    "dependencies"
+  ],
   "vulnerabilityAlerts": {
+    "enabled": true,
     "labels": [
       "security"
     ],
-    "enabled": true
+    "automerge": false
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update versioned container image references in GitHub Actions files",
+      "managerFilePatterns": [
+        "**/action.{yml,yaml}"
+      ],
+      "matchStrings": [
+        "(?<depName>(?:(?:[A-Za-z0-9.-]+(?::[0-9]+)?/)?[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+)):(?<currentValue>v?\\d[0-9A-Za-z_.-]*)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"
+      ],
+      "autoReplaceStringTemplate": "{{{depName}}}:{{{newValue}}}{{#if newDigest}}@{{{newDigest}}}{{else}}{{#if currentDigest}}@{{{currentDigest}}}{{/if}}{{/if}}",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Update versioned container image references in Makefiles",
+      "managerFilePatterns": [
+        "**/[Mm]akefile",
+        "**/GNUMakefile",
+        "**/*.mk"
+      ],
+      "matchStrings": [
+        "(?<depName>(?:(?:docker\\.io|ghcr\\.io|quay\\.io|gcr\\.io|mcr\\.microsoft\\.com|registry\\.gitlab\\.com|cgr\\.dev|oci\\.io)/)?[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+):(?<currentValue>v?\\d[0-9A-Za-z_.-]*)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"
+      ],
+      "autoReplaceStringTemplate": "{{depName}}:{{newValue}}{{#if newDigest}}@{{newDigest}}{{else}}{{#if currentDigest}}@{{currentDigest}}{{/if}}{{/if}}",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
-      "description": "Auto-merge patch updates for dev dependencies",
-      "matchDepTypes": [
-        "devDependencies"
+      "description": "Introduces breaking changes or requires code adjustments due to changes in public APIs.",
+      "matchUpdateTypes": [
+        "major"
       ],
+      "groupName": "major versions",
+      "groupSlug": "major-versions",
+      "automerge": false
+    },
+    {
+      "description": "Introduces backward-compatible functionality improvements and feature additions.",
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "groupName": "minor versions",
+      "groupSlug": "minor-versions",
+      "automerge": false
+    },
+    {
+      "description": "Introduces backward-compatible bug fixes and small corrections.",
       "matchUpdateTypes": [
         "patch"
       ],
-      "automerge": true
+      "groupName": "patch versions",
+      "groupSlug": "patch-versions",
+      "automerge": false
     },
     {
-      "description": "Group Docker image updates",
+      "description": "Container image digest bumps across Dockerfiles and Containerfiles.",
+      "matchManagers": [
+        "dockerfile",
+        "containerfile"
+      ],
       "matchDatasources": [
         "docker"
       ],
-      "groupName": "docker images"
-    },
-    {
-      "description": "Group GitHub Actions updates",
-      "matchManagers": [
-        "github-actions"
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch",
+        "digest"
       ],
-      "groupName": "github actions"
+      "groupName": "container digests",
+      "groupSlug": "container-digests",
+      "automerge": false
     },
     {
-      "description": "Pin Docker digests",
+      "description": "Container image tag and digest updates in Makefiles.",
+      "matchManagers": [
+        "custom.regex"
+      ],
       "matchDatasources": [
         "docker"
       ],
-      "pinDigests": true
+      "matchFileNames": [
+        "**/[Mm]akefile",
+        "**/GNUMakefile",
+        "**/*.mk"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch",
+        "digest"
+      ],
+      "groupName": "makefile container images",
+      "groupSlug": "makefile-container-images",
+      "automerge": false
     },
     {
-      "description": "Require semantic versioning for dependencies",
+      "description": "Container image tag and digest updates in GitHub Actions files.",
       "matchManagers": [
-        "npm",
-        "pip_requirements",
-        "gomod"
+        "custom.regex"
       ],
-      "rangeStrategy": "pin"
-    }
-  ],
-  "regexManagers": [
-    {
-      "description": "Update Docker images in shell scripts",
-      "fileMatch": [
-        "(^|/).*\\.sh$",
-        "(^|/)Makefile$"
+      "matchDatasources": [
+        "docker"
       ],
-      "matchStrings": [
-        "(?<depName>[a-z0-9.-]+/[a-z0-9.-]+):(?<currentValue>[a-z0-9.-]+)@(?<currentDigest>sha256:[a-f0-9]+)"
+      "matchFileNames": [
+        "**/action.{yml,yaml}"
       ],
-      "datasourceTemplate": "docker"
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch",
+        "digest"
+      ],
+      "groupName": "github actions container images",
+      "groupSlug": "github-actions-container-images",
+      "automerge": false,
+      "semanticCommits": "enabled",
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps"
     }
   ]
 }

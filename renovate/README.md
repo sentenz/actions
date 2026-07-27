@@ -1,79 +1,134 @@
 # Renovate Composite Action
 
-Automated dependency updates using Renovate.
+Run self-hosted Renovate with explicit authentication and repository selection.
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
+  - [2.2. Authentication](#22-authentication)
 - [3. Usage](#3-usage)
+  - [3.1. Personal Access Token](#31-personal-access-token)
+  - [3.2. GitHub App Installation Token](#32-github-app-installation-token)
 - [4. Configuration](#4-configuration)
-  - [4.1. Internal Configuration](#41-internal-configuration)
-  - [4.2. External Configuration](#42-external-configuration)
+  - [4.1. Repository Configuration](#41-repository-configuration)
+  - [4.2. Self-hosted Configuration](#42-self-hosted-configuration)
 
 ## 1. Details
 
 - [Renovate](https://github.com/renovatebot/renovate)
-    > An open-source tool that automates the process of updating dependencies in software projects by creating pull requests for version updates.
+  > An open-source dependency automation tool that creates pull requests for dependency updates.
 
 - [Renovate Documentation](https://docs.renovatebot.com/)
-  > Comprehensive documentation for using and configuring Renovate.
+  > Configuration, managers, datasources, and self-hosting guidance.
 
-- [Renovate Configuration Options](https://docs.renovatebot.com/configuration-options/)
-  > A detailed list of configuration options available for customizing Renovate's behavior.
-
-- [Renovate Managers](https://docs.renovatebot.com/modules/manager/)
-  > A list of supported package managers and ecosystems that Renovate manage.
+- [Renovate GitHub Action](https://github.com/renovatebot/github-action)
+  > The upstream action used by this composite action.
 
 ## 2. Action
 
-The [Renovate Action](./action.yml) runs Renovate to automatically create pull requests for dependency updates across your repositories.
+The [Renovate Action](./action.yml) validates authentication, selects either the current repository or autodiscovery, and delegates execution to `renovatebot/github-action`.
 
 ### 2.1. Inputs
 
-| Input          | Description                               | Required | Default               |
-| -------------- | ----------------------------------------- | -------- | --------------------- |
-| `token`        | GitHub token for Renovate                 | Yes      | `${{ github.token }}` |
-| `version`      | Renovate version                          | No       | `46.1.17`             |
-| `autodiscover` | Autodiscover repositories                 | No       | `true`                |
-| `config-file`  | Path to renovate configuration file       | No       | ``                    |
-| `platform`     | Platform to run on (github, gitlab, etc.) | No       | `github`              |
+| Input          | Description                                              | Required | Default  |
+| -------------- | -------------------------------------------------------- | -------- | -------- |
+| `token`        | Platform access token used by Renovate                   | Yes      | —        |
+| `version`      | Renovate CLI version or image tag                        | No       | `43`     |
+| `autodiscover` | Discover all repositories accessible to the token        | No       | `false`  |
+| `config-file`  | Path to a self-hosted/global Renovate configuration file | No       | ``       |
+| `platform`     | Renovate platform identifier                             | No       | `github` |
+| `log-level`    | Renovate log level                                       | No       | `info`   |
+
+The `version` input controls the Renovate CLI container version. It is independent of the `renovatebot/github-action` release used internally.
+
+### 2.2. Authentication
+
+For GitHub, provide either:
+
+- a dedicated personal access token; or
+- a GitHub App installation token generated in the caller workflow.
+
+GitHub's workflow `GITHUB_TOKEN` is intentionally rejected. It is too restrictive for self-hosted Renovate and PRs or pushes created with it do not trigger normal downstream workflow events.
+
+Store a personal access token as an Actions secret such as `RENOVATE_TOKEN`. A classic token generally requires `repo` for repository access and `workflow` when Renovate must update files under `.github/workflows`. For a fine-grained token, grant the selected repositories the Renovate permissions required for contents, pull requests, issues, and commit statuses.
+
+The caller workflow may retain `permissions: contents: read`; those permissions apply to the workflow's `GITHUB_TOKEN`, not to the dedicated token supplied to Renovate.
 
 ## 3. Usage
 
+### 3.1. Personal Access Token
+
+With `autodiscover: "false"`, the action limits Renovate to `${{ github.repository }}`.
+
 ```yaml
-name: Renovate Test
+name: Renovate
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 18 * * 6"
+    - cron: "0 4 * * 0"
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   renovate:
+    name: Renovate
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Renovate
+      - name: Run Renovate
         uses: sentenz/actions/renovate@latest
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
+          autodiscover: "false"
+          platform: github
+          log-level: info
+```
+
+### 3.2. GitHub App Installation Token
+
+Configure the GitHub App with access to the target repositories and the repository permissions Renovate requires.
+
+```yaml
+steps:
+  - name: Create Renovate token
+    id: renovate-token
+    uses: actions/create-github-app-token@v2
+    with:
+      app-id: ${{ secrets.RENOVATE_APP_ID }}
+      private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+      owner: ${{ github.repository_owner }}
+      repositories: ${{ github.event.repository.name }}
+
+  - name: Checkout
+    uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    with:
+      persist-credentials: false
+
+  - name: Run Renovate
+    uses: sentenz/actions/renovate@latest
+    with:
+      token: ${{ steps.renovate-token.outputs.token }}
+      autodiscover: "false"
+      platform: github
 ```
 
 ## 4. Configuration
 
-### 4.1. Internal Configuration
+### 4.1. Repository Configuration
 
-<!-- TODO Loading internal configuration from actions `config/` directory in caller repository. -->
-
-### 4.2. External Configuration
-
-Create a `renovate.json` file in your repository:
+Renovate automatically reads a repository configuration file such as `renovate.json`, `renovate.json5`, or `renovate.jsonc` from the target repository. This file controls dependency rules for that repository and does not need to be supplied through `config-file`.
 
 ```json
 {
@@ -81,3 +136,17 @@ Create a `renovate.json` file in your repository:
   "extends": ["config:recommended"]
 }
 ```
+
+### 4.2. Self-hosted Configuration
+
+Use `config-file` only for Renovate's self-hosted/global configuration:
+
+```yaml
+- name: Run Renovate
+  uses: sentenz/actions/renovate@latest
+  with:
+    token: ${{ secrets.RENOVATE_TOKEN }}
+    config-file: renovate/config/renovate.json
+```
+
+The path is resolved from the checked-out caller repository. Checkout is therefore required when `config-file` references a repository file.
