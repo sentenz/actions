@@ -9,35 +9,68 @@ branding:
 
 inputs:
   token:
-    description: "GitHub token for Renovate"
+    description: "Personal access token or GitHub App installation token for Renovate; GITHUB_TOKEN is not supported"
     required: true
-    default: "${{ github.token }}"
   version:
     description: "Renovate version"
     required: false
     default: "46.1.17"
   autodiscover:
-    description: "Autodiscover repositories"
+    description: "Autodiscover repositories instead of limiting Renovate to the current repository"
     required: false
-    default: "true"
+    default: "false"
   config-file:
-    description: "Path to renovate configuration file"
+    description: "Path to the self-hosted Renovate configuration file"
     required: false
     default: ""
   platform:
     description: "Platform to run on (github, gitlab, gitea, bitbucket)"
     required: false
     default: "github"
+  log-level:
+    description: "Renovate log level"
+    required: false
+    default: "info"
 
 runs:
   using: "composite"
   steps:
     - name: Validate Inputs
       shell: bash
+      env:
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_AUTODISCOVER: ${{ inputs.autodiscover }}
+        WORKFLOW_GITHUB_TOKEN: ${{ github.token }}
       run: |
-        if [[ -z "${{ inputs.token }}" ]]; then
-          echo "Error: GitHub token is required"
+        if [[ -z "${INPUT_TOKEN}" ]]; then
+          echo "::error::A Personal Access Token or GitHub App installation token is required."
           exit 1
+        fi
+
+        if [[ "${INPUT_TOKEN}" == "${WORKFLOW_GITHUB_TOKEN}" ]]; then
+          echo "::error::GITHUB_TOKEN cannot authenticate self-hosted Renovate. Provide a dedicated Personal Access Token or GitHub App installation token."
+          exit 1
+        fi
+
+        case "${INPUT_AUTODISCOVER}" in
+          true|false) ;;
+          *)
+            echo "::error::The autodiscover input must be either true or false."
+            exit 1
+            ;;
+        esac
+
+    - name: Configure Repository Selection
+      shell: bash
+      env:
+        INPUT_AUTODISCOVER: ${{ inputs.autodiscover }}
+      run: |
+        if [[ "${INPUT_AUTODISCOVER}" == "true" ]]; then
+          echo "RENOVATE_AUTODISCOVER=true" >> "${GITHUB_ENV}"
+          echo "RENOVATE_REPOSITORIES=" >> "${GITHUB_ENV}"
+        else
+          echo "RENOVATE_AUTODISCOVER=false" >> "${GITHUB_ENV}"
+          echo "RENOVATE_REPOSITORIES=${GITHUB_REPOSITORY}" >> "${GITHUB_ENV}"
         fi
 
     - name: Renovate
@@ -45,6 +78,8 @@ runs:
       uses: renovatebot/github-action@v46.1.21
       with:
         token: ${{ inputs.token }}
+        renovate-version: ${{ inputs.version }}
+        configurationFile: ${{ inputs.config-file }}
       env:
-        LOG_LEVEL: "debug"
-        RENOVATE_REPOSITORIES: ${{ github.repository }}
+        LOG_LEVEL: ${{ inputs.log-level }}
+        RENOVATE_PLATFORM: ${{ inputs.platform }}
