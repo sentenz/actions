@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/sentenz/actions/compare/1.2.1...1.2.2) (2026-07-27)
+
+
+### Bug Fixes
+
+* **renovate:** harden authentication and integration ([#59](https://github.com/sentenz/actions/issues/59)) ([9e63c73](https://github.com/sentenz/actions/commit/9e63c73c8be6b35605742f0317f67c2dcfb22141))
+
 ## [1.2.1](https://github.com/sentenz/actions/compare/1.2.0...1.2.1) (2026-07-26)
 
 
