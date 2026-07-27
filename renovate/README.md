@@ -30,13 +30,14 @@ The [Renovate Action](./action.yml) validates authentication, selects either the
 
 ### 2.1. Inputs
 
-| Input          | Description                                              | Required | Default |
-| -------------- | -------------------------------------------------------- | -------- | ------- |
-| `token`        | Platform access token used by Renovate                   | Yes      | —       |
-| `version`      | Renovate CLI version or image tag                        | No       | `43`    |
-| `autodiscover` | Discover all repositories accessible to the token        | No       | `false` |
-| `config-file`  | Path to a self-hosted/global Renovate configuration file | No       | ``      |
-| `log-level`    | Renovate log level                                       | No       | `info`  |
+| Input          | Description                                              | Required | Default  |
+| -------------- | -------------------------------------------------------- | -------- | -------- |
+| `token`        | Platform access token used by Renovate                   | Yes      | —        |
+| `version`      | Renovate CLI version or image tag                        | No       | `43`     |
+| `autodiscover` | Discover all repositories accessible to the token        | No       | `false`  |
+| `config-file`  | Path to a self-hosted/global Renovate configuration file | No       | ``       |
+| `platform`     | Renovate platform identifier                             | No       | `github` |
+| `log-level`    | Renovate log level                                       | No       | `info`   |
 
 The `version` input controls the Renovate CLI container version. It is independent of the `renovatebot/github-action` release used internally.
 
@@ -91,6 +92,7 @@ jobs:
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
+          platform: github
           log-level: info
 ```
 
@@ -119,6 +121,7 @@ steps:
     with:
       token: ${{ steps.renovate-token.outputs.token }}
       autodiscover: "false"
+      platform: github
 ```
 
 ## 4. Configuration

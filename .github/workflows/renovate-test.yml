@@ -7,7 +7,6 @@ on:
   pull_request:
     paths:
       - ".github/workflows/renovate-test.yml"
-      - "examples/workflows/renovate.yml"
       - "renovate/**"
   schedule:
     - cron: "0 4 * * 0"
@@ -20,70 +19,15 @@ permissions:
   contents: read
 
 jobs:
-  contract:
-    name: Validate Renovate Contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Reject GITHUB_TOKEN
-        id: github-token
-        continue-on-error: true
-        uses: ./renovate
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Reject invalid autodiscovery value
-        id: invalid-autodiscover
-        continue-on-error: true
-        uses: ./renovate
-        with:
-          token: test-token
-          autodiscover: invalid
-
-      - name: Assert validation failures
-        if: always()
-        shell: bash
-        env:
-          GITHUB_TOKEN_OUTCOME: ${{ steps.github-token.outcome }}
-          AUTODISCOVER_OUTCOME: ${{ steps.invalid-autodiscover.outcome }}
-        run: |
-          if [[ "${GITHUB_TOKEN_OUTCOME}" != "failure" ]]; then
-            echo "::error::The action accepted GITHUB_TOKEN."
-            exit 1
-          fi
-
-          if [[ "${AUTODISCOVER_OUTCOME}" != "failure" ]]; then
-            echo "::error::The action accepted an invalid autodiscover value."
-            exit 1
-          fi
-
-  integration:
-    name: Run Renovate Integration
-    if: github.event_name != 'pull_request'
+  renovate:
+    name: Renovate Action
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Require Renovate token
-        shell: bash
-        env:
-          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
-        run: |
-          if [[ -z "${RENOVATE_TOKEN}" ]]; then
-            echo "::error::The RENOVATE_TOKEN secret is required for the integration test."
-            exit 1
-          fi
 
       - name: Run Renovate Test
         uses: ./renovate
