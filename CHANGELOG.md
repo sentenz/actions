@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/sentenz/actions/compare/1.2.2...1.2.3) (2026-07-28)
+
+
+### Bug Fixes
+
+* rename action from `container image` to `docker` and update workflows ([#62](https://github.com/sentenz/actions/issues/62)) ([7379af2](https://github.com/sentenz/actions/commit/7379af2f73a5c27296fa9a646cc45a2de1e9df8d))
+
 ## [1.2.2](https://github.com/sentenz/actions/compare/1.2.1...1.2.2) (2026-07-27)
 
 
