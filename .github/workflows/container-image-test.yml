@@ -1,23 +1,23 @@
 # SPDX-License-Identifier: Apache-2.0
 
-name: Container Image Test
+name: Docker Test
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - "container-image/**"
-      - ".github/workflows/container-image-test.yml"
+      - "docker/**"
+      - ".github/workflows/docker-test.yml"
   pull_request:
     branches: [main]
     paths:
-      - "container-image/**"
-      - ".github/workflows/container-image-test.yml"
+      - "docker/**"
+      - ".github/workflows/docker-test.yml"
 
 jobs:
-  container-image:
-    name: Container Image Action
+  docker:
+    name: Docker Action
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,11 +27,11 @@ jobs:
 
       - name: Build with repository image name
         id: repository-name
-        uses: ./container-image
+        uses: ./docker
         with:
           version: 0.0.0-ci
-          context: container-image/test
-          file: container-image/test/Dockerfile
+          context: docker/test
+          file: docker/test/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
 
@@ -48,12 +48,12 @@ jobs:
 
       - name: Build with custom image name
         id: custom-name
-        uses: ./container-image
+        uses: ./docker
         with:
           version: v1.2.3-ci
           image-name: CI-Image
-          context: container-image/test
-          file: container-image/test/Dockerfile
+          context: docker/test
+          file: docker/test/Dockerfile
           push: false
 
       - name: Validate custom image metadata
@@ -70,11 +70,11 @@ jobs:
       - name: Reject empty version
         id: empty-version
         continue-on-error: true
-        uses: ./container-image
+        uses: ./docker
         with:
           version: ""
-          context: container-image/test
-          file: container-image/test/Dockerfile
+          context: docker/test
+          file: docker/test/Dockerfile
           push: false
 
       - name: Verify empty version rejection
@@ -85,12 +85,12 @@ jobs:
       - name: Reject malformed image name
         id: malformed-name
         continue-on-error: true
-        uses: ./container-image
+        uses: ./docker
         with:
           version: 1.0.0
           image-name: ghcr.io/example/api:latest
-          context: container-image/test
-          file: container-image/test/Dockerfile
+          context: docker/test
+          file: docker/test/Dockerfile
           push: false
 
       - name: Verify malformed image name rejection

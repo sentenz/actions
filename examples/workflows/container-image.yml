@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-name: Container Image
+name: Docker
 
 on:
   pull_request:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Container Image
+    name: Docker Validate
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v6.0.1
 
       - name: Validate container build
-        uses: sentenz/actions/container-image@latest
+        uses: sentenz/actions/docker@latest
         with:
           version: 0.0.0-pr-${{ github.event.pull_request.number }}
           context: .
@@ -30,7 +30,7 @@ jobs:
           push: false
 
   publish:
-    name: Publish Container Image
+    name: Docker Publish
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -40,9 +40,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.1
 
-      - name: Build and publish image
+      - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/container-image@latest
+        uses: sentenz/actions/docker@latest
         with:
           version: ${{ github.event.release.tag_name }}
           context: .
@@ -50,7 +50,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Report published image
+      - name: Report Docker Published Image
         env:
           IMAGE: ${{ steps.image.outputs.image }}
           TAGS: ${{ steps.image.outputs.tags }}
