@@ -51,7 +51,7 @@ jobs:
   policy-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: sentenz/actions/conftest@latest
         with:
           path: "./config"
@@ -70,7 +70,7 @@ jobs:
 Referencing policies from an caller repository.
 
 ```yaml
-- uses: actions/checkout@v6.0.1
+- uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
   with:
     repository: your-org/policies
     path: external-policies

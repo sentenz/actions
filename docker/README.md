@@ -68,7 +68,7 @@ All third-party actions are pinned to immutable commit SHAs.
 ### 3.1. Publish Using the Repository Name
 
 ```yaml
-name: Docker Publish
+name: Docker
 
 on:
   release:
@@ -80,6 +80,8 @@ permissions:
 
 jobs:
   publish:
+    name: Docker Publish
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -87,12 +89,12 @@ jobs:
 
       - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/docker@main
+        uses: sentenz/actions/docker@latest
         with:
           version: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Report digest
+      - name: Report Digest
         run: echo "${{ steps.image.outputs.digest }}"
 ```
 
@@ -100,7 +102,7 @@ jobs:
 
 ```yaml
 - name: Build and Publish API Image
-  uses: sentenz/actions/docker@main
+  uses: sentenz/actions/docker@latest
   with:
     version: ${{ github.event.release.tag_name }}
     image-name: api
@@ -120,7 +122,7 @@ steps:
     uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
   - name: Validate container build
-    uses: sentenz/actions/docker@main
+    uses: sentenz/actions/docker@latest
     with:
       version: 0.0.0-pr
       push: false
@@ -130,7 +132,7 @@ steps:
 
 ```yaml
 - name: Build and Publish Multi-Platform Image
-  uses: sentenz/actions/docker@main
+  uses: sentenz/actions/docker@latest
   with:
     version: ${{ github.event.release.tag_name }}
     platforms: linux/amd64,linux/arm64
@@ -144,7 +146,7 @@ steps:
 
 ```yaml
 - name: Build Production Target
-  uses: sentenz/actions/docker@main
+  uses: sentenz/actions/docker@latest
   with:
     version: ${{ github.event.release.tag_name }}
     target: production

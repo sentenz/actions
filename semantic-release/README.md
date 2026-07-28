@@ -34,20 +34,20 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 
 ### 2.1. Inputs
 
-| Input                | Description                                                        | Required | Default               |
-| -------------------- | ------------------------------------------------------------------ | -------- | --------------------- |
-| `github-token`       | GitHub token used by semantic-release                              | No       | `${{ github.token }}` |
-| `semantic-version`   | semantic-release version or version range                          | No       | `25`                  |
-| `branches`           | Release branches; empty preserves repository configuration         | No       | ``                    |
-| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                  | No       | ``                    |
-| `ci`                 | Override CI mode (`true`, `false`, or empty)                       | No       | ``                    |
-| `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                    | No       | `false`               |
-| `extends`            | Shareable semantic-release configurations (multiline)              | No       | ``                    |
-| `extra-plugins`      | Additional npm packages installed before semantic-release          | No       | See `action.yml`      |
-| `use-default-config` | Use the internal configuration when no external config is found    | No       | `true`                |
-| `working-directory`  | Repository-relative directory in which semantic-release runs       | No       | `.`                   |
-| `tag-format`         | Override the tag format; empty preserves repository configuration  | No       | ``                    |
-| `repository-url`     | Override the Git repository URL                                    | No       | ``                    |
+| Input                | Description                                                       | Required | Default               |
+| -------------------- | ----------------------------------------------------------------- | -------- | --------------------- |
+| `github-token`       | GitHub token used by semantic-release                             | No       | `${{ github.token }}` |
+| `semantic-version`   | semantic-release version or version range                         | No       | `25`                  |
+| `branches`           | Release branches; empty preserves repository configuration        | No       | ``                    |
+| `dry-run`            | Override dry-run mode (`true`, `false`, or empty)                 | No       | ``                    |
+| `ci`                 | Override CI mode (`true`, `false`, or empty)                      | No       | ``                    |
+| `unset-gha-env`      | Unset the `GITHUB_ACTIONS` environment variable                   | No       | `false`               |
+| `extends`            | Shareable semantic-release configurations (multiline)             | No       | ``                    |
+| `extra-plugins`      | Additional npm packages installed before semantic-release         | No       | See `action.yml`      |
+| `use-default-config` | Use the internal configuration when no external config is found   | No       | `true`                |
+| `working-directory`  | Repository-relative directory in which semantic-release runs      | No       | `.`                   |
+| `tag-format`         | Override the tag format; empty preserves repository configuration | No       | ``                    |
+| `repository-url`     | Override the Git repository URL                                   | No       | ``                    |
 
 ### 2.2. Outputs
 
@@ -77,7 +77,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - uses: sentenz/actions/semantic-release@latest

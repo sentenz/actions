@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Validate container build
         uses: sentenz/actions/docker@latest
@@ -38,7 +38,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Build and Publish Image
         id: image
@@ -50,7 +50,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Report Docker Published Image
+      - name: Report Published Image
         env:
           IMAGE: ${{ steps.image.outputs.image }}
           TAGS: ${{ steps.image.outputs.tags }}
