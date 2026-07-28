@@ -1,4 +1,4 @@
-# Container Image Composite Action
+# Docker Composite Action
 
 Build OCI container images with Docker Buildx and optionally publish versioned and `latest` tags to GitHub Container Registry (GHCR).
 
@@ -34,7 +34,7 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
 
 ## 2. Action
 
-The [Container Image Action](./action.yml) builds an OCI container image and optionally publishes it to the calling repository owner's GHCR namespace.
+The [Docker Action](./action.yml) builds an OCI container image and optionally publishes it to the calling repository owner's GHCR namespace.
 
 A publishing run applies `latest` and the supplied version tag to the same build result. The action uses the calling repository name as the default package name, supports an optional package name under the same owner namespace, and provides multi-platform builds, build arguments, Dockerfile targets, per-image GitHub Actions cache storage, and build-only validation through `push: false`.
 
@@ -42,25 +42,25 @@ All third-party actions are pinned to immutable commit SHAs.
 
 ### 2.1. Inputs
 
-| Input               | Description                                                                 | Required | Default                 |
-| ------------------- | --------------------------------------------------------------------------- | -------- | ----------------------- |
-| `github-token`      | GitHub token used to authenticate to `ghcr.io`                              | No       | `${{ github.token }}`   |
-| `registry-username` | GHCR username associated with `github-token`                                | No       | `${{ github.actor }}`   |
+| Input               | Description                                                                | Required | Default                 |
+| ------------------- | -------------------------------------------------------------------------- | -------- | ----------------------- |
+| `github-token`      | GitHub token used to authenticate to `ghcr.io`                             | No       | `${{ github.token }}`   |
+| `registry-username` | GHCR username associated with `github-token`                               | No       | `${{ github.actor }}`   |
 | `version`           | Current Docker tag, such as `1.4.2` or `v1.4.2`; must differ from `latest` | Yes      | —                       |
-| `context`           | Docker build context                                                        | No       | `.`                     |
-| `file`              | Path to the Dockerfile                                                       | No       | `Dockerfile`            |
-| `image-name`        | GHCR package name without registry, owner, tag, or digest                   | No       | Calling repository name |
-| `platforms`         | Comma-separated target platforms                                            | No       | `linux/amd64`           |
-| `build-args`        | Newline-delimited Docker build arguments                                    | No       | ``                      |
-| `target`            | Dockerfile build target                                                      | No       | ``                      |
-| `push`              | Publish the image to GHCR; set to `false` for build-only validation         | No       | `true`                  |
+| `context`           | Docker build context                                                       | No       | `.`                     |
+| `file`              | Path to the Dockerfile                                                     | No       | `Dockerfile`            |
+| `image-name`        | GHCR package name without registry, owner, tag, or digest                  | No       | Calling repository name |
+| `platforms`         | Comma-separated target platforms                                           | No       | `linux/amd64`           |
+| `build-args`        | Newline-delimited Docker build arguments                                   | No       | ``                      |
+| `target`            | Dockerfile build target                                                    | No       | ``                      |
+| `push`              | Publish the image to GHCR; set to `false` for build-only validation        | No       | `true`                  |
 
 ### 2.2. Outputs
 
-| Output   | Description                                                                                   |
-| -------- | --------------------------------------------------------------------------------------------- |
+| Output   | Description                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------- |
 | `image`  | Fully qualified resolved image name, such as `ghcr.io/sentenz/example`                       |
-| `tags`   | Newline-delimited `latest` and version tags                                                   |
+| `tags`   | Newline-delimited `latest` and version tags                                                  |
 | `digest` | Image manifest digest returned by Docker Buildx; may be empty for some build-only operations |
 
 ## 3. Usage
@@ -68,7 +68,7 @@ All third-party actions are pinned to immutable commit SHAs.
 ### 3.1. Publish Using the Repository Name
 
 ```yaml
-name: Publish Container Image
+name: Docker
 
 on:
   release:
@@ -80,27 +80,29 @@ permissions:
 
 jobs:
   publish:
+    name: Docker Publish
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Build and publish image
+      - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/container-image@main
+        uses: sentenz/actions/docker@latest
         with:
           version: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Report digest
+      - name: Report Digest
         run: echo "${{ steps.image.outputs.digest }}"
 ```
 
 ### 3.2. Publish Using a Custom Image Name
 
 ```yaml
-- name: Build and publish API image
-  uses: sentenz/actions/container-image@main
+- name: Build and Publish API Image
+  uses: sentenz/actions/docker@latest
   with:
     version: ${{ github.event.release.tag_name }}
     image-name: api
@@ -120,7 +122,7 @@ steps:
     uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
   - name: Validate container build
-    uses: sentenz/actions/container-image@main
+    uses: sentenz/actions/docker@latest
     with:
       version: 0.0.0-pr
       push: false
@@ -129,8 +131,8 @@ steps:
 ### 3.4. Build for Multiple Platforms
 
 ```yaml
-- name: Build and publish multi-platform image
-  uses: sentenz/actions/container-image@main
+- name: Build and Publish Multi-Platform Image
+  uses: sentenz/actions/docker@latest
   with:
     version: ${{ github.event.release.tag_name }}
     platforms: linux/amd64,linux/arm64
@@ -143,8 +145,8 @@ steps:
 ### 3.5. Build a Dockerfile Target
 
 ```yaml
-- name: Build production target
-  uses: sentenz/actions/container-image@main
+- name: Build Production Target
+  uses: sentenz/actions/docker@latest
   with:
     version: ${{ github.event.release.tag_name }}
     target: production

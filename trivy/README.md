@@ -80,7 +80,7 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: sentenz/actions/trivy@latest
         with:
           scan-type: "fs"
@@ -99,7 +99,7 @@ jobs:
   image-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Build image
         run: docker build -t myapp:latest .
       - uses: sentenz/actions/trivy@latest
@@ -121,7 +121,7 @@ jobs:
     sbom-generate:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v6.0.1
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         - name: Generate SBOM (CycloneDX)
           uses: sentenz/actions/trivy@latest
           with:
@@ -153,7 +153,7 @@ jobs:
     sbom-spdx:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v6.0.1
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         - name: Generate SBOM (SPDX-JSON)
           uses: sentenz/actions/trivy@latest
           with:
@@ -188,7 +188,7 @@ jobs:
   sbom-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Scan SBOM
         uses: sentenz/actions/trivy@latest
         with:
@@ -207,7 +207,7 @@ jobs:
   license-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: sentenz/actions/trivy@latest
         with:
           scan-type: "fs"
@@ -226,7 +226,7 @@ jobs:
   iac-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: sentenz/actions/trivy@latest
         with:
           scan-type: "config"
@@ -245,7 +245,7 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: sentenz/actions/trivy@latest
         with:
           scan-type: "fs"
@@ -364,7 +364,7 @@ jobs:
   sbom-and-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       # Generate SBOM in both formats
       - name: Generate CycloneDX SBOM

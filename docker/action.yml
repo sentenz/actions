@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-name: Container Image
+name: Docker
 description: Build an OCI container image and optionally publish versioned and latest tags to GHCR
 author: sentenz
 
