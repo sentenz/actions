@@ -1,0 +1,26 @@
+{
+  "name": "actions-vscode-extension-test",
+  "displayName": "Actions VS Code Extension Test",
+  "description": "Minimal extension used to validate the reusable publishing action.",
+  "version": "0.0.1",
+  "publisher": "sentenz",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:sentenz.actionsTest"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sentenz.actionsTest",
+        "title": "Actions: Test Extension"
+      }
+    ]
+  }
+}
