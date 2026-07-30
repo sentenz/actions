@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: VS Code Extension Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "vscode-extension/**"
+      - ".github/workflows/vscode-extension-test.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "vscode-extension/**"
+      - ".github/workflows/vscode-extension-test.yml"
+
+jobs:
+  vscode-extension:
+    name: VS Code Extension Action
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Package extension without publishing
+        id: extension
+        uses: ./vscode-extension
+        with:
+          working-directory: vscode-extension/test
+          output-path: dist/test-extension.vsix
+          no-dependencies: true
+          publish: false
+
+      - name: Validate packaged extension
+        env:
+          EXTENSION_ID: ${{ steps.extension.outputs.extension-id }}
+          EXTENSION_VERSION: ${{ steps.extension.outputs.version }}
+          PUBLISHED: ${{ steps.extension.outputs.published }}
+          VSIX_PATH: ${{ steps.extension.outputs.vsix-path }}
+        run: |
+          set -euo pipefail
+
+          [[ "${EXTENSION_ID}" == "sentenz.actions-vscode-extension-test" ]]
+          [[ "${EXTENSION_VERSION}" == "0.0.1" ]]
+          [[ "${PUBLISHED}" == "false" ]]
+          [[ -f "${VSIX_PATH}" ]]
+
+          unzip -l "${VSIX_PATH}" | grep -F "extension/package.json"
+          unzip -p "${VSIX_PATH}" extension/package.json |
+            node -e '
+              let input = "";
+              process.stdin.on("data", (chunk) => input += chunk);
+              process.stdin.on("end", () => {
+                const manifest = JSON.parse(input);
+                if (manifest.publisher !== "sentenz" || manifest.version !== "0.0.1") {
+                  process.exit(1);
+                }
+              });
+            '
+
+      - name: Reject invalid boolean input
+        id: invalid-boolean
+        continue-on-error: true
+        uses: ./vscode-extension
+        with:
+          working-directory: vscode-extension/test
+          publish: disabled
+
+      - name: Verify invalid boolean rejection
+        env:
+          OUTCOME: ${{ steps.invalid-boolean.outcome }}
+        run: test "${OUTCOME}" = failure
+
+      - name: Reject publishing without a token
+        id: missing-token
+        continue-on-error: true
+        uses: ./vscode-extension
+        with:
+          working-directory: vscode-extension/test
+
+      - name: Verify missing token rejection
+        env:
+          OUTCOME: ${{ steps.missing-token.outcome }}
+        run: test "${OUTCOME}" = failure
