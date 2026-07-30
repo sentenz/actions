@@ -1,5 +1,17 @@
 # Changelog
 
+# [1.3.0](https://github.com/sentenz/actions/compare/1.2.3...1.3.0) (2026-07-30)
+
+
+### Bug Fixes
+
+* **vscode-extension:** normalize action manifest format ([83d76fa](https://github.com/sentenz/actions/commit/83d76fa9044b598a4e75a787d5e426089e8e17de))
+
+
+### Features
+
+* add VS Code extension publish action ([fa67dd2](https://github.com/sentenz/actions/commit/fa67dd2ad2634ee2212bcb171503f079d72f6c39))
+
 ## [1.2.3](https://github.com/sentenz/actions/compare/1.2.2...1.2.3) (2026-07-28)
 
 
