@@ -1,68 +1,68 @@
 # SPDX-License-Identifier: Apache-2.0
-name: VS Code Extension
-description: Package and optionally publish a VS Code extension to Visual Studio Marketplace
-author: sentenz
+name: "VS Code Extension"
+description: "Package and optionally publish a VS Code extension to Visual Studio Marketplace"
+author: "sentenz"
 
 branding:
-  icon: box
-  color: blue
+  icon: "box"
+  color: "blue"
 
 inputs:
   marketplace-token:
-    description: Visual Studio Marketplace token exposed to vsce as VSCE_PAT
+    description: "Visual Studio Marketplace token exposed to vsce as VSCE_PAT"
     required: false
     default: ""
   authentication:
-    description: Authentication method used for publishing; pat or azure-credential
+    description: "Authentication method used for publishing: pat or azure-credential"
     required: false
-    default: pat
+    default: "pat"
   working-directory:
-    description: Repository-relative directory containing the extension package.json
+    description: "Repository-relative directory containing the extension package.json"
     required: false
-    default: .
+    default: "."
   output-path:
-    description: VSIX output path relative to working-directory; empty uses runner temporary storage
+    description: "VSIX output path relative to working-directory; empty uses runner temporary storage"
     required: false
     default: ""
   vsce-version:
-    description: @vscode/vsce version, major version, or latest
+    description: "@vscode/vsce version, major version, or latest"
     required: false
     default: "3"
   target:
-    description: Optional VS Code target platform such as linux-x64, darwin-arm64, or web
+    description: "Optional VS Code target platform such as linux-x64, darwin-arm64, or web"
     required: false
     default: ""
   pre-release:
-    description: Package and publish the extension as a pre-release
+    description: "Package and publish the extension as a pre-release"
     required: false
     default: "false"
   no-dependencies:
-    description: Skip dependency discovery when packaging the extension
+    description: "Skip dependency discovery when packaging the extension"
     required: false
     default: "false"
   publish:
-    description: Publish the packaged VSIX to Visual Studio Marketplace
+    description: "Publish the packaged VSIX to Visual Studio Marketplace"
     required: false
     default: "true"
 
 outputs:
   vsix-path:
-    description: Absolute path to the packaged VSIX file
+    description: "Absolute path to the packaged VSIX file"
     value: ${{ steps.package.outputs.vsix-path }}
   extension-id:
-    description: Extension identifier in publisher.name format
+    description: "Extension identifier in publisher.name format"
     value: ${{ steps.validate.outputs.extension-id }}
   version:
-    description: Extension version read from package.json
+    description: "Extension version read from package.json"
     value: ${{ steps.validate.outputs.version }}
   published:
-    description: Whether the VSIX was published to Visual Studio Marketplace
+    description: "Whether the VSIX was published to Visual Studio Marketplace"
     value: ${{ steps.publish.outputs.published }}
 
 runs:
-  using: composite
+  using: "composite"
   steps:
-    - name: Validate inputs and extension manifest
+    - name: Validate Inputs and Extension Manifest
       id: validate
       shell: bash
       env:
@@ -145,9 +145,9 @@ runs:
         vsce_version="$(trim "${INPUT_VSCE_VERSION}")"
         output_path="$(trim "${INPUT_OUTPUT_PATH}")"
 
-        validate_boolean publish "${publish}"
-        validate_boolean pre-release "${pre_release}"
-        validate_boolean no-dependencies "${no_dependencies}"
+        validate_boolean "publish" "${publish}"
+        validate_boolean "pre-release" "${pre_release}"
+        validate_boolean "no-dependencies" "${no_dependencies}"
 
         case "${authentication}" in
           pat | azure-credential) ;;
@@ -234,7 +234,7 @@ runs:
           echo "working-directory=${working_directory}"
         } >> "${GITHUB_OUTPUT}"
 
-    - name: Package VS Code extension
+    - name: Package VS Code Extension
       id: package
       shell: bash
       env:
@@ -265,7 +265,7 @@ runs:
         "${command[@]}"
         echo "vsix-path=${VSIX_PATH}" >> "${GITHUB_OUTPUT}"
 
-    - name: Publish VS Code extension
+    - name: Publish VS Code Extension
       id: publish
       shell: bash
       env:
