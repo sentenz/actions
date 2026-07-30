@@ -1,0 +1,294 @@
+# SPDX-License-Identifier: Apache-2.0
+name: VS Code Extension
+description: Package and optionally publish a VS Code extension to Visual Studio Marketplace
+author: sentenz
+
+branding:
+  icon: box
+  color: blue
+
+inputs:
+  marketplace-token:
+    description: Visual Studio Marketplace token exposed to vsce as VSCE_PAT
+    required: false
+    default: ""
+  authentication:
+    description: Authentication method used for publishing; pat or azure-credential
+    required: false
+    default: pat
+  working-directory:
+    description: Repository-relative directory containing the extension package.json
+    required: false
+    default: .
+  output-path:
+    description: VSIX output path relative to working-directory; empty uses runner temporary storage
+    required: false
+    default: ""
+  vsce-version:
+    description: @vscode/vsce version, major version, or latest
+    required: false
+    default: "3"
+  target:
+    description: Optional VS Code target platform such as linux-x64, darwin-arm64, or web
+    required: false
+    default: ""
+  pre-release:
+    description: Package and publish the extension as a pre-release
+    required: false
+    default: "false"
+  no-dependencies:
+    description: Skip dependency discovery when packaging the extension
+    required: false
+    default: "false"
+  publish:
+    description: Publish the packaged VSIX to Visual Studio Marketplace
+    required: false
+    default: "true"
+
+outputs:
+  vsix-path:
+    description: Absolute path to the packaged VSIX file
+    value: ${{ steps.package.outputs.vsix-path }}
+  extension-id:
+    description: Extension identifier in publisher.name format
+    value: ${{ steps.validate.outputs.extension-id }}
+  version:
+    description: Extension version read from package.json
+    value: ${{ steps.validate.outputs.version }}
+  published:
+    description: Whether the VSIX was published to Visual Studio Marketplace
+    value: ${{ steps.publish.outputs.published }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs and extension manifest
+      id: validate
+      shell: bash
+      env:
+        INPUT_AUTHENTICATION: ${{ inputs.authentication }}
+        INPUT_MARKETPLACE_TOKEN: ${{ inputs.marketplace-token }}
+        INPUT_NO_DEPENDENCIES: ${{ inputs.no-dependencies }}
+        INPUT_OUTPUT_PATH: ${{ inputs.output-path }}
+        INPUT_PRE_RELEASE: ${{ inputs.pre-release }}
+        INPUT_PUBLISH: ${{ inputs.publish }}
+        INPUT_TARGET: ${{ inputs.target }}
+        INPUT_VSCE_VERSION: ${{ inputs.vsce-version }}
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+
+        trim() {
+          local value="$1"
+          value="${value#"${value%%[![:space:]]*}"}"
+          value="${value%"${value##*[![:space:]]}"}"
+          printf '%s' "${value}"
+        }
+
+        validate_boolean() {
+          local name="$1"
+          local value="$2"
+
+          case "${value}" in
+            true | false) ;;
+            *)
+              echo "::error::${name} must be true or false"
+              exit 1
+              ;;
+          esac
+        }
+
+        workspace="$(cd -- "${GITHUB_WORKSPACE}" && pwd -P)"
+        runner_temp="$(cd -- "${RUNNER_TEMP}" && pwd -P)"
+        working_directory_input="$(trim "${INPUT_WORKING_DIRECTORY}")"
+
+        if [[ -z "${working_directory_input}" ]]; then
+          echo "::error::working-directory must not be empty"
+          exit 1
+        fi
+
+        if ! working_directory="$(cd -- "${GITHUB_WORKSPACE}/${working_directory_input}" && pwd -P)"; then
+          echo "::error::working-directory does not exist: ${working_directory_input}"
+          exit 1
+        fi
+
+        case "${working_directory}/" in
+          "${workspace}/"*) ;;
+          *)
+            echo "::error::working-directory must resolve inside GITHUB_WORKSPACE"
+            exit 1
+            ;;
+        esac
+
+        manifest="${working_directory}/package.json"
+        if [[ ! -f "${manifest}" ]]; then
+          echo "::error::package.json was not found in working-directory"
+          exit 1
+        fi
+
+        if ! command -v node > /dev/null 2>&1 || ! command -v npx > /dev/null 2>&1; then
+          echo "::error::Node.js and npx are required"
+          exit 1
+        fi
+
+        node_major="$(node -p 'process.versions.node.split(".")[0]')"
+        if ((node_major < 20)); then
+          echo "::error::@vscode/vsce requires Node.js 20 or newer"
+          exit 1
+        fi
+
+        authentication="$(trim "${INPUT_AUTHENTICATION}")"
+        publish="$(trim "${INPUT_PUBLISH}")"
+        pre_release="$(trim "${INPUT_PRE_RELEASE}")"
+        no_dependencies="$(trim "${INPUT_NO_DEPENDENCIES}")"
+        target="$(trim "${INPUT_TARGET}")"
+        vsce_version="$(trim "${INPUT_VSCE_VERSION}")"
+        output_path="$(trim "${INPUT_OUTPUT_PATH}")"
+
+        validate_boolean publish "${publish}"
+        validate_boolean pre-release "${pre_release}"
+        validate_boolean no-dependencies "${no_dependencies}"
+
+        case "${authentication}" in
+          pat | azure-credential) ;;
+          *)
+            echo "::error::authentication must be pat or azure-credential"
+            exit 1
+            ;;
+        esac
+
+        if [[ "${publish}" == "true" && "${authentication}" == "pat" && -z "${INPUT_MARKETPLACE_TOKEN}" ]]; then
+          echo "::error::marketplace-token must not be empty when publish is true and authentication is pat"
+          exit 1
+        fi
+
+        if [[ ! "${vsce_version}" =~ ^(latest|[0-9]+([.][0-9]+){0,2}([.-][0-9A-Za-z.-]+)?)$ ]]; then
+          echo "::error::vsce-version must be latest, a major version, or an exact version"
+          exit 1
+        fi
+
+        case "${target}" in
+          "" | win32-x64 | win32-arm64 | linux-x64 | linux-arm64 | linux-armhf | alpine-x64 | alpine-arm64 | darwin-x64 | darwin-arm64 | web) ;;
+          *)
+            echo "::error::target is not a supported VS Code extension platform"
+            exit 1
+            ;;
+        esac
+
+        metadata="$(node -e '
+          const fs = require("node:fs");
+          const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+          for (const field of ["publisher", "name", "version"]) {
+            if (typeof manifest[field] !== "string" || manifest[field].trim() === "") {
+              console.error(`package.json field ${field} must be a non-empty string`);
+              process.exit(1);
+            }
+          }
+          process.stdout.write(`${manifest.publisher}.${manifest.name}\n${manifest.version}\n`);
+        ' "${manifest}")" || {
+          echo "::error::package.json must define publisher, name, and version"
+          exit 1
+        }
+
+        extension_id="$(sed -n '1p' <<< "${metadata}")"
+        extension_version="$(sed -n '2p' <<< "${metadata}")"
+
+        if [[ -z "${output_path}" ]]; then
+          output_directory="$(mktemp -d "${runner_temp}/vscode-extension.XXXXXX")"
+          vsix_path="${output_directory}/extension.vsix"
+        else
+          if [[ "${output_path}" = /* ]]; then
+            candidate="${output_path}"
+          else
+            candidate="${working_directory}/${output_path}"
+          fi
+
+          mkdir -p -- "$(dirname -- "${candidate}")"
+          output_directory="$(cd -- "$(dirname -- "${candidate}")" && pwd -P)"
+          vsix_path="${output_directory}/$(basename -- "${candidate}")"
+
+          case "${vsix_path}" in
+            "${workspace}/"* | "${runner_temp}/"*) ;;
+            *)
+              echo "::error::output-path must resolve inside GITHUB_WORKSPACE or RUNNER_TEMP"
+              exit 1
+              ;;
+          esac
+        fi
+
+        if [[ "${vsix_path}" != *.vsix ]]; then
+          echo "::error::output-path must end with .vsix"
+          exit 1
+        fi
+
+        {
+          echo "authentication=${authentication}"
+          echo "extension-id=${extension_id}"
+          echo "no-dependencies=${no_dependencies}"
+          echo "pre-release=${pre_release}"
+          echo "publish=${publish}"
+          echo "target=${target}"
+          echo "version=${extension_version}"
+          echo "vsce-version=${vsce_version}"
+          echo "vsix-path=${vsix_path}"
+          echo "working-directory=${working_directory}"
+        } >> "${GITHUB_OUTPUT}"
+
+    - name: Package VS Code extension
+      id: package
+      shell: bash
+      env:
+        NO_DEPENDENCIES: ${{ steps.validate.outputs.no-dependencies }}
+        PRE_RELEASE: ${{ steps.validate.outputs.pre-release }}
+        TARGET: ${{ steps.validate.outputs.target }}
+        VSCE_VERSION: ${{ steps.validate.outputs.vsce-version }}
+        VSIX_PATH: ${{ steps.validate.outputs.vsix-path }}
+        WORKING_DIRECTORY: ${{ steps.validate.outputs.working-directory }}
+      run: |
+        set -euo pipefail
+        cd -- "${WORKING_DIRECTORY}"
+
+        command=(npx --yes "@vscode/vsce@${VSCE_VERSION}" package --out "${VSIX_PATH}")
+
+        if [[ "${PRE_RELEASE}" == "true" ]]; then
+          command+=(--pre-release)
+        fi
+
+        if [[ "${NO_DEPENDENCIES}" == "true" ]]; then
+          command+=(--no-dependencies)
+        fi
+
+        if [[ -n "${TARGET}" ]]; then
+          command+=(--target "${TARGET}")
+        fi
+
+        "${command[@]}"
+        echo "vsix-path=${VSIX_PATH}" >> "${GITHUB_OUTPUT}"
+
+    - name: Publish VS Code extension
+      id: publish
+      shell: bash
+      env:
+        AUTHENTICATION: ${{ steps.validate.outputs.authentication }}
+        PUBLISH: ${{ steps.validate.outputs.publish }}
+        VSCE_PAT: ${{ inputs.marketplace-token }}
+        VSCE_VERSION: ${{ steps.validate.outputs.vsce-version }}
+        VSIX_PATH: ${{ steps.package.outputs.vsix-path }}
+        WORKING_DIRECTORY: ${{ steps.validate.outputs.working-directory }}
+      run: |
+        set -euo pipefail
+
+        if [[ "${PUBLISH}" != "true" ]]; then
+          echo "published=false" >> "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        cd -- "${WORKING_DIRECTORY}"
+        command=(npx --yes "@vscode/vsce@${VSCE_VERSION}" publish --packagePath "${VSIX_PATH}")
+
+        if [[ "${AUTHENTICATION}" == "azure-credential" ]]; then
+          command+=(--azure-credential)
+        fi
+
+        "${command[@]}"
+        echo "published=true" >> "${GITHUB_OUTPUT}"
