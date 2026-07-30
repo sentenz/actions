@@ -6,31 +6,30 @@ on:
   release:
     types: [published]
 
-permissions:
-  contents: read
-
 jobs:
-  publish:
-    name: Publish VS Code Extension
+  vscode-extension:
+    name: VS Code Extension Action
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
       - name: Test
         run: npm test
 
-      - name: Publish extension
+      - name: VS Code Extension
         id: extension
         uses: sentenz/actions/vscode-extension@latest
         with:
           marketplace-token: ${{ secrets.VSCE_PAT }}
-          output-path: artifacts/extension.vsix
+          output-path: "artifacts/extension.vsix"
 
-      - name: Release summary
+      - name: Release Summary
         env:
           EXTENSION_ID: ${{ steps.extension.outputs.extension-id }}
           EXTENSION_VERSION: ${{ steps.extension.outputs.version }}
