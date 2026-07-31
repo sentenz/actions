@@ -29,7 +29,7 @@ inputs:
     required: false
     default: "3"
   version:
-    description: "Optional release version: patch, minor, major, or an exact major.minor.patch version"
+    description: "Optional release version: patch, minor, major, or an exact major.minor.patch version with optional v prefix"
     required: false
     default: ""
   target:
@@ -61,7 +61,7 @@ outputs:
     description: "Extension identifier in publisher.name format"
     value: ${{ steps.validate.outputs.extension-id }}
   version:
-    description: "Version contained in the packaged VSIX"
+    description: "Normalized version contained in the packaged VSIX"
     value: ${{ steps.package.outputs.version }}
   published:
     description: "Whether the VSIX was published to Visual Studio Marketplace"
@@ -180,8 +180,8 @@ runs:
           exit 1
         fi
 
-        if [[ -n "${version}" && ! "${version}" =~ ^(major|minor|patch|((0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)))$ ]]; then
-          echo "::error::version must be major, minor, patch, or an exact major.minor.patch version"
+        if [[ -n "${version}" && ! "${version}" =~ ^(major|minor|patch|v?((0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)))$ ]]; then
+          echo "::error::version must be major, minor, patch, or an exact major.minor.patch version with an optional v prefix"
           exit 1
         fi
 
@@ -232,7 +232,7 @@ runs:
                 ;;
             esac
           else
-            release_version="${version}"
+            release_version="${version#v}"
           fi
         fi
 
