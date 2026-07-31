@@ -1,5 +1,13 @@
 # Changelog
 
+# [1.4.0](https://github.com/sentenz/actions/compare/1.3.0...1.4.0) (2026-07-31)
+
+
+### Features
+
+* **vscode-extension:** accept tagged semantic versions ([d14a449](https://github.com/sentenz/actions/commit/d14a449a1e7f29de651eab9be21f4884cbb52ca4))
+* **vscode-extension:** add release version controls ([b265a8c](https://github.com/sentenz/actions/commit/b265a8ca1794a282a6b6291c3a93a6fa35c3faeb))
+
 # [1.3.0](https://github.com/sentenz/actions/compare/1.2.3...1.3.0) (2026-07-30)
 
 
