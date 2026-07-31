@@ -28,6 +28,10 @@ inputs:
     description: "@vscode/vsce version, major version, or latest"
     required: false
     default: "3"
+  version:
+    description: "Optional release version: patch, minor, major, or an exact major.minor.patch version with optional v prefix"
+    required: false
+    default: ""
   target:
     description: "Optional VS Code target platform such as linux-x64, darwin-arm64, or web"
     required: false
@@ -38,6 +42,10 @@ inputs:
     default: "false"
   no-dependencies:
     description: "Skip dependency discovery when packaging the extension"
+    required: false
+    default: "false"
+  skip-duplicate:
+    description: "Treat an already-published extension version as a successful publish"
     required: false
     default: "false"
   publish:
@@ -53,8 +61,8 @@ outputs:
     description: "Extension identifier in publisher.name format"
     value: ${{ steps.validate.outputs.extension-id }}
   version:
-    description: "Extension version read from package.json"
-    value: ${{ steps.validate.outputs.version }}
+    description: "Normalized version contained in the packaged VSIX"
+    value: ${{ steps.package.outputs.version }}
   published:
     description: "Whether the VSIX was published to Visual Studio Marketplace"
     value: ${{ steps.publish.outputs.published }}
@@ -72,7 +80,9 @@ runs:
         INPUT_OUTPUT_PATH: ${{ inputs.output-path }}
         INPUT_PRE_RELEASE: ${{ inputs.pre-release }}
         INPUT_PUBLISH: ${{ inputs.publish }}
+        INPUT_SKIP_DUPLICATE: ${{ inputs.skip-duplicate }}
         INPUT_TARGET: ${{ inputs.target }}
+        INPUT_VERSION: ${{ inputs.version }}
         INPUT_VSCE_VERSION: ${{ inputs.vsce-version }}
         INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
@@ -132,8 +142,8 @@ runs:
         fi
 
         node_major="$(node -p 'process.versions.node.split(".")[0]')"
-        if ((node_major < 20)); then
-          echo "::error::@vscode/vsce requires Node.js 20 or newer"
+        if ((node_major < 22)); then
+          echo "::error::@vscode/vsce 3.x requires Node.js 22 or newer"
           exit 1
         fi
 
@@ -141,13 +151,16 @@ runs:
         publish="$(trim "${INPUT_PUBLISH}")"
         pre_release="$(trim "${INPUT_PRE_RELEASE}")"
         no_dependencies="$(trim "${INPUT_NO_DEPENDENCIES}")"
+        skip_duplicate="$(trim "${INPUT_SKIP_DUPLICATE}")"
         target="$(trim "${INPUT_TARGET}")"
+        version="$(trim "${INPUT_VERSION}")"
         vsce_version="$(trim "${INPUT_VSCE_VERSION}")"
         output_path="$(trim "${INPUT_OUTPUT_PATH}")"
 
         validate_boolean "publish" "${publish}"
         validate_boolean "pre-release" "${pre_release}"
         validate_boolean "no-dependencies" "${no_dependencies}"
+        validate_boolean "skip-duplicate" "${skip_duplicate}"
 
         case "${authentication}" in
           pat | azure-credential) ;;
@@ -164,6 +177,11 @@ runs:
 
         if [[ ! "${vsce_version}" =~ ^(latest|[0-9]+([.][0-9]+){0,2}([.-][0-9A-Za-z.-]+)?)$ ]]; then
           echo "::error::vsce-version must be latest, a major version, or an exact version"
+          exit 1
+        fi
+
+        if [[ -n "${version}" && ! "${version}" =~ ^(major|minor|patch|v?((0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)))$ ]]; then
+          echo "::error::version must be major, minor, patch, or an exact major.minor.patch version with an optional v prefix"
           exit 1
         fi
 
@@ -191,7 +209,32 @@ runs:
         }
 
         extension_id="$(sed -n '1p' <<< "${metadata}")"
-        extension_version="$(sed -n '2p' <<< "${metadata}")"
+        manifest_version="$(sed -n '2p' <<< "${metadata}")"
+        release_version="${manifest_version}"
+
+        if [[ -n "${version}" ]]; then
+          if [[ "${version}" =~ ^(major|minor|patch)$ ]]; then
+            if [[ ! "${manifest_version}" =~ ^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$ ]]; then
+              echo "::error::package.json version must be major.minor.patch when version is major, minor, or patch"
+              exit 1
+            fi
+
+            IFS='.' read -r version_major version_minor version_patch <<< "${manifest_version}"
+            case "${version}" in
+              major)
+                release_version="$((version_major + 1)).0.0"
+                ;;
+              minor)
+                release_version="${version_major}.$((version_minor + 1)).0"
+                ;;
+              patch)
+                release_version="${version_major}.${version_minor}.$((version_patch + 1))"
+                ;;
+            esac
+          else
+            release_version="${version#v}"
+          fi
+        fi
 
         if [[ -z "${output_path}" ]]; then
           output_directory="$(mktemp -d "${runner_temp}/vscode-extension.XXXXXX")"
@@ -224,11 +267,14 @@ runs:
         {
           echo "authentication=${authentication}"
           echo "extension-id=${extension_id}"
+          echo "manifest-version=${manifest_version}"
           echo "no-dependencies=${no_dependencies}"
           echo "pre-release=${pre_release}"
           echo "publish=${publish}"
+          echo "skip-duplicate=${skip_duplicate}"
           echo "target=${target}"
-          echo "version=${extension_version}"
+          echo "version=${release_version}"
+          echo "version-request=${version}"
           echo "vsce-version=${vsce_version}"
           echo "vsix-path=${vsix_path}"
           echo "working-directory=${working_directory}"
@@ -241,6 +287,8 @@ runs:
         NO_DEPENDENCIES: ${{ steps.validate.outputs.no-dependencies }}
         PRE_RELEASE: ${{ steps.validate.outputs.pre-release }}
         TARGET: ${{ steps.validate.outputs.target }}
+        VERSION: ${{ steps.validate.outputs.version }}
+        VERSION_REQUEST: ${{ steps.validate.outputs.version-request }}
         VSCE_VERSION: ${{ steps.validate.outputs.vsce-version }}
         VSIX_PATH: ${{ steps.validate.outputs.vsix-path }}
         WORKING_DIRECTORY: ${{ steps.validate.outputs.working-directory }}
@@ -248,7 +296,13 @@ runs:
         set -euo pipefail
         cd -- "${WORKING_DIRECTORY}"
 
-        command=(npx --yes "@vscode/vsce@${VSCE_VERSION}" package --out "${VSIX_PATH}")
+        command=(npx --yes "@vscode/vsce@${VSCE_VERSION}" package)
+
+        if [[ -n "${VERSION_REQUEST}" ]]; then
+          command+=("${VERSION}" --no-git-tag-version --no-update-package-json)
+        fi
+
+        command+=(--out "${VSIX_PATH}")
 
         if [[ "${PRE_RELEASE}" == "true" ]]; then
           command+=(--pre-release)
@@ -263,7 +317,11 @@ runs:
         fi
 
         "${command[@]}"
-        echo "vsix-path=${VSIX_PATH}" >> "${GITHUB_OUTPUT}"
+
+        {
+          echo "version=${VERSION}"
+          echo "vsix-path=${VSIX_PATH}"
+        } >> "${GITHUB_OUTPUT}"
 
     - name: Publish VS Code Extension
       id: publish
@@ -271,6 +329,7 @@ runs:
       env:
         AUTHENTICATION: ${{ steps.validate.outputs.authentication }}
         PUBLISH: ${{ steps.validate.outputs.publish }}
+        SKIP_DUPLICATE: ${{ steps.validate.outputs.skip-duplicate }}
         VSCE_PAT: ${{ inputs.marketplace-token }}
         VSCE_VERSION: ${{ steps.validate.outputs.vsce-version }}
         VSIX_PATH: ${{ steps.package.outputs.vsix-path }}
@@ -288,6 +347,10 @@ runs:
 
         if [[ "${AUTHENTICATION}" == "azure-credential" ]]; then
           command+=(--azure-credential)
+        fi
+
+        if [[ "${SKIP_DUPLICATE}" == "true" ]]; then
+          command+=(--skip-duplicate)
         fi
 
         "${command[@]}"
