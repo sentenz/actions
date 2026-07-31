@@ -161,7 +161,7 @@ The extension manifest must use a version distinct from any regular release alre
     output-path: "artifacts/extension-linux-x64.vsix"
 ```
 
-Supported targets are `win32-x64`, `win32-arm64`, `linux-x64`, `linux-armhf`, `linux-arm64`, `alpine-x64`,
+Supported targets are `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `linux-armhf`, `alpine-x64`,
 `alpine-arm64`, `darwin-x64`, `darwin-arm64`, and `web`.
 
 Run the action once per target when publishing platform-specific packages.
