@@ -25,11 +25,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
       - name: Run VS Code Extension Test
         id: extension
         uses: ./vscode-extension
         with:
           working-directory: "vscode-extension/test"
           output-path: "dist/test-extension.vsix"
+          version: "patch"
           no-dependencies: "true"
           publish: "false"
+
+      - name: Verify VS Code Extension Outputs
+        env:
+          EXTENSION_VERSION: ${{ steps.extension.outputs.version }}
+          VSIX_PATH: ${{ steps.extension.outputs.vsix-path }}
+        run: |
+          test "${EXTENSION_VERSION}" = "0.0.2"
+          test -f "${VSIX_PATH}"
+          test "$(node -p 'require("./vscode-extension/test/package.json").version')" = "0.0.1"
