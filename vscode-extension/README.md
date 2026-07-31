@@ -8,7 +8,7 @@ Package a Visual Studio Code extension as a VSIX file and optionally publish the
   - [2.2. Outputs](#22-outputs)
 - [3. Usage](#3-usage)
   - [3.1. Publish with a Marketplace Token](#31-publish-with-a-marketplace-token)
-  - [3.2. Publish with a Version Increment](#32-publish-with-a-version-increment)
+  - [3.2. Publish with a Release Version](#32-publish-with-a-release-version)
   - [3.3. Package Without Publishing](#33-package-without-publishing)
   - [3.4. Publish a Pre-Release](#34-publish-a-pre-release)
   - [3.5. Publish for a Target Platform](#35-publish-for-a-target-platform)
@@ -41,28 +41,28 @@ installation, tests, compilation, and bundling remain the responsibility of the 
 
 ### 2.1. Inputs
 
-| Input               | Description                                                                    | Required | Default |
-| ------------------- | ------------------------------------------------------------------------------ | -------- | ------- |
-| `marketplace-token` | Visual Studio Marketplace token exposed to `vsce` as `VSCE_PAT`                | No       | ``      |
-| `authentication`    | Publishing authentication method: `pat` or `azure-credential`                  | No       | `pat`   |
-| `working-directory` | Repository-relative directory containing the extension `package.json`          | No       | `.`     |
-| `output-path`       | VSIX path relative to `working-directory`; empty uses runner temporary storage  | No       | ``      |
-| `vsce-version`      | `@vscode/vsce` version, major version, or `latest`                              | No       | `3`     |
-| `version`           | Release version: `patch`, `minor`, `major`, or an exact `major.minor.patch`     | No       | ``      |
-| `target`            | Optional target platform, such as `linux-x64`, `darwin-arm64`, or `web`         | No       | ``      |
-| `pre-release`       | Package and publish the extension as a pre-release                              | No       | `false` |
-| `no-dependencies`   | Pass `--no-dependencies` to `vsce package`                                      | No       | `false` |
-| `skip-duplicate`    | Treat an already-published extension version as a successful publish            | No       | `false` |
-| `publish`           | Publish the packaged VSIX to Visual Studio Marketplace                          | No       | `true`  |
+| Input               | Description                                                                                           | Required | Default |
+| ------------------- | ----------------------------------------------------------------------------------------------------- | -------- | ------- |
+| `marketplace-token` | Visual Studio Marketplace token exposed to `vsce` as `VSCE_PAT`                                       | No       | ``      |
+| `authentication`    | Publishing authentication method: `pat` or `azure-credential`                                         | No       | `pat`   |
+| `working-directory` | Repository-relative directory containing the extension `package.json`                                 | No       | `.`     |
+| `output-path`       | VSIX path relative to `working-directory`; empty uses runner temporary storage                         | No       | ``      |
+| `vsce-version`      | `@vscode/vsce` version, major version, or `latest`                                                     | No       | `3`     |
+| `version`           | `patch`, `minor`, `major`, or an exact `major.minor.patch` release version with optional `v` prefix   | No       | ``      |
+| `target`            | Optional target platform, such as `linux-x64`, `darwin-arm64`, or `web`                                | No       | ``      |
+| `pre-release`       | Package and publish the extension as a pre-release                                                     | No       | `false` |
+| `no-dependencies`   | Pass `--no-dependencies` to `vsce package`                                                             | No       | `false` |
+| `skip-duplicate`    | Treat an already-published extension version as a successful publish                                   | No       | `false` |
+| `publish`           | Publish the packaged VSIX to Visual Studio Marketplace                                                 | No       | `true`  |
 
 ### 2.2. Outputs
 
-| Output         | Description                                                 |
-| -------------- | ----------------------------------------------------------- |
-| `vsix-path`    | Absolute path to the packaged VSIX file                     |
-| `extension-id` | Extension identifier in `publisher.name` format             |
-| `version`      | Version contained in the packaged VSIX                      |
-| `published`    | Whether the VSIX was published to Visual Studio Marketplace |
+| Output         | Description                                                        |
+| -------------- | ------------------------------------------------------------------ |
+| `vsix-path`    | Absolute path to the packaged VSIX file                            |
+| `extension-id` | Extension identifier in `publisher.name` format                    |
+| `version`      | Normalized version contained in the packaged VSIX                  |
+| `published`    | Whether the VSIX was published to Visual Studio Marketplace        |
 
 ## 3. Usage
 
@@ -93,9 +93,10 @@ jobs:
           marketplace-token: ${{ secrets.VSCE_PAT }}
 ```
 
-### 3.2. Publish with a Version Increment
+### 3.2. Publish with a Release Version
 
-`version` provides the release-version capability commonly used with `vsce publish patch|minor|major|<version>`.
+`version` accepts relative increments (`patch`, `minor`, `major`) and exact release versions. Exact versions can be
+provided either as `1.0.0` or as a Git-tag-style value such as `v1.0.0`.
 
 ```yaml
 - name: VS Code Extension
@@ -103,14 +104,23 @@ jobs:
   uses: sentenz/actions/vscode-extension@latest
   with:
     marketplace-token: ${{ secrets.VSCE_PAT }}
-    version: "minor"
+    version: "v1.5.0"
     skip-duplicate: "true"
 
 - name: Inspect Published Version
   run: echo "${{ steps.extension.outputs.version }}"
 ```
 
-For example, a manifest version of `1.4.2` with `version: "minor"` packages and publishes `1.5.0`.
+A leading `v` is normalized away before packaging, so both `version: "v1.5.0"` and `version: "1.5.0"` produce a VSIX
+with version `1.5.0`. This makes GitHub release tags directly consumable:
+
+```yaml
+with:
+  version: ${{ github.event.release.tag_name }}
+```
+
+Relative increments remain available. For example, a manifest version of `1.4.2` with `version: "minor"` packages and
+publishes `1.5.0`.
 
 ### 3.3. Package Without Publishing
 
@@ -151,7 +161,7 @@ The extension manifest must use a version distinct from any regular release alre
     output-path: "artifacts/extension-linux-x64.vsix"
 ```
 
-Supported targets are `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `linux-armhf`, `alpine-x64`,
+Supported targets are `win32-x64`, `win32-arm64`, `linux-x64`, `linux-armhf`, `linux-arm64`, `alpine-x64`,
 `alpine-arm64`, `darwin-x64`, `darwin-arm64`, and `web`.
 
 Run the action once per target when publishing platform-specific packages.
@@ -200,15 +210,16 @@ otherwise intentionally excluded from dependency discovery.
 
 When `version` is empty, the action packages the version already present in `package.json`.
 
-When `version` is `patch`, `minor`, or `major`, the action resolves that increment against the manifest version.
-An exact `major.minor.patch` value can also be supplied directly.
+When `version` is `patch`, `minor`, or `major`, the action resolves that increment against the manifest version. An
+exact `major.minor.patch` value can also be supplied directly. Exact versions may optionally use a single lowercase
+`v` prefix, which is normalized away before invoking `vsce`; `v1.0.0` therefore becomes package version `1.0.0`.
 
 The resolved version is passed to `vsce package` with `--no-git-tag-version` and `--no-update-package-json`. This is
 deliberate for CI: the generated VSIX receives the requested version without modifying the checked-out manifest,
 creating a version commit, or creating a Git tag. Release commits and tags remain the responsibility of the release
 workflow or release-management tooling.
 
-The `version` output always reports the version contained in the generated VSIX.
+The `version` output always reports the normalized version contained in the generated VSIX.
 
 ### 4.3. Authentication
 
@@ -242,7 +253,7 @@ The action fails before packaging when:
 - `authentication` is not `pat` or `azure-credential`;
 - token authentication is selected for publishing without `marketplace-token`;
 - `vsce-version` is not `latest`, a major version, or an exact version;
-- `version` is not empty, `patch`, `minor`, `major`, or an exact `major.minor.patch` version;
+- `version` is not empty, `patch`, `minor`, `major`, or an exact `major.minor.patch` version with an optional lowercase `v` prefix;
 - a relative version increment is requested when the manifest version is not `major.minor.patch`;
 - `target` is not a supported VS Code extension target; or
 - `output-path` does not end in `.vsix` or resolves outside the permitted directories.
