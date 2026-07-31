@@ -30,21 +30,40 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Run VS Code Extension Test
-        id: extension
+      - name: Run Relative Version Test
+        id: relative-version
         uses: ./vscode-extension
         with:
           working-directory: "vscode-extension/test"
-          output-path: "dist/test-extension.vsix"
+          output-path: "dist/test-extension-patch.vsix"
           version: "patch"
           no-dependencies: "true"
           publish: "false"
 
-      - name: Verify VS Code Extension Outputs
+      - name: Verify Relative Version Outputs
         env:
-          EXTENSION_VERSION: ${{ steps.extension.outputs.version }}
-          VSIX_PATH: ${{ steps.extension.outputs.vsix-path }}
+          EXTENSION_VERSION: ${{ steps.relative-version.outputs.version }}
+          VSIX_PATH: ${{ steps.relative-version.outputs.vsix-path }}
         run: |
           test "${EXTENSION_VERSION}" = "0.0.2"
+          test -f "${VSIX_PATH}"
+          test "$(node -p 'require("./vscode-extension/test/package.json").version')" = "0.0.1"
+
+      - name: Run Tagged Semantic Version Test
+        id: tagged-version
+        uses: ./vscode-extension
+        with:
+          working-directory: "vscode-extension/test"
+          output-path: "dist/test-extension-v1.0.0.vsix"
+          version: "v1.0.0"
+          no-dependencies: "true"
+          publish: "false"
+
+      - name: Verify Tagged Semantic Version Outputs
+        env:
+          EXTENSION_VERSION: ${{ steps.tagged-version.outputs.version }}
+          VSIX_PATH: ${{ steps.tagged-version.outputs.vsix-path }}
+        run: |
+          test "${EXTENSION_VERSION}" = "1.0.0"
           test -f "${VSIX_PATH}"
           test "$(node -p 'require("./vscode-extension/test/package.json").version')" = "0.0.1"
