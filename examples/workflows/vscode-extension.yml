@@ -26,5 +26,6 @@ jobs:
         uses: sentenz/actions/vscode-extension@latest
         with:
           marketplace-token: ${{ secrets.VSCE_PAT }}
+          version: ${{ github.event.release.tag_name }}
           output-path: "artifacts/extension.vsix"
           skip-duplicate: "true"
