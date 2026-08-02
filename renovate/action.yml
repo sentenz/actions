@@ -75,7 +75,7 @@ runs:
 
     - name: Renovate
       id: renovate
-      uses: renovatebot/github-action@v46.1.21
+      uses: renovatebot/github-action@v46.2.0
       with:
         token: ${{ inputs.token }}
         renovate-version: ${{ inputs.version }}
