@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-FROM alpine:3.22 AS emulation-check
+FROM alpine:3.24 AS emulation-check
 RUN uname -m >/dev/null
 
 FROM scratch AS fixture
