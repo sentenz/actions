@@ -134,24 +134,13 @@
       "automerge": false
     },
     {
-      "description": "Container image tag and digest updates in GitHub Actions files.",
-      "matchManagers": [
-        "custom.regex"
-      ],
-      "matchDatasources": [
-        "docker"
-      ],
+      "description": "All dependency updates in GitHub composite actions.",
       "matchFileNames": [
-        "**/action.{yml,yaml}"
+        "/(^|/)action\\.ya?ml$/"
       ],
-      "matchUpdateTypes": [
-        "major",
-        "minor",
-        "patch",
-        "digest"
-      ],
-      "groupName": "github actions container images",
-      "groupSlug": "github-actions-container-images",
+      "groupName": "github composite actions",
+      "groupSlug": "github-composite-actions",
+      "separateMajorMinor": false,
       "automerge": false,
       "semanticCommits": "enabled",
       "semanticCommitType": "fix",
