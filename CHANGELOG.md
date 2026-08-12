@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.3](https://github.com/sentenz/actions/compare/1.4.2...1.4.3) (2026-08-12)
+
+
+### Bug Fixes
+
+* **semantic-release:** restore release notes generation ([#81](https://github.com/sentenz/actions/issues/81)) ([a93bf04](https://github.com/sentenz/actions/commit/a93bf045393e9c19e0139d923e1debfaba56d15a))
+
 ## [1.4.2](https://github.com/sentenz/actions/compare/1.4.1...1.4.2) (2026-08-09)
 
 
