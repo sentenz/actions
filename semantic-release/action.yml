@@ -42,7 +42,7 @@ inputs:
     default: |
       @semantic-release/changelog@^6
       @semantic-release/git@^10
-      conventional-changelog-conventionalcommits@^10
+      conventional-changelog-conventionalcommits@9.3.1
   use-default-config:
     description: "Use the action's Conventional Commits configuration when the repository has no release configuration"
     required: false
