@@ -19,6 +19,7 @@ deny_dockerfile contains msg if {
 	cmd.Cmd == "from"
 	image := cmd.Value[0]
 
+	image != "scratch"
 	not contains(image, "@sha256:")
 	msg := sprintf("Container base image '%s' must be pinned by the image digest '@sha256:94a0...ea1a'.", [image])
 }
