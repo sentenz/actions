@@ -14,7 +14,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -25,7 +25,7 @@ jobs:
 
       - name: VS Code Extension
         id: extension
-        uses: sentenz/actions/vscode-extension@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/vscode-extension@203e2895cb7b6d09d5a822c04c86b7e8d2081d7e
         with:
           marketplace-token: ${{ secrets.VSCE_PAT }}
           version: ${{ github.event.release.tag_name }}

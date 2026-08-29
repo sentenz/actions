@@ -18,27 +18,28 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
-      id-token: write
     outputs:
       new-release-published: ${{ steps.release.outputs.new-release-published }}
       new-release-version: ${{ steps.release.outputs.new-release-version }}
     steps:
       - name: Checkout (full history)
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: true
 
       - name: Semantic Release
         id: release
-        uses: sentenz/actions/semantic-release@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/semantic-release@203e2895cb7b6d09d5a822c04c86b7e8d2081d7e
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           semantic-version: "latest"
 
       - name: Release Summary
         if: steps.release.outputs.new-release-published == 'true'
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.new-release-version }}
         run: |
-          echo "## 🎉 New Release Published!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** ${{ steps.release.outputs.new-release-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎉 New Release Published!" >> "${GITHUB_STEP_SUMMARY}"
+          echo >> "${GITHUB_STEP_SUMMARY}"
+          echo "**Version:** ${RELEASE_VERSION}" >> "${GITHUB_STEP_SUMMARY}"

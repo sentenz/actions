@@ -19,12 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Validate container build
-        uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/docker@203e2895cb7b6d09d5a822c04c86b7e8d2081d7e
         with:
           version: 0.0.0-pr-${{ github.event.pull_request.number }}
           context: .
@@ -40,13 +40,13 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/docker@203e2895cb7b6d09d5a822c04c86b7e8d2081d7e
         with:
           version: ${{ github.event.release.tag_name }}
           context: .
