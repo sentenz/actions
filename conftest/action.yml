@@ -82,7 +82,7 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_POLICY_PATH: ${{ inputs.policy-path }}
       run: |
-        set -uo pipefail
+        set -euo pipefail
 
         # Build conftest command arguments
         conftest_args=(test)
@@ -129,8 +129,11 @@ runs:
         printf '\n'
 
         # Run conftest via Docker
-        result="$("${command[@]}" 2>&1)"
-        exit_code=$?
+        if result="$("${command[@]}" 2>&1)"; then
+          exit_code=0
+        else
+          exit_code=$?
+        fi
 
         delimiter="$(cat /proc/sys/kernel/random/uuid)"
         while grep -Fqx "${delimiter}" <<< "${result}"; do

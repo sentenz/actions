@@ -136,7 +136,7 @@ runs:
         INPUT_TRIVY_CONFIG: ${{ inputs.trivy-config }}
         INPUT_TRIVYIGNORE_FILE: ${{ inputs.trivyignore-file }}
       run: |
-        set -uo pipefail
+        set -euo pipefail
 
         # Determine the actual scan command based on scan-type
         if [[ "${INPUT_SCAN_TYPE}" == "sbom-generate" ]]; then
@@ -245,8 +245,11 @@ runs:
         printf ' %q' "${command[@]}"
         printf '\n'
 
-        result="$("${command[@]}" 2>&1)"
-        exit_code=$?
+        if result="$("${command[@]}" 2>&1)"; then
+          exit_code=0
+        else
+          exit_code=$?
+        fi
 
         delimiter="$(cat /proc/sys/kernel/random/uuid)"
         while grep -Fqx "${delimiter}" <<< "${result}" || grep -Fqx "${delimiter}" <<< "${INPUT_OUTPUT}"; do
