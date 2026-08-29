@@ -81,115 +81,139 @@ runs:
   steps:
     - name: Validate inputs
       shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
       run: |
-        if [[ ! -e "${{ inputs.path }}" ]]; then
-          echo "::warning::Path '${{ inputs.path }}' does not exist"
+        set -euo pipefail
+
+        if [[ ! -e "${INPUT_PATH}" ]]; then
+          printf '::warning::Path %q does not exist\n' "${INPUT_PATH}"
         fi
 
     - name: Semgrep
       id: semgrep
       shell: bash
+      env:
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_EXCLUDE: ${{ inputs.exclude }}
+        INPUT_GITLAB_SAST_OUTPUT: ${{ inputs.gitlab-sast-output }}
+        INPUT_IMAGE: ${{ inputs.image }}
+        INPUT_INCLUDE: ${{ inputs.include }}
+        INPUT_JOBS: ${{ inputs.jobs }}
+        INPUT_JSON_OUTPUT: ${{ inputs.json-output }}
+        INPUT_MAX_TARGET_BYTES: ${{ inputs.max-target-bytes }}
+        INPUT_METRICS: ${{ inputs.metrics }}
+        INPUT_NO_SECRETS_VALIDATION: ${{ inputs.no-secrets-validation }}
+        INPUT_SARIF_OUTPUT: ${{ inputs.sarif-output }}
+        INPUT_SEVERITY: ${{ inputs.severity }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
       run: |
-        set +e
+        set -euo pipefail
 
         # Build semgrep command arguments
-        SEMGREP_ARGS="scan"
-
-        # Add quiet mode
-        SEMGREP_ARGS="${SEMGREP_ARGS} -q"
+        semgrep_args=(scan -q)
 
         # Add configuration
-        if [[ -n "${{ inputs.config }}" ]]; then
+        if [[ -n "${INPUT_CONFIG}" ]]; then
           # Handle multiple configs separated by comma
-          IFS=',' read -ra CONFIGS <<< "${{ inputs.config }}"
-          for config in "${CONFIGS[@]}"; do
-            SEMGREP_ARGS="${SEMGREP_ARGS} --config ${config}"
+          IFS=',' read -r -a configs <<< "${INPUT_CONFIG}"
+          for config in "${configs[@]}"; do
+            semgrep_args+=(--config "${config}")
           done
         fi
 
         # Add metrics setting
-        if [[ -n "${{ inputs.metrics }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --metrics ${{ inputs.metrics }}"
+        if [[ -n "${INPUT_METRICS}" ]]; then
+          semgrep_args+=(--metrics "${INPUT_METRICS}")
         fi
 
         # Add secrets validation flag
-        if [[ "${{ inputs.no-secrets-validation }}" == "true" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --no-secrets-validation"
+        if [[ "${INPUT_NO_SECRETS_VALIDATION}" == "true" ]]; then
+          semgrep_args+=(--no-secrets-validation)
         fi
 
         # Add severity filter
-        if [[ -n "${{ inputs.severity }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --severity ${{ inputs.severity }}"
+        if [[ -n "${INPUT_SEVERITY}" ]]; then
+          semgrep_args+=(--severity "${INPUT_SEVERITY}")
         fi
 
         # Add exclude patterns
-        if [[ -n "${{ inputs.exclude }}" ]]; then
-          IFS=',' read -ra EXCLUDES <<< "${{ inputs.exclude }}"
-          for pattern in "${EXCLUDES[@]}"; do
-            SEMGREP_ARGS="${SEMGREP_ARGS} --exclude ${pattern}"
+        if [[ -n "${INPUT_EXCLUDE}" ]]; then
+          IFS=',' read -r -a excludes <<< "${INPUT_EXCLUDE}"
+          for pattern in "${excludes[@]}"; do
+            semgrep_args+=(--exclude "${pattern}")
           done
         fi
 
         # Add include patterns
-        if [[ -n "${{ inputs.include }}" ]]; then
-          IFS=',' read -ra INCLUDES <<< "${{ inputs.include }}"
-          for pattern in "${INCLUDES[@]}"; do
-            SEMGREP_ARGS="${SEMGREP_ARGS} --include ${pattern}"
+        if [[ -n "${INPUT_INCLUDE}" ]]; then
+          IFS=',' read -r -a includes <<< "${INPUT_INCLUDE}"
+          for pattern in "${includes[@]}"; do
+            semgrep_args+=(--include "${pattern}")
           done
         fi
 
         # Add max-target-bytes
-        if [[ -n "${{ inputs.max-target-bytes }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --max-target-bytes ${{ inputs.max-target-bytes }}"
+        if [[ -n "${INPUT_MAX_TARGET_BYTES}" ]]; then
+          semgrep_args+=(--max-target-bytes "${INPUT_MAX_TARGET_BYTES}")
         fi
 
         # Add timeout
-        if [[ -n "${{ inputs.timeout }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --timeout ${{ inputs.timeout }}"
+        if [[ -n "${INPUT_TIMEOUT}" ]]; then
+          semgrep_args+=(--timeout "${INPUT_TIMEOUT}")
         fi
 
         # Add jobs
-        if [[ -n "${{ inputs.jobs }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --jobs ${{ inputs.jobs }}"
+        if [[ -n "${INPUT_JOBS}" ]]; then
+          semgrep_args+=(--jobs "${INPUT_JOBS}")
         fi
 
         # Add output formats
-        if [[ -n "${{ inputs.gitlab-sast-output }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --gitlab-sast --gitlab-sast-output /src/${{ inputs.gitlab-sast-output }}"
+        if [[ -n "${INPUT_GITLAB_SAST_OUTPUT}" ]]; then
+          semgrep_args+=(--gitlab-sast --gitlab-sast-output "/src/${INPUT_GITLAB_SAST_OUTPUT}")
         fi
 
-        if [[ -n "${{ inputs.sarif-output }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --sarif --sarif-output /src/${{ inputs.sarif-output }}"
+        if [[ -n "${INPUT_SARIF_OUTPUT}" ]]; then
+          semgrep_args+=(--sarif --sarif-output "/src/${INPUT_SARIF_OUTPUT}")
         fi
 
-        if [[ -n "${{ inputs.json-output }}" ]]; then
-          SEMGREP_ARGS="${SEMGREP_ARGS} --json --json-output /src/${{ inputs.json-output }}"
+        if [[ -n "${INPUT_JSON_OUTPUT}" ]]; then
+          semgrep_args+=(--json --json-output "/src/${INPUT_JSON_OUTPUT}")
         fi
 
         # Add path (mounted as /src in container)
-        SEMGREP_ARGS="${SEMGREP_ARGS} /src"
-
-        echo "Running: semgrep ${SEMGREP_ARGS}"
+        semgrep_args+=(/src)
 
         # Run semgrep via Docker
         # Note: The semgrep command must be explicitly specified because the
         # semgrep Docker image has an empty ENTRYPOINT (unlike conftest which
         # has ENTRYPOINT set to [/conftest])
-        RESULT=$(
-          docker run --rm -v "${PWD}:/src" ${{ inputs.image }} semgrep ${SEMGREP_ARGS} 2>&1
-        ) || true
+        command=(docker run --rm -v "${PWD}:/src" "${INPUT_IMAGE}" semgrep "${semgrep_args[@]}")
+        printf 'Running:'
+        printf ' %q' "${command[@]}"
+        printf '\n'
 
-        EXIT_CODE=$?
+        if result="$("${command[@]}" 2>&1)"; then
+          exit_code=0
+        else
+          exit_code=$?
+        fi
 
         # Count findings (approximate)
-        FINDINGS_COUNT=$(echo "${RESULT}" | grep -c "^" || echo "0")
+        findings_count="$(printf '%s\n' "${result}" | grep -c '^' || printf '0')"
 
-        echo "result<<EOF" >> $GITHUB_OUTPUT
-        echo "${RESULT}" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
-        echo "findings-count=${FINDINGS_COUNT}" >> $GITHUB_OUTPUT
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        while grep -Fqx "${delimiter}" <<< "${result}"; do
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        done
+        {
+          printf 'result<<%s\n' "${delimiter}"
+          printf '%s\n' "${result}"
+          printf '%s\n' "${delimiter}"
+          printf 'exit-code=%s\n' "${exit_code}"
+          printf 'findings-count=%s\n' "${findings_count}"
+        } >> "${GITHUB_OUTPUT}"
 
-        echo "${RESULT}"
+        printf '%s\n' "${result}"
 
-        exit ${EXIT_CODE}
+        exit "${exit_code}"

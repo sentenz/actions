@@ -54,73 +54,98 @@ runs:
   steps:
     - name: Validate inputs
       shell: bash
+      env:
+        INPUT_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_POLICY_PATH: ${{ inputs.policy-path }}
       run: |
-        if [[ ! -e "${{ inputs.path }}" ]]; then
-          echo "::error::Path '${{ inputs.path }}' does not exist"
+        set -euo pipefail
+
+        if [[ ! -e "${INPUT_PATH}" ]]; then
+          printf '::error::Path %q does not exist\n' "${INPUT_PATH}"
           exit 1
         fi
-        if [[ ! -d "${{ inputs.policy-path }}" && -z "${{ inputs.config-file }}" ]]; then
-          echo "::warning::Policy path '${{ inputs.policy-path }}' does not exist. Using default configuration."
+        if [[ ! -d "${INPUT_POLICY_PATH}" && -z "${INPUT_CONFIG_FILE}" ]]; then
+          printf '::warning::Policy path %q does not exist. Using default configuration.\n' "${INPUT_POLICY_PATH}"
         fi
 
     - name: Conftest
       id: conftest
       shell: bash
+      env:
+        INPUT_ALL_NAMESPACES: ${{ inputs.all-namespaces }}
+        INPUT_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUT_DATA_FILES: ${{ inputs.data-files }}
+        INPUT_FAIL_ON_WARN: ${{ inputs.fail-on-warn }}
+        INPUT_IMAGE: ${{ inputs.image }}
+        INPUT_OUTPUT_FORMAT: ${{ inputs.output-format }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_POLICY_PATH: ${{ inputs.policy-path }}
       run: |
-        set +e
+        set -euo pipefail
 
         # Build conftest command arguments
-        CONFTEST_ARGS="test"
+        conftest_args=(test)
 
         # Add policy path if it exists
-        if [[ -d "${{ inputs.policy-path }}" ]]; then
-          CONFTEST_ARGS="${CONFTEST_ARGS} --policy ${{ inputs.policy-path }}"
+        if [[ -d "${INPUT_POLICY_PATH}" ]]; then
+          conftest_args+=(--policy "${INPUT_POLICY_PATH}")
         fi
 
         # Add output format
-        CONFTEST_ARGS="${CONFTEST_ARGS} --output ${{ inputs.output-format }}"
+        conftest_args+=(--output "${INPUT_OUTPUT_FORMAT}")
 
         # Add fail-on-warn flag
-        if [[ "${{ inputs.fail-on-warn }}" == "true" ]]; then
-          CONFTEST_ARGS="${CONFTEST_ARGS} --fail-on-warn"
+        if [[ "${INPUT_FAIL_ON_WARN}" == "true" ]]; then
+          conftest_args+=(--fail-on-warn)
         fi
 
         # Add all-namespaces flag
-        if [[ "${{ inputs.all-namespaces }}" == "true" ]]; then
-          CONFTEST_ARGS="${CONFTEST_ARGS} --all-namespaces"
+        if [[ "${INPUT_ALL_NAMESPACES}" == "true" ]]; then
+          conftest_args+=(--all-namespaces)
         fi
 
         # Add config file if specified
-        if [[ -n "${{ inputs.config-file }}" && -f "${{ inputs.config-file }}" ]]; then
-          CONFTEST_ARGS="${CONFTEST_ARGS} --config-file ${{ inputs.config-file }}"
+        if [[ -n "${INPUT_CONFIG_FILE}" && -f "${INPUT_CONFIG_FILE}" ]]; then
+          conftest_args+=(--config-file "${INPUT_CONFIG_FILE}")
         fi
 
         # Add data files if specified
-        if [[ -n "${{ inputs.data-files }}" ]]; then
-          for data_file in ${{ inputs.data-files }}; do
+        if [[ -n "${INPUT_DATA_FILES}" ]]; then
+          read -r -a data_files <<< "${INPUT_DATA_FILES}"
+          for data_file in "${data_files[@]}"; do
             if [[ -f "${data_file}" ]]; then
-              CONFTEST_ARGS="${CONFTEST_ARGS} --data ${data_file}"
+              conftest_args+=(--data "${data_file}")
             fi
           done
         fi
 
         # Add path to test
-        CONFTEST_ARGS="${CONFTEST_ARGS} ${{ inputs.path }}"
+        conftest_args+=("${INPUT_PATH}")
 
-        echo "Running: conftest ${CONFTEST_ARGS}"
+        command=(docker run --rm -v "${PWD}:/workspace" -w /workspace "${INPUT_IMAGE}" "${conftest_args[@]}")
+        printf 'Running:'
+        printf ' %q' "${command[@]}"
+        printf '\n'
 
         # Run conftest via Docker
-        RESULT=$(
-          docker run --rm -v "${PWD}:/workspace" -w /workspace ${{ inputs.image }} ${CONFTEST_ARGS} 2>&1
-        ) || true
+        if result="$("${command[@]}" 2>&1)"; then
+          exit_code=0
+        else
+          exit_code=$?
+        fi
 
-        EXIT_CODE=$?
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        while grep -Fqx "${delimiter}" <<< "${result}"; do
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        done
+        {
+          printf 'result<<%s\n' "${delimiter}"
+          printf '%s\n' "${result}"
+          printf '%s\n' "${delimiter}"
+          printf 'exit-code=%s\n' "${exit_code}"
+        } >> "${GITHUB_OUTPUT}"
 
-        echo "result<<EOF" >> $GITHUB_OUTPUT
-        echo "${RESULT}" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+        printf '%s\n' "${result}"
 
-        echo "${RESULT}"
-
-        exit ${EXIT_CODE}
+        exit "${exit_code}"

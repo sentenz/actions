@@ -20,9 +20,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Validate container build
-        uses: sentenz/actions/docker@latest
+        uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
         with:
           version: 0.0.0-pr-${{ github.event.pull_request.number }}
           context: .
@@ -39,10 +41,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/docker@latest
+        uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
         with:
           version: ${{ github.event.release.tag_name }}
           context: .

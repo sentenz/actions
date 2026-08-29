@@ -18,12 +18,16 @@ jobs:
   regal:
     name: Regal Action
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Regal
-        uses: sentenz/actions/regal@latest
+        uses: sentenz/actions/regal@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
         with:
           path: "./tests/policy"
           regal-version: "latest"
