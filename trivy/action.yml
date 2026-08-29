@@ -251,9 +251,9 @@ runs:
           exit_code=$?
         fi
 
-        delimiter="$(cat /proc/sys/kernel/random/uuid)"
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
         while grep -Fqx "${delimiter}" <<< "${result}" || grep -Fqx "${delimiter}" <<< "${INPUT_OUTPUT}"; do
-          delimiter="$(cat /proc/sys/kernel/random/uuid)"
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
         done
         {
           printf 'result<<%s\n' "${delimiter}"

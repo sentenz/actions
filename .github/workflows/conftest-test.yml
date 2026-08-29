@@ -34,7 +34,7 @@ jobs:
       - name: Run Conftest Test
         uses: ./conftest
         with:
-          path: "."
+          path: "conftest/action.yml"
           policy-path: "./tests/policy"
           output-format: "github"
           fail-on-warn: "false"

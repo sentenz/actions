@@ -202,9 +202,9 @@ runs:
         # Count findings (approximate)
         findings_count="$(printf '%s\n' "${result}" | grep -c '^' || printf '0')"
 
-        delimiter="$(cat /proc/sys/kernel/random/uuid)"
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
         while grep -Fqx "${delimiter}" <<< "${result}"; do
-          delimiter="$(cat /proc/sys/kernel/random/uuid)"
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
         done
         {
           printf 'result<<%s\n' "${delimiter}"
