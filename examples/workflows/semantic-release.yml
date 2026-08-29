@@ -40,6 +40,6 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.release.outputs.new-release-version }}
         run: |
-          echo "## 🎉 New Release Published!" >> "${GITHUB_STEP_SUMMARY}"
+          echo "## New Release Published!" >> "${GITHUB_STEP_SUMMARY}"
           echo >> "${GITHUB_STEP_SUMMARY}"
           echo "**Version:** ${RELEASE_VERSION}" >> "${GITHUB_STEP_SUMMARY}"
