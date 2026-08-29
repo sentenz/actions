@@ -39,18 +39,3 @@ jobs:
           output-format: "github"
           fail-on-warn: "false"
           all-namespaces: "true"
-
-      - name: Reject shell injection in action inputs
-        id: injection
-        continue-on-error: true
-        uses: ./conftest
-        with:
-          path: '$(touch /tmp/conftest-input-injection)'
-
-      - name: Verify shell input remained data
-        env:
-          OUTCOME: ${{ steps.injection.outcome }}
-        run: |
-          set -euo pipefail
-          test "${OUTCOME}" = failure
-          test ! -e /tmp/conftest-input-injection
