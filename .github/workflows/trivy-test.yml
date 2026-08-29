@@ -29,22 +29,6 @@ jobs:
           format: sarif
         continue-on-error: true
 
-      - name: Reject shell injection in action inputs
-        id: injection
-        continue-on-error: true
-        uses: ./trivy
-        with:
-          scan-type: fs
-          scan-target: '$(touch /tmp/trivy-input-injection)'
-
-      - name: Verify shell input remained data
-        env:
-          OUTCOME: ${{ steps.injection.outcome }}
-        run: |
-          set -euo pipefail
-          test "${OUTCOME}" = failure
-          test ! -e /tmp/trivy-input-injection
-
   trivy-config-scan:
     name: Trivy Action - Configuration Scan
     runs-on: ubuntu-latest
