@@ -4,7 +4,8 @@ name: Renovate Test
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
+    branches: [main]
     paths:
       - ".github/workflows/renovate-test.yml"
       - "renovate/**"

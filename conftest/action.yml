@@ -146,6 +146,12 @@ runs:
           printf 'exit-code=%s\n' "${exit_code}"
         } >> "${GITHUB_OUTPUT}"
 
+        stop_marker="gha-stop-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        while grep -Fq "::${stop_marker}::" <<< "${result}"; do
+          stop_marker="gha-stop-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        done
+        echo "::stop-commands::${stop_marker}"
         printf '%s\n' "${result}"
+        echo "::${stop_marker}::"
 
         exit "${exit_code}"
