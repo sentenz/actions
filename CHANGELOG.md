@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.6](https://github.com/sentenz/actions/compare/1.4.5...1.4.6) (2026-08-29)
+
+
+### Bug Fixes
+
+* **actions:** harden composite action execution ([#90](https://github.com/sentenz/actions/issues/90)) ([ff0bcf8](https://github.com/sentenz/actions/commit/ff0bcf82e31711168ae948941a8504ff355cc66a))
+
 ## [1.4.5](https://github.com/sentenz/actions/compare/1.4.4...1.4.5) (2026-08-23)
 
 
