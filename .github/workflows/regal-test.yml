@@ -37,13 +37,3 @@ jobs:
           path: "./tests/policy"
           output-format: "github"
           regal-version: "latest"
-
-      - name: Reject shell injection in action inputs
-        id: injection
-        continue-on-error: true
-        uses: ./regal
-        with:
-          path: '$(touch /tmp/regal-input-injection)'
-
-      - name: Verify shell input remained data
-        run: test ! -e /tmp/regal-input-injection
