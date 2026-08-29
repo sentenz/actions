@@ -15,9 +15,14 @@ jobs:
   semgrep:
     name: Semgrep Action
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run Semgrep Test
         uses: ./semgrep
@@ -27,6 +32,16 @@ jobs:
           metrics: "off"
           no-secrets-validation: "true"
         continue-on-error: true
+
+      - name: Reject shell injection in action inputs
+        continue-on-error: true
+        uses: ./semgrep
+        with:
+          path: '$(touch /tmp/semgrep-input-injection)'
+          image: "invalid image"
+
+      - name: Verify shell input remained data
+        run: test ! -e /tmp/semgrep-input-injection
 
       - name: Upload SARIF (if produced)
         if: always()

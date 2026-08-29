@@ -14,12 +14,17 @@ jobs:
   semgrep:
     name: Semgrep Action
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Semgrep
-        uses: sentenz/actions/semgrep@latest
+        uses: sentenz/actions/semgrep@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
         with:
           config: "auto"
           metrics: "auto"
@@ -27,7 +32,7 @@ jobs:
 
       - name: Upload SARIF results
         if: always()
-        uses: github/codeql-action/upload-sarif@v4.31.9
+        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
         with:
           sarif_file: semgrep-results.sarif
         continue-on-error: true

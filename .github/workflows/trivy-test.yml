@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Trivy Filesystem Scan
         uses: ./trivy
@@ -27,6 +29,22 @@ jobs:
           format: sarif
         continue-on-error: true
 
+      - name: Reject shell injection in action inputs
+        id: injection
+        continue-on-error: true
+        uses: ./trivy
+        with:
+          scan-type: fs
+          scan-target: '$(touch /tmp/trivy-input-injection)'
+
+      - name: Verify shell input remained data
+        env:
+          OUTCOME: ${{ steps.injection.outcome }}
+        run: |
+          set -euo pipefail
+          test "${OUTCOME}" = failure
+          test ! -e /tmp/trivy-input-injection
+
   trivy-config-scan:
     name: Trivy Action - Configuration Scan
     runs-on: ubuntu-latest
@@ -35,6 +53,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Trivy Config Scan
         uses: ./trivy
@@ -52,6 +72,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Generate CycloneDX SBOM
         uses: ./trivy
@@ -89,6 +111,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: License Compliance Scan
         uses: ./trivy

@@ -86,23 +86,31 @@ runs:
   steps:
     - name: Validate inputs
       shell: bash
+      env:
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_SCAN_TARGET: ${{ inputs.scan-target }}
+        INPUT_SCAN_TYPE: ${{ inputs.scan-type }}
       run: |
+        set -euo pipefail
+
         # Validate scan-type
-        VALID_SCAN_TYPES="fs image config repository rootfs sbom sbom-generate"
-        if ! echo "${VALID_SCAN_TYPES}" | grep -w "${{ inputs.scan-type }}" > /dev/null; then
-          echo "::error::Invalid scan-type '${{ inputs.scan-type }}'. Must be one of: ${VALID_SCAN_TYPES}"
-          exit 1
-        fi
+        case "${INPUT_SCAN_TYPE}" in
+          fs | image | config | repository | rootfs | sbom | sbom-generate) ;;
+          *)
+            printf '::error::Invalid scan-type %q. Must be one of: fs image config repository rootfs sbom sbom-generate\n' "${INPUT_SCAN_TYPE}"
+            exit 1
+            ;;
+        esac
 
         # Validate scan-target exists for fs/config/rootfs scans
-        if [[ "${{ inputs.scan-type }}" =~ ^(fs|config|rootfs)$ ]] && [[ ! -e "${{ inputs.scan-target }}" ]]; then
-          echo "::error::Scan target '${{ inputs.scan-target }}' does not exist"
+        if [[ "${INPUT_SCAN_TYPE}" =~ ^(fs|config|rootfs)$ ]] && [[ ! -e "${INPUT_SCAN_TARGET}" ]]; then
+          printf '::error::Scan target %q does not exist\n' "${INPUT_SCAN_TARGET}"
           exit 1
         fi
 
         # Validate SBOM format for sbom-generate
-        if [[ "${{ inputs.scan-type }}" == "sbom-generate" ]]; then
-          if [[ "${{ inputs.format }}" != "cyclonedx" && "${{ inputs.format }}" != "spdx" && "${{ inputs.format }}" != "spdx-json" ]]; then
+        if [[ "${INPUT_SCAN_TYPE}" == "sbom-generate" ]]; then
+          if [[ "${INPUT_FORMAT}" != "cyclonedx" && "${INPUT_FORMAT}" != "spdx" && "${INPUT_FORMAT}" != "spdx-json" ]]; then
             echo "::error::For sbom-generate, format must be cyclonedx, spdx, or spdx-json"
             exit 1
           fi
@@ -111,128 +119,151 @@ runs:
     - name: Trivy
       id: trivy
       shell: bash
+      env:
+        INPUT_CACHE_DIR: ${{ inputs.cache-dir }}
+        INPUT_DB_REPOSITORY: ${{ inputs.db-repository }}
+        INPUT_EXIT_CODE: ${{ inputs.exit-code }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_GITHUB_PAT: ${{ inputs.github-pat }}
+        INPUT_IMAGE: ${{ inputs.image }}
+        INPUT_OUTPUT: ${{ inputs.output }}
+        INPUT_SCAN_TARGET: ${{ inputs.scan-target }}
+        INPUT_SCAN_TYPE: ${{ inputs.scan-type }}
+        INPUT_SCANNERS: ${{ inputs.scanners }}
+        INPUT_SEVERITY: ${{ inputs.severity }}
+        INPUT_SKIP_DIRS: ${{ inputs.skip-dirs }}
+        INPUT_SKIP_FILES: ${{ inputs.skip-files }}
+        INPUT_TRIVY_CONFIG: ${{ inputs.trivy-config }}
+        INPUT_TRIVYIGNORE_FILE: ${{ inputs.trivyignore-file }}
       run: |
-        set +e
+        set -uo pipefail
 
         # Determine the actual scan command based on scan-type
-        if [[ "${{ inputs.scan-type }}" == "sbom-generate" ]]; then
+        if [[ "${INPUT_SCAN_TYPE}" == "sbom-generate" ]]; then
           # For SBOM generation, detect if target is an image or filesystem
           # Image format: [registry.host:port/]namespace/image[:tag|@digest]
-          if [[ "${{ inputs.scan-target }}" =~ .*:.* ]] && [[ ! -e "${{ inputs.scan-target }}" ]]; then
-            TRIVY_COMMAND="image"
+          if [[ "${INPUT_SCAN_TARGET}" =~ .*:.* ]] && [[ ! -e "${INPUT_SCAN_TARGET}" ]]; then
+            trivy_command="image"
           else
-            TRIVY_COMMAND="filesystem"
+            trivy_command="filesystem"
           fi
-        elif [[ "${{ inputs.scan-type }}" == "fs" ]]; then
-          TRIVY_COMMAND="filesystem"
+        elif [[ "${INPUT_SCAN_TYPE}" == "fs" ]]; then
+          trivy_command="filesystem"
         else
-          TRIVY_COMMAND="${{ inputs.scan-type }}"
+          trivy_command="${INPUT_SCAN_TYPE}"
         fi
 
         # Build trivy command arguments
-        TRIVY_ARGS="${TRIVY_COMMAND}"
+        trivy_args=("${trivy_command}")
 
         # Add config file if specified (Trivy will use this as base configuration)
         # Order of precedence: CLI flags > Environment variables > Config file > Defaults
-        if [[ -n "${{ inputs.trivy-config }}" && -f "${{ inputs.trivy-config }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --config ${{ inputs.trivy-config }}"
+        if [[ -n "${INPUT_TRIVY_CONFIG}" && -f "${INPUT_TRIVY_CONFIG}" ]]; then
+          trivy_args+=(--config "${INPUT_TRIVY_CONFIG}")
         fi
 
         # Add format
-        if [[ -n "${{ inputs.format }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --format ${{ inputs.format }}"
+        if [[ -n "${INPUT_FORMAT}" ]]; then
+          trivy_args+=(--format "${INPUT_FORMAT}")
         fi
 
         # Add output file if specified
-        if [[ -n "${{ inputs.output }}" ]]; then
-          OUTPUT_DIR=$(dirname "${{ inputs.output }}")
-          mkdir -p "${OUTPUT_DIR}"
-          TRIVY_ARGS="${TRIVY_ARGS} --output ${{ inputs.output }}"
+        if [[ -n "${INPUT_OUTPUT}" ]]; then
+          output_dir="$(dirname "${INPUT_OUTPUT}")"
+          mkdir -p "${output_dir}"
+          trivy_args+=(--output "${INPUT_OUTPUT}")
         fi
 
         # Add severity filters (only for vuln scanning, not SBOM generation)
-        if [[ "${{ inputs.scan-type }}" != "sbom-generate" && -n "${{ inputs.severity }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --severity ${{ inputs.severity }}"
+        if [[ "${INPUT_SCAN_TYPE}" != "sbom-generate" && -n "${INPUT_SEVERITY}" ]]; then
+          trivy_args+=(--severity "${INPUT_SEVERITY}")
         fi
 
         # Add scanners (only for applicable scan types)
-        if [[ -n "${{ inputs.scanners }}" && "${{ inputs.scan-type }}" != "sbom-generate" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --scanners ${{ inputs.scanners }}"
+        if [[ -n "${INPUT_SCANNERS}" && "${INPUT_SCAN_TYPE}" != "sbom-generate" ]]; then
+          trivy_args+=(--scanners "${INPUT_SCANNERS}")
         fi
 
         # Add skip directories
-        if [[ -n "${{ inputs.skip-dirs }}" ]]; then
-          IFS=',' read -ra SKIP_DIRS <<< "${{ inputs.skip-dirs }}"
-          for dir in "${SKIP_DIRS[@]}"; do
-            TRIVY_ARGS="${TRIVY_ARGS} --skip-dirs ${dir}"
+        if [[ -n "${INPUT_SKIP_DIRS}" ]]; then
+          IFS=',' read -r -a skip_dirs <<< "${INPUT_SKIP_DIRS}"
+          for dir in "${skip_dirs[@]}"; do
+            trivy_args+=(--skip-dirs "${dir}")
           done
         fi
 
         # Add skip files
-        if [[ -n "${{ inputs.skip-files }}" ]]; then
-          IFS=',' read -ra SKIP_FILES <<< "${{ inputs.skip-files }}"
-          for file in "${SKIP_FILES[@]}"; do
-            TRIVY_ARGS="${TRIVY_ARGS} --skip-files ${file}"
+        if [[ -n "${INPUT_SKIP_FILES}" ]]; then
+          IFS=',' read -r -a skip_files <<< "${INPUT_SKIP_FILES}"
+          for file in "${skip_files[@]}"; do
+            trivy_args+=(--skip-files "${file}")
           done
         fi
 
         # Add exit-code
-        if [[ -n "${{ inputs.exit-code }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --exit-code ${{ inputs.exit-code }}"
+        if [[ -n "${INPUT_EXIT_CODE}" ]]; then
+          trivy_args+=(--exit-code "${INPUT_EXIT_CODE}")
         fi
 
         # Add cache directory
-        if [[ -n "${{ inputs.cache-dir }}" ]]; then
-          CACHE_DIR="${{ inputs.cache-dir }}"
-          mkdir -p "${CACHE_DIR}"
-          TRIVY_ARGS="${TRIVY_ARGS} --cache-dir ${CACHE_DIR}"
+        if [[ -n "${INPUT_CACHE_DIR}" ]]; then
+          mkdir -p "${INPUT_CACHE_DIR}"
+          trivy_args+=(--cache-dir "${INPUT_CACHE_DIR}")
         fi
 
         # Add custom DB repository
-        if [[ -n "${{ inputs.db-repository }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --db-repository ${{ inputs.db-repository }}"
+        if [[ -n "${INPUT_DB_REPOSITORY}" ]]; then
+          trivy_args+=(--db-repository "${INPUT_DB_REPOSITORY}")
         fi
 
         # Add .trivyignore file
-        if [[ -n "${{ inputs.trivyignore-file }}" && -f "${{ inputs.trivyignore-file }}" ]]; then
-          TRIVY_ARGS="${TRIVY_ARGS} --ignorefile ${{ inputs.trivyignore-file }}"
+        if [[ -n "${INPUT_TRIVYIGNORE_FILE}" && -f "${INPUT_TRIVYIGNORE_FILE}" ]]; then
+          trivy_args+=(--ignorefile "${INPUT_TRIVYIGNORE_FILE}")
         fi
 
         # Add scan target
-        TRIVY_ARGS="${TRIVY_ARGS} ${{ inputs.scan-target }}"
-
-        echo "Running: trivy ${TRIVY_ARGS}"
+        trivy_args+=("${INPUT_SCAN_TARGET}")
 
         # Prepare Docker run command with appropriate volume mounts
-        DOCKER_ARGS="--rm -v ${PWD}:/workspace -w /workspace"
+        docker_args=(run --rm -v "${PWD}:/workspace" -w /workspace)
 
         # Mount docker socket for image scanning
-        if [[ "${{ inputs.scan-type }}" == "image" ]] || \
-           [[ "${{ inputs.scan-type }}" == "sbom-generate" && "${TRIVY_COMMAND}" == "image" ]]; then
-          DOCKER_ARGS="${DOCKER_ARGS} -v /var/run/docker.sock:/var/run/docker.sock"
+        if [[ "${INPUT_SCAN_TYPE}" == "image" ]] || \
+           [[ "${INPUT_SCAN_TYPE}" == "sbom-generate" && "${trivy_command}" == "image" ]]; then
+          docker_args+=(-v /var/run/docker.sock:/var/run/docker.sock)
         fi
 
         # Add GitHub token if provided (for private repositories)
-        if [[ -n "${{ inputs.github-pat }}" ]]; then
-          DOCKER_ARGS="${DOCKER_ARGS} -e GITHUB_TOKEN=${{ inputs.github-pat }}"
+        if [[ -n "${INPUT_GITHUB_PAT}" ]]; then
+          export GITHUB_TOKEN="${INPUT_GITHUB_PAT}"
+          docker_args+=(--env GITHUB_TOKEN)
         fi
 
         # Run trivy via Docker
-        RESULT=$(
-          docker run ${DOCKER_ARGS} ${{ inputs.image }} ${TRIVY_ARGS} 2>&1
-        ) || true
+        command=(docker "${docker_args[@]}" "${INPUT_IMAGE}" "${trivy_args[@]}")
+        printf 'Running:'
+        printf ' %q' "${command[@]}"
+        printf '\n'
 
-        EXIT_CODE=$?
+        result="$("${command[@]}" 2>&1)"
+        exit_code=$?
 
-        echo "result<<EOF" >> $GITHUB_OUTPUT
-        echo "${RESULT}" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        echo "exit-code=${EXIT_CODE}" >> $GITHUB_OUTPUT
+        delimiter="$(cat /proc/sys/kernel/random/uuid)"
+        while grep -Fqx "${delimiter}" <<< "${result}" || grep -Fqx "${delimiter}" <<< "${INPUT_OUTPUT}"; do
+          delimiter="$(cat /proc/sys/kernel/random/uuid)"
+        done
+        {
+          printf 'result<<%s\n' "${delimiter}"
+          printf '%s\n' "${result}"
+          printf '%s\n' "${delimiter}"
+          printf 'exit-code=%s\n' "${exit_code}"
+          if [[ -n "${INPUT_OUTPUT}" ]]; then
+            printf 'output-file<<%s\n' "${delimiter}"
+            printf '%s\n' "${INPUT_OUTPUT}"
+            printf '%s\n' "${delimiter}"
+          fi
+        } >> "${GITHUB_OUTPUT}"
 
-        if [[ -n "${{ inputs.output }}" ]]; then
-          echo "output-file=${{ inputs.output }}" >> $GITHUB_OUTPUT
-        fi
+        printf '%s\n' "${result}"
 
-        echo "${RESULT}"
-
-        exit ${EXIT_CODE}
+        exit "${exit_code}"
