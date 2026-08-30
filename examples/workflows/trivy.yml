@@ -106,8 +106,8 @@ jobs:
   trivy-sbom-publish:
     name: Trivy Action - Publish SBOM
     if: github.event_name == 'release'
-    runs-on: ubuntu-latest
     needs: trivy-sbom-generation
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -127,8 +127,8 @@ jobs:
 
   trivy-sbom-scan:
     name: Trivy Action - SBOM Scan
-    runs-on: ubuntu-latest
     needs: trivy-sbom-generation
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
