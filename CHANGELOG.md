@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.8](https://github.com/sentenz/actions/compare/1.4.7...1.4.8) (2026-08-30)
+
+
+### Performance Improvements
+
+* **actions:** reduce composite action CI waste ([#93](https://github.com/sentenz/actions/issues/93)) ([9a01071](https://github.com/sentenz/actions/commit/9a01071e3245f1ce8511d37fb37763df95924555))
+
 ## [1.4.7](https://github.com/sentenz/actions/compare/1.4.6...1.4.7) (2026-08-29)
 
 
