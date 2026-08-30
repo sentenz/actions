@@ -15,6 +15,10 @@ on:
       - "vscode-extension/**"
       - ".github/workflows/vscode-extension-test.yml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   vscode-extension:
     name: VS Code Extension Action
