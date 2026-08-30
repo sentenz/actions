@@ -7,17 +7,19 @@ on:
   push:
     branches: [main]
     paths:
-      - "**/*.yaml"
-      - "**/*.yml"
-      - "**/*.json"
-      - "policy/**"
+      - ".github/workflows/conftest-test.yml"
+      - "conftest/**"
+      - "tests/policy/**"
   pull_request:
     branches: [main]
     paths:
-      - "**/*.yaml"
-      - "**/*.yml"
-      - "**/*.json"
-      - "**/policy/**"
+      - ".github/workflows/conftest-test.yml"
+      - "conftest/**"
+      - "tests/policy/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   conftest:
