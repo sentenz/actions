@@ -77,6 +77,7 @@ runs:
         INPUT_PUSH: ${{ inputs.push }}
         REPOSITORY: ${{ github.repository }}
         REPOSITORY_OWNER: ${{ github.repository_owner }}
+        RUNNER_ARCH: ${{ runner.arch }}
       run: |
         set -euo pipefail
 
@@ -160,11 +161,38 @@ runs:
 
         image="ghcr.io/${owner}/${image_name}"
 
+        case "${RUNNER_ARCH}" in
+          X86) native_arch="386" ;;
+          X64) native_arch="amd64" ;;
+          ARM64) native_arch="arm64" ;;
+          ARM) native_arch="arm" ;;
+          *) native_arch="" ;;
+        esac
+
+        qemu_platforms=""
+        IFS=',' read -r -a target_platforms <<< "${platforms}"
+        for platform in "${target_platforms[@]}"; do
+          platform="$(trim "${platform}")"
+          platform_os="${platform%%/*}"
+          platform_arch="${platform#*/}"
+          platform_arch="${platform_arch%%/*}"
+
+          if [[ "${platform_os}" != "linux" ]] || [[ -n "${native_arch}" && "${platform_arch}" == "${native_arch}" ]]; then
+            continue
+          fi
+
+          case ",${qemu_platforms}," in
+            *",${platform_arch},"*) ;;
+            *) qemu_platforms="${qemu_platforms:+${qemu_platforms},}${platform_arch}" ;;
+          esac
+        done
+
         {
           echo "image=${image}"
           echo "context=${context}"
           echo "file=${dockerfile}"
           echo "platforms=${platforms}"
+          echo "qemu-platforms=${qemu_platforms}"
           echo "target=${target}"
           echo "push=${push}"
           echo "registry_username=${registry_username}"
@@ -177,7 +205,10 @@ runs:
         } >> "${GITHUB_OUTPUT}"
 
     - name: Set up QEMU
+      if: ${{ steps.metadata.outputs.qemu-platforms != '' }}
       uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      with:
+        platforms: ${{ steps.metadata.outputs.qemu-platforms }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
