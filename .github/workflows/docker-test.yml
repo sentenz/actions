@@ -8,11 +8,13 @@ on:
     branches: [main]
     paths:
       - "docker/**"
+      - "lib/**"
       - ".github/workflows/docker-test.yml"
   pull_request:
     branches: [main]
     paths:
       - "docker/**"
+      - "lib/**"
       - ".github/workflows/docker-test.yml"
 
 concurrency:

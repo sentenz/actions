@@ -1,0 +1,16 @@
+rules:
+  - id: fixture-info
+    pattern: fixture_info(...)
+    message: Informational fixture
+    severity: INFO
+    languages: [python]
+  - id: fixture-warning
+    pattern: fixture_warning(...)
+    message: Warning fixture
+    severity: WARNING
+    languages: [python]
+  - id: fixture-error
+    pattern: fixture_error(...)
+    message: Error fixture
+    severity: ERROR
+    languages: [python]

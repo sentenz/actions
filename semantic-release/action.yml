@@ -105,6 +105,7 @@ runs:
       id: validate
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
         INPUT_DRY_RUN: ${{ inputs.dry-run }}
         INPUT_CI: ${{ inputs.ci }}
@@ -113,6 +114,7 @@ runs:
         INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
         set -euo pipefail
+        source "${ACTION_PATH}/../lib/actions.sh"
 
         if [[ -z "${INPUT_GITHUB_TOKEN}" ]]; then
           echo "::error::github-token is required"
@@ -150,6 +152,7 @@ runs:
         validate_boolean "unset-gha-env" "${INPUT_UNSET_GHA_ENV}"
         validate_boolean "use-default-config" "${INPUT_USE_DEFAULT_CONFIG}"
 
+        actions_require_single_line working-directory "${INPUT_WORKING_DIRECTORY}"
         workspace="$(cd -- "${GITHUB_WORKSPACE}" && pwd -P)"
         if ! working_directory="$(cd -- "${GITHUB_WORKSPACE}/${INPUT_WORKING_DIRECTORY}" && pwd -P)"; then
           echo "::error::working-directory does not exist: ${INPUT_WORKING_DIRECTORY}"
@@ -164,7 +167,8 @@ runs:
             ;;
         esac
 
-        echo "working-directory=${working_directory}" >> "${GITHUB_OUTPUT}"
+        actions_require_single_line working-directory "${working_directory}"
+        actions_output working-directory "${working_directory}"
 
     - name: Prepare Default Configuration
       id: configuration
@@ -176,6 +180,7 @@ runs:
         WORKING_DIRECTORY: ${{ steps.validate.outputs.working-directory }}
       run: |
         set -euo pipefail
+        source "${ACTION_PATH}/../lib/actions.sh"
 
         config_found=false
 
@@ -226,11 +231,11 @@ runs:
           cp -- \
             "${ACTION_PATH}/config/.releaserc.json" \
             "${WORKING_DIRECTORY}/.releaserc.json"
-          echo "created=true" >> "${GITHUB_OUTPUT}"
-          echo "path=${WORKING_DIRECTORY}/.releaserc.json" >> "${GITHUB_OUTPUT}"
+          actions_output created true
+          actions_output path "${WORKING_DIRECTORY}/.releaserc.json"
           echo "::notice::Using the action's Conventional Commits semantic-release configuration"
         else
-          echo "created=false" >> "${GITHUB_OUTPUT}"
+          actions_output created false
         fi
 
     - name: Semantic Release

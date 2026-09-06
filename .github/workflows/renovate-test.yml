@@ -8,32 +8,27 @@ on:
     paths:
       - ".github/workflows/renovate-test.yml"
       - "renovate/**"
-  schedule:
-    - cron: "0 4 * * 0"
+      - "renovate.jsonc"
 
 concurrency:
   group: renovate-test-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   renovate:
-    name: Renovate Action
+    name: Renovate Configuration
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
+    container:
+      image: docker.io/renovate/renovate:44.65.5@sha256:4e10f76a79f1c597f427f83c788a9f5b14a6295784c4cb68307b89b0a954abce
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Run Renovate Test
-        uses: ./renovate
-        with:
-          token: ${{ secrets.RENOVATE_TOKEN }}
-          autodiscover: "false"
-          log-level: debug
-        env:
-          RENOVATE_CONFIG_VALIDATION_ERROR: "true"
+      - name: Validate repository configuration and shared preset
+        run: renovate-config-validator --no-global renovate.jsonc renovate/config/renovate.json

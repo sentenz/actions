@@ -8,11 +8,13 @@ on:
     branches: [main]
     paths:
       - "vscode-extension/**"
+      - "lib/**"
       - ".github/workflows/vscode-extension-test.yml"
   pull_request:
     branches: [main]
     paths:
       - "vscode-extension/**"
+      - "lib/**"
       - ".github/workflows/vscode-extension-test.yml"
 
 concurrency:
