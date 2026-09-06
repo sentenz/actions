@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.10](https://github.com/sentenz/actions/compare/1.4.9...1.4.10) (2026-09-06)
+
+
+### Bug Fixes
+
+* **renovate:** use upstream Renovate version ([#96](https://github.com/sentenz/actions/issues/96)) ([b271dca](https://github.com/sentenz/actions/commit/b271dca63c7f8fbc26c144f8ac1ce452473cfeed))
+
 ## [1.4.9](https://github.com/sentenz/actions/compare/1.4.8...1.4.9) (2026-09-06)
 
 
