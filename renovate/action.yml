@@ -11,10 +11,6 @@ inputs:
   token:
     description: "Platform access token for Renovate. GitHub GITHUB_TOKEN is not supported."
     required: true
-  version:
-    description: "Renovate CLI version or image tag."
-    required: false
-    default: "43"
   autodiscover:
     description: "Autodiscover repositories instead of limiting Renovate to the current repository."
     required: false
@@ -78,7 +74,6 @@ runs:
       uses: renovatebot/github-action@39b914146caeff8cd512e61c8992f1d5913af85c # v46.2.5
       with:
         token: ${{ inputs.token }}
-        renovate-version: ${{ inputs.version }}
         configurationFile: ${{ inputs.config-file }}
       env:
         LOG_LEVEL: ${{ inputs.log-level }}
