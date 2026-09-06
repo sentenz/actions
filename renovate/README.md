@@ -33,13 +33,12 @@ The [Renovate Action](./action.yml) validates authentication, selects either the
 | Input          | Description                                              | Required | Default  |
 | -------------- | -------------------------------------------------------- | -------- | -------- |
 | `token`        | Platform access token used by Renovate                   | Yes      | —        |
-| `version`      | Renovate CLI version or image tag                        | No       | `43`     |
 | `autodiscover` | Discover all repositories accessible to the token        | No       | `false`  |
 | `config-file`  | Path to a self-hosted/global Renovate configuration file | No       | ``       |
 | `platform`     | Renovate platform identifier                             | No       | `github` |
 | `log-level`    | Renovate log level                                       | No       | `info`   |
 
-The `version` input controls the Renovate CLI container version. It is independent of the `renovatebot/github-action` release used internally.
+The Renovate CLI version is delegated to `renovatebot/github-action` and follows the default provided by the pinned upstream action release.
 
 ### 2.2. Authentication
 
