@@ -32,6 +32,8 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
 - [Docker Build Push Action](https://github.com/docker/build-push-action)
   > A GitHub Action for building and publishing container images with Docker Buildx.
 
+Scalar metadata inputs and working-directory paths must be single-line values. CR/LF characters are rejected before downstream publishing or release steps.
+
 ## 2. Action
 
 The [Docker Action](./action.yml) builds an OCI container image and optionally publishes it to the calling repository owner's GHCR namespace.
@@ -89,7 +91,7 @@ jobs:
 
       - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/docker@latest
+        uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           version: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -102,7 +104,7 @@ jobs:
 
 ```yaml
 - name: Build and Publish API Image
-  uses: sentenz/actions/docker@latest
+  uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     version: ${{ github.event.release.tag_name }}
     image-name: api
@@ -122,7 +124,7 @@ steps:
     uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
   - name: Validate container build
-    uses: sentenz/actions/docker@latest
+    uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
     with:
       version: 0.0.0-pr
       push: false
@@ -132,7 +134,7 @@ steps:
 
 ```yaml
 - name: Build and Publish Multi-Platform Image
-  uses: sentenz/actions/docker@latest
+  uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     version: ${{ github.event.release.tag_name }}
     platforms: linux/amd64,linux/arm64
@@ -146,7 +148,7 @@ steps:
 
 ```yaml
 - name: Build Production Target
-  uses: sentenz/actions/docker@latest
+  uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     version: ${{ github.event.release.tag_name }}
     target: production

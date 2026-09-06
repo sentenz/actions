@@ -26,6 +26,10 @@ Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
 
 The [Conftest Action](./action.yml) runs to validate configuration files against Rego policies.
 
+Run on a Linux runner with Docker and GNU `realpath`. Local scan targets, configuration files, reports, and cache directories must resolve inside `GITHUB_WORKSPACE`. Relative paths use the current working directory; absolute workspace paths are preserved inside the container. Symlinks that resolve outside the workspace are rejected.
+
+An explicitly supplied `config-file` or `data-files` entry must be a readable file. A missing `policy-path` fails validation; when the default `policy` directory is absent and `config-file` is supplied, Conftest may load its policy location from that configuration. `data-files` accepts one line of space-separated paths; individual paths cannot contain spaces.
+
 ### 2.1. Inputs
 
 | Input            | Description                                             | Required | Default                    |
@@ -36,6 +40,8 @@ The [Conftest Action](./action.yml) runs to validate configuration files against
 | `output-format`  | Output format (stdout, json, tap, table, junit, github) | No       | `github`                   |
 | `fail-on-warn`   | Fail on warnings                                        | No       | `false`                    |
 | `all-namespaces` | Use all namespaces                                      | No       | `true`                     |
+| `config-file` | Path to a readable Conftest configuration file | No | `` |
+| `data-files` | Space-separated paths to readable data files | No | `` |
 
 ### 2.2. Outputs
 
@@ -52,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: sentenz/actions/conftest@latest
+      - uses: sentenz/actions/conftest@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           path: "./config"
           policy-path: "./tests/policy"
@@ -75,7 +81,7 @@ Referencing policies from an caller repository.
     repository: your-org/policies
     path: external-policies
 
-- uses: sentenz/actions/conftest@latest
+- uses: sentenz/actions/conftest@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     policy-path: "./external-policies"
 ```

@@ -29,6 +29,10 @@ Static analysis security scanning using Semgrep.
 
 The [Semgrep Action](./action.yml) runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
 
+Run on a Linux runner with Docker and GNU `realpath`. Local scan targets, configuration files, reports, and cache directories must resolve inside `GITHUB_WORKSPACE`. Relative paths use the current working directory; absolute workspace paths are preserved inside the container. Symlinks that resolve outside the workspace are rejected.
+
+`jq` is also required to read the JSON report. `severity` is a minimum: `WARNING` includes `WARNING` and `ERROR`, while an empty value or `INFO` includes all severities. `findings-count` is the length of the JSON `results` array, including `0` for a clean scan. It is empty when the scan fails without a valid report; a missing or invalid report cannot produce a successful action result. Scanner exit codes are preserved.
+
 ### 2.1. Inputs
 
 | Input      | Description                                         | Required | Default           |
@@ -36,9 +40,12 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 | `path`     | Path to scan                                        | No       | `.`               |
 | `image`    | Semgrep Docker image with version tag and digest    | No       | `semgrep/semgrep` |
 | `config`   | Semgrep configuration (auto, p/default, path, etc.) | No       | `auto`            |
-| `severity` | Minimum severity to report (INFO, WARNING, ERROR)   | No       | `WARNING`         |
+| `severity` | Minimum severity to report (INFO, WARNING, ERROR)   | No       | ``                |
 | `exclude`  | Patterns to exclude (comma-separated)               | No       | ``                |
 | `include`  | Patterns to include (comma-separated)               | No       | ``                |
+| `sarif-output` | Workspace path for a SARIF report | No | `` |
+| `json-output` | Workspace path for a JSON report | No | `` |
+| `gitlab-sast-output` | Workspace path for a GitLab SAST report | No | `` |
 
 ### 2.2. Outputs
 
@@ -56,11 +63,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: sentenz/actions/semgrep@latest
+      - uses: sentenz/actions/semgrep@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           path: "./src"
           config: "p/default"
           severity: "WARNING"
+          sarif-output: "reports/semgrep.sarif"
 ```
 
 ## 4. Configuration

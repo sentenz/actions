@@ -31,6 +31,8 @@ Package a Visual Studio Code extension as a VSIX file and optionally publish the
 - [Extension Manifest](https://code.visualstudio.com/api/references/extension-manifest)
   > Reference for the extension `package.json` fields used by Visual Studio Code and Visual Studio Marketplace.
 
+Scalar metadata inputs and working-directory paths must be single-line values. CR/LF characters are rejected before downstream publishing or release steps.
+
 ## 2. Action
 
 The [VS Code Extension Action](./action.yml) validates an extension manifest, optionally resolves a release version,
@@ -88,7 +90,7 @@ jobs:
       - run: npm run build
 
       - name: VS Code Extension
-        uses: sentenz/actions/vscode-extension@latest
+        uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           marketplace-token: ${{ secrets.VSCE_PAT }}
 ```
@@ -101,7 +103,7 @@ provided either as `1.0.0` or as a Git-tag-style value such as `v1.0.0`.
 ```yaml
 - name: VS Code Extension
   id: extension
-  uses: sentenz/actions/vscode-extension@latest
+  uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     marketplace-token: ${{ secrets.VSCE_PAT }}
     version: "v1.5.0"
@@ -129,7 +131,7 @@ Package-only mode is suitable for pull requests and other events that must not a
 ```yaml
 - name: VS Code Extension
   id: extension
-  uses: sentenz/actions/vscode-extension@latest
+  uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     publish: "false"
     output-path: "artifacts/extension.vsix"
@@ -142,7 +144,7 @@ Package-only mode is suitable for pull requests and other events that must not a
 
 ```yaml
 - name: VS Code Extension
-  uses: sentenz/actions/vscode-extension@latest
+  uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     marketplace-token: ${{ secrets.VSCE_PAT }}
     pre-release: "true"
@@ -154,7 +156,7 @@ The extension manifest must use a version distinct from any regular release alre
 
 ```yaml
 - name: VS Code Extension
-  uses: sentenz/actions/vscode-extension@latest
+  uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     marketplace-token: ${{ secrets.VSCE_PAT }}
     target: "linux-x64"
@@ -173,7 +175,7 @@ After authenticating Azure CLI with an identity authorized for the Marketplace p
 
 ```yaml
 - name: VS Code Extension
-  uses: sentenz/actions/vscode-extension@latest
+  uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     authentication: "azure-credential"
 ```

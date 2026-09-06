@@ -57,6 +57,8 @@ The caller workflow may retain `permissions: contents: read`; those permissions 
 
 ### 3.1. Personal Access Token
 
+Use scheduled or manually dispatched maintenance on the default branch. PR checks should run `renovate-config-validator` without a maintenance token; `RENOVATE_CONFIG_VALIDATION_ERROR` does not make a Renovate run read-only. The repository separates these flows in `.github/workflows/renovate-test.yml` and `.github/workflows/renovate.yml`.
+
 With `autodiscover: "false"`, the action limits Renovate to `${{ github.repository }}`.
 
 ```yaml
@@ -87,7 +89,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Renovate
-        uses: sentenz/actions/renovate@latest
+        uses: sentenz/actions/renovate@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
@@ -116,7 +118,7 @@ steps:
       persist-credentials: false
 
   - name: Run Renovate
-    uses: sentenz/actions/renovate@latest
+    uses: sentenz/actions/renovate@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
     with:
       token: ${{ steps.renovate-token.outputs.token }}
       autodiscover: "false"
@@ -142,7 +144,7 @@ Use `config-file` only for Renovate's self-hosted/global configuration:
 
 ```yaml
 - name: Run Renovate
-  uses: sentenz/actions/renovate@latest
+  uses: sentenz/actions/renovate@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     token: ${{ secrets.RENOVATE_TOKEN }}
     config-file: renovate/config/renovate.json

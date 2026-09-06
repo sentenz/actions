@@ -41,11 +41,18 @@ Comprehensive security scanning with Trivy for vulnerability detection, SBOM gen
 
 The [Trivy Action](./action.yml) provides comprehensive security scanning capabilities including vulnerability detection, SBOM generation and scanning (SPDX and CycloneDX formats), license compliance checking, and more.
 
+Run on a Linux runner with Docker and GNU `realpath`. Local scan targets, configuration files, reports, and cache directories must resolve inside `GITHUB_WORKSPACE`. Relative paths use the current working directory; absolute workspace paths are preserved inside the container. Symlinks that resolve outside the workspace are rejected.
+
+Explicit `trivy-config` and `trivyignore-file` inputs must name readable files. For `sbom-generate`, `sbom-target: auto` selects an existing local path as a filesystem target and otherwise accepts image references, including untagged names such as `alpine` or `owner/image`. Absolute paths and paths starting with `./` or `../` are always treated as local. Use `sbom-target: filesystem` or `image` to resolve ambiguous names. Only image scans mount the Docker socket.
+
+Set `cache-dir: .cache/trivy` to reuse databases across action calls in the same job, and exclude that directory with `skip-dirs: .cache/trivy`. The default container cache is ephemeral; reuse across jobs also requires a workflow cache.
+
 ### 2.1. Inputs
 
 | Input              | Description                                                                         | Required | Default         |
 | ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------- |
 | `scan-type`        | Type of scan (fs, image, config, repository, rootfs, sbom, sbom-generate)           | No       | `fs`            |
+| `sbom-target` | SBOM target kind (auto, filesystem, image) | No | `auto` |
 | `scan-target`      | Target to scan (path, image name, repo URL)                                         | No       | `.`             |
 | `image`            | Trivy Docker image with version tag and digest                                      | No       | `aquasec/trivy` |
 | `format`           | Output format (table, json, sarif, cyclonedx, spdx, spdx-json, github, cosign-vuln) | No       | ``              |
@@ -67,7 +74,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | ------------- | ------------------------------------ |
 | `result`      | Trivy scan result                    |
 | `exit-code`   | Trivy exit code                      |
-| `output-file` | Path to the output file (if created) |
+| `output-file` | Requested output path (if specified) |
 
 ## 3. Usage
 
@@ -81,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: sentenz/actions/trivy@latest
+      - uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "fs"
           scan-target: "."
@@ -102,7 +109,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Build image
         run: docker build -t myapp:latest .
-      - uses: sentenz/actions/trivy@latest
+      - uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "image"
           scan-target: "myapp:latest"
@@ -123,9 +130,11 @@ jobs:
       steps:
         - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         - name: Generate SBOM (CycloneDX)
-          uses: sentenz/actions/trivy@latest
+          uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
           with:
             scan-type: "sbom-generate"
+            cache-dir: ".cache/trivy"
+            skip-dirs: ".cache/trivy"
             scan-target: "."
             format: "cyclonedx"
             output: "sbom.cdx.json"
@@ -155,17 +164,21 @@ jobs:
       steps:
         - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         - name: Generate SBOM (SPDX-JSON)
-          uses: sentenz/actions/trivy@latest
+          uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
           with:
             scan-type: "sbom-generate"
+            cache-dir: ".cache/trivy"
+            skip-dirs: ".cache/trivy"
             scan-target: "."
             format: "spdx-json"
             output: "sbom.spdx.json"
 
         - name: Generate SBOM (SPDX)
-          uses: sentenz/actions/trivy@latest
+          uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
           with:
             scan-type: "sbom-generate"
+            cache-dir: ".cache/trivy"
+            skip-dirs: ".cache/trivy"
             scan-target: "."
             format: "spdx"
             output: "sbom.spdx"
@@ -190,7 +203,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Scan SBOM
-        uses: sentenz/actions/trivy@latest
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "sbom"
           scan-target: "sbom.cdx.json"
@@ -208,7 +221,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: sentenz/actions/trivy@latest
+      - uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "fs"
           scan-target: "."
@@ -227,7 +240,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: sentenz/actions/trivy@latest
+      - uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "config"
           scan-target: "."
@@ -246,7 +259,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: sentenz/actions/trivy@latest
+      - uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "fs"
           scan-target: "."
@@ -264,7 +277,7 @@ jobs:
   repo-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: sentenz/actions/trivy@latest
+      - uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "repository"
           scan-target: "https://github.com/example/repo"
@@ -315,7 +328,7 @@ timeout: 5m0s
 The action will automatically detect and use `trivy.yaml` in your repository root, or you can specify a custom path:
 
 ```yaml
-- uses: sentenz/actions/trivy@latest
+- uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     scan-type: fs
     scan-target: "."
@@ -340,7 +353,7 @@ pkg:golang/example.com/package@1.0.0
 The action will automatically detect `.trivyignore` in your repository root, or specify a custom path:
 
 ```yaml
-- uses: sentenz/actions/trivy@latest
+- uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
   with:
     scan-type: fs
     scan-target: "."
@@ -368,24 +381,28 @@ jobs:
 
       # Generate SBOM in both formats
       - name: Generate CycloneDX SBOM
-        uses: sentenz/actions/trivy@latest
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "sbom-generate"
+          cache-dir: ".cache/trivy"
+          skip-dirs: ".cache/trivy"
           scan-target: "."
           format: "cyclonedx"
           output: "sbom.cdx.json"
 
       - name: Generate SPDX SBOM
-        uses: sentenz/actions/trivy@latest
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "sbom-generate"
+          cache-dir: ".cache/trivy"
+          skip-dirs: ".cache/trivy"
           scan-target: "."
           format: "spdx-json"
           output: "sbom.spdx.json"
 
       # Scan the SBOM for vulnerabilities
       - name: Scan SBOM
-        uses: sentenz/actions/trivy@latest
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "sbom"
           scan-target: "sbom.cdx.json"
@@ -395,7 +412,7 @@ jobs:
 
       # License compliance check
       - name: License Compliance
-        uses: sentenz/actions/trivy@latest
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: "sbom"
           scan-target: "sbom.cdx.json"

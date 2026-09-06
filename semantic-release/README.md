@@ -28,6 +28,8 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 - [Keeping a Changelog](https://keepachangelog.com/en/1.0.0/)
   > A guide for maintaining a changelog that is easy to read and understand.
 
+The `working-directory` input and its resolved path must be single-line values. CR/LF characters are rejected before release steps.
+
 ## 2. Action
 
 The [Semantic-Release Action](./action.yml) runs semantic-release with validated inputs, repository-level configuration support, and Conventional Commits defaults.
@@ -80,7 +82,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: sentenz/actions/semantic-release@latest
+      - uses: sentenz/actions/semantic-release@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```

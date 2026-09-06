@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       - name: Semgrep
-        uses: sentenz/actions/semgrep@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/semgrep@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           config: "auto"
           metrics: "auto"
