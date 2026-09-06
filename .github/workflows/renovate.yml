@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-name: Renovate
+name: Renovate Maintenance
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
     - cron: "0 4 * * 0"
 
 concurrency:
-  group: renovate-test-${{ github.ref }}
+  group: renovate-maintenance
   cancel-in-progress: false
 
 permissions:
@@ -16,10 +16,10 @@ permissions:
 
 jobs:
   renovate:
-    name: Renovate Action
+    # A manually selected feature branch must not run maintenance with the token.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -27,8 +27,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Renovate
-        uses: sentenz/actions/renovate@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
+        uses: ./renovate
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
-          log-level: info

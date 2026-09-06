@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
 
       - name: Validate container build
-        uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           version: 0.0.0-pr-${{ github.event.pull_request.number }}
           context: .
@@ -46,7 +46,7 @@ jobs:
 
       - name: Build and Publish Image
         id: image
-        uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/docker@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           version: ${{ github.event.release.tag_name }}
           context: .

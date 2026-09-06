@@ -60,3 +60,19 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
 ## 2. References
 
 - GitHub [Composite Actions](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) page.
+
+## Development checks
+
+Run the local metadata and regression checks with Python, Bash, Node.js, GNU
+`realpath`, and `jq` installed:
+
+```sh
+python -m pip install PyYAML==6.0.3
+python scripts/validate_actions.py
+python -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+The regression suite runs the actual composite shell blocks with inert scanner
+commands. The action-specific workflows run the pinned scanner images and check
+real Semgrep reports and positive/negative Conftest policy fixtures. Changes to
+`lib/actions.sh` must be tested with every action that sources it.

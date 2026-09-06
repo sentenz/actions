@@ -25,7 +25,7 @@ jobs:
 
       - name: VS Code Extension
         id: extension
-        uses: sentenz/actions/vscode-extension@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/vscode-extension@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           marketplace-token: ${{ secrets.VSCE_PAT }}
           version: ${{ github.event.release.tag_name }}

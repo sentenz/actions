@@ -33,6 +33,6 @@ jobs:
           persist-credentials: false
 
       - name: Conftest
-        uses: sentenz/actions/conftest@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/conftest@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           policy-path: "./tests/policy"

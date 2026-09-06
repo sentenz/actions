@@ -26,30 +26,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate action.yml files
-        run: |
-          echo "Validating action.yml files..."
-          for action_file in $(find . -name "action.yml" -type f); do
-            echo "Checking: ${action_file}"
-            if ! yq eval '.' "${action_file}" > /dev/null 2>&1; then
-              echo "::error::Invalid YAML in ${action_file}"
-              exit 1
-            fi
-            # Check required fields
-            if ! yq eval '.name' "${action_file}" > /dev/null 2>&1; then
-              echo "::error::Missing 'name' field in ${action_file}"
-              exit 1
-            fi
-            if ! yq eval '.description' "${action_file}" > /dev/null 2>&1; then
-              echo "::error::Missing 'description' field in ${action_file}"
-              exit 1
-            fi
-            if ! yq eval '.runs' "${action_file}" > /dev/null 2>&1; then
-              echo "::error::Missing 'runs' field in ${action_file}"
-              exit 1
-            fi
-          done
-          echo "All action.yml files are valid!"
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+
+      - name: Install validation dependency
+        run: python -m pip install PyYAML==6.0.3
+
+      - name: Validate composite metadata and Bash syntax
+        run: python scripts/validate_actions.py
+
+      - name: Run composite action regression tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
 
   lint:
     name: Lint YAML

@@ -66,6 +66,7 @@ runs:
       id: metadata
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
         INPUT_REGISTRY_USERNAME: ${{ inputs.registry-username }}
         INPUT_VERSION: ${{ inputs.version }}
@@ -80,6 +81,7 @@ runs:
         RUNNER_ARCH: ${{ runner.arch }}
       run: |
         set -euo pipefail
+        source "${ACTION_PATH}/../lib/actions.sh"
 
         trim() {
           local value="$1"
@@ -87,6 +89,15 @@ runs:
           value="${value%"${value##*[![:space:]]}"}"
           printf '%s' "${value}"
         }
+
+        actions_require_single_line version "${INPUT_VERSION}"
+        actions_require_single_line context "${INPUT_CONTEXT}"
+        actions_require_single_line file "${INPUT_FILE}"
+        actions_require_single_line image-name "${INPUT_IMAGE_NAME}"
+        actions_require_single_line platforms "${INPUT_PLATFORMS}"
+        actions_require_single_line target "${INPUT_TARGET}"
+        actions_require_single_line push "${INPUT_PUSH}"
+        actions_require_single_line registry-username "${INPUT_REGISTRY_USERNAME}"
 
         version="$(trim "${INPUT_VERSION}")"
         context="$(trim "${INPUT_CONTEXT}")"
@@ -188,22 +199,15 @@ runs:
           esac
         done
 
-        {
-          echo "image=${image}"
-          echo "context=${context}"
-          echo "file=${dockerfile}"
-          echo "platforms=${platforms}"
-          echo "qemu-platforms=${qemu_platforms}"
-          echo "target=${target}"
-          echo "push=${push}"
-          echo "registry_username=${registry_username}"
-        } >> "${GITHUB_OUTPUT}"
-        {
-          echo "tags<<EOF"
-          echo "${image}:latest"
-          echo "${image}:${version}"
-          echo "EOF"
-        } >> "${GITHUB_OUTPUT}"
+        actions_output image "${image}"
+        actions_output context "${context}"
+        actions_output file "${dockerfile}"
+        actions_output platforms "${platforms}"
+        actions_output qemu-platforms "${qemu_platforms}"
+        actions_output target "${target}"
+        actions_output push "${push}"
+        actions_output registry_username "${registry_username}"
+        actions_output tags "${image}:latest"$'\n'"${image}:${version}"
 
     - name: Set up QEMU
       if: ${{ steps.metadata.outputs.qemu-platforms != '' }}

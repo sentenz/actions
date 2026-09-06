@@ -87,13 +87,16 @@ runs:
         set -euo pipefail
 
         if [[ ! -e "${INPUT_PATH}" ]]; then
-          printf '::warning::Path %q does not exist\n' "${INPUT_PATH}"
+          printf '::error::Path %q does not exist\n' "${INPUT_PATH}"
+          exit 1
         fi
 
     - name: Semgrep
       id: semgrep
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
+        INPUT_PATH: ${{ inputs.path }}
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_EXCLUDE: ${{ inputs.exclude }}
         INPUT_GITLAB_SAST_OUTPUT: ${{ inputs.gitlab-sast-output }}
@@ -109,111 +112,109 @@ runs:
         INPUT_TIMEOUT: ${{ inputs.timeout }}
       run: |
         set -euo pipefail
-
-        # Build semgrep command arguments
+        source "${ACTION_PATH}/../lib/actions.sh"
+        actions_workspace
+        scan_path="$(actions_workspace_path "${INPUT_PATH}" path)"
+        if [[ ! -e "${scan_path}" ]]; then
+          printf '::error::Path %q does not exist\n' "${scan_path}"
+          exit 1
+        fi
+        if ! command -v jq > /dev/null 2>&1; then
+          echo '::error::jq is required to read Semgrep findings'
+          exit 1
+        fi
         semgrep_args=(scan -q)
-
-        # Add configuration
         if [[ -n "${INPUT_CONFIG}" ]]; then
-          # Handle multiple configs separated by comma
           IFS=',' read -r -a configs <<< "${INPUT_CONFIG}"
           for config in "${configs[@]}"; do
             semgrep_args+=(--config "${config}")
           done
         fi
-
-        # Add metrics setting
         if [[ -n "${INPUT_METRICS}" ]]; then
           semgrep_args+=(--metrics "${INPUT_METRICS}")
         fi
-
-        # Add secrets validation flag
         if [[ "${INPUT_NO_SECRETS_VALIDATION}" == "true" ]]; then
           semgrep_args+=(--no-secrets-validation)
         fi
-
-        # Add severity filter
-        if [[ -n "${INPUT_SEVERITY}" ]]; then
-          semgrep_args+=(--severity "${INPUT_SEVERITY}")
-        fi
-
-        # Add exclude patterns
+        # Semgrep's repeated flags are exact matches; the action exposes a minimum.
+        case "${INPUT_SEVERITY}" in
+          "" | INFO) ;;
+          WARNING) semgrep_args+=(--severity WARNING --severity ERROR) ;;
+          ERROR) semgrep_args+=(--severity ERROR) ;;
+          *) echo '::error::severity must be INFO, WARNING, ERROR, or empty'; exit 1 ;;
+        esac
         if [[ -n "${INPUT_EXCLUDE}" ]]; then
           IFS=',' read -r -a excludes <<< "${INPUT_EXCLUDE}"
           for pattern in "${excludes[@]}"; do
             semgrep_args+=(--exclude "${pattern}")
           done
         fi
-
-        # Add include patterns
         if [[ -n "${INPUT_INCLUDE}" ]]; then
           IFS=',' read -r -a includes <<< "${INPUT_INCLUDE}"
           for pattern in "${includes[@]}"; do
             semgrep_args+=(--include "${pattern}")
           done
         fi
-
-        # Add max-target-bytes
         if [[ -n "${INPUT_MAX_TARGET_BYTES}" ]]; then
           semgrep_args+=(--max-target-bytes "${INPUT_MAX_TARGET_BYTES}")
         fi
-
-        # Add timeout
         if [[ -n "${INPUT_TIMEOUT}" ]]; then
           semgrep_args+=(--timeout "${INPUT_TIMEOUT}")
         fi
-
-        # Add jobs
         if [[ -n "${INPUT_JOBS}" ]]; then
           semgrep_args+=(--jobs "${INPUT_JOBS}")
         fi
-
-        # Add output formats
+        console_format=""
         if [[ -n "${INPUT_GITLAB_SAST_OUTPUT}" ]]; then
-          semgrep_args+=(--gitlab-sast --gitlab-sast-output "/src/${INPUT_GITLAB_SAST_OUTPUT}")
+          gitlab_output="$(actions_workspace_path "${INPUT_GITLAB_SAST_OUTPUT}" gitlab-sast-output)"
+          mkdir -p -- "$(dirname -- "${gitlab_output}")"
+          semgrep_args+=(--gitlab-sast-output "${gitlab_output}")
+          console_format=gitlab-sast
         fi
-
         if [[ -n "${INPUT_SARIF_OUTPUT}" ]]; then
-          semgrep_args+=(--sarif --sarif-output "/src/${INPUT_SARIF_OUTPUT}")
+          sarif_output="$(actions_workspace_path "${INPUT_SARIF_OUTPUT}" sarif-output)"
+          mkdir -p -- "$(dirname -- "${sarif_output}")"
+          semgrep_args+=(--sarif-output "${sarif_output}")
+          console_format=sarif
         fi
-
+        # Always capture machine-readable results; console diagnostics are not findings.
+        results_directory="$(mktemp -d "${ACTIONS_WORKSPACE}/.semgrep-results.XXXXXX")"
+        trap 'rm -rf -- "${results_directory}"' EXIT
+        json_result="${results_directory}/results.json"
         if [[ -n "${INPUT_JSON_OUTPUT}" ]]; then
-          semgrep_args+=(--json --json-output "/src/${INPUT_JSON_OUTPUT}")
+          json_output="$(actions_workspace_path "${INPUT_JSON_OUTPUT}" json-output)"
+          mkdir -p -- "$(dirname -- "${json_output}")"
+          console_format=json
         fi
-
-        # Add path (mounted as /src in container)
-        semgrep_args+=(/src)
-
-        # Run semgrep via Docker
-        # Note: The semgrep command must be explicitly specified because the
-        # semgrep Docker image has an empty ENTRYPOINT (unlike conftest which
-        # has ENTRYPOINT set to [/conftest])
-        command=(docker run --rm -v "${PWD}:/src" "${INPUT_IMAGE}" semgrep "${semgrep_args[@]}")
+        if [[ -n "${console_format}" ]]; then
+          semgrep_args+=("--${console_format}")
+        fi
+        semgrep_args+=(--json-output "${json_result}" --exclude "$(basename -- "${results_directory}")" "${scan_path}")
+        command=(docker run --rm -v "${ACTIONS_WORKSPACE}:${ACTIONS_WORKSPACE}" -w "${ACTIONS_WORKDIR}"
+          "${INPUT_IMAGE}" semgrep "${semgrep_args[@]}")
         printf 'Running:'
         printf ' %q' "${command[@]}"
         printf '\n'
-
         if result="$("${command[@]}" 2>&1)"; then
           exit_code=0
         else
           exit_code=$?
         fi
-
-        # Count findings (approximate)
-        findings_count="$(printf '%s\n' "${result}" | grep -c '^' || printf '0')"
-
-        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
-        while grep -Fqx "${delimiter}" <<< "${result}"; do
-          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
-        done
-        {
-          printf 'result<<%s\n' "${delimiter}"
-          printf '%s\n' "${result}"
-          printf '%s\n' "${delimiter}"
-          printf 'exit-code=%s\n' "${exit_code}"
-          printf 'findings-count=%s\n' "${findings_count}"
-        } >> "${GITHUB_OUTPUT}"
-
+        findings_count=""
+        if [[ -f "${json_result}" ]]; then
+          if [[ -n "${INPUT_JSON_OUTPUT}" ]]; then
+            cp -- "${json_result}" "${json_output}"
+          fi
+          if ! findings_count="$(jq -er 'if (.results | type) == "array" then .results | length else error("missing results array") end' "${json_result}")"; then
+            echo '::error::Semgrep produced an invalid JSON report'
+            if [[ "${exit_code}" == 0 ]]; then exit_code=1; fi
+          fi
+        elif [[ "${exit_code}" == 0 ]]; then
+          echo '::error::Semgrep did not produce a JSON report'
+          exit_code=1
+        fi
+        actions_output result "${result}"
+        actions_output exit-code "${exit_code}"
+        actions_output findings-count "${findings_count}"
         printf '%s\n' "${result}"
-
         exit "${exit_code}"

@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
 
       - name: Trivy Filesystem Scan
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: fs
           scan-target: "."
@@ -53,7 +53,7 @@ jobs:
           persist-credentials: false
 
       - name: Trivy Config Scan
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: config
           scan-target: "."
@@ -80,7 +80,7 @@ jobs:
           persist-credentials: false
 
       - name: Generate CycloneDX SBOM
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: sbom-generate
           scan-target: "."
@@ -88,7 +88,7 @@ jobs:
           output: sbom.cdx.json
 
       - name: Generate SPDX SBOM
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: sbom-generate
           scan-target: "."
@@ -143,7 +143,7 @@ jobs:
           name: sbom-files
 
       - name: Scan SBOM for vulnerabilities
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: sbom
           scan-target: sbom.cdx.json
@@ -163,7 +163,7 @@ jobs:
           persist-credentials: false
 
       - name: License Compliance Scan
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/trivy@eeb59ec6f18d51aee1f04136bfedceaa02d346f9
         with:
           scan-type: fs
           scan-target: "."

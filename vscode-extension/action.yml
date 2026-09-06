@@ -74,6 +74,7 @@ runs:
       id: validate
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         INPUT_AUTHENTICATION: ${{ inputs.authentication }}
         INPUT_MARKETPLACE_TOKEN: ${{ inputs.marketplace-token }}
         INPUT_NO_DEPENDENCIES: ${{ inputs.no-dependencies }}
@@ -87,6 +88,7 @@ runs:
         INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
         set -euo pipefail
+        source "${ACTION_PATH}/../lib/actions.sh"
 
         trim() {
           local value="$1"
@@ -107,6 +109,17 @@ runs:
               ;;
           esac
         }
+
+        actions_require_single_line authentication "${INPUT_AUTHENTICATION}"
+        actions_require_single_line no-dependencies "${INPUT_NO_DEPENDENCIES}"
+        actions_require_single_line output-path "${INPUT_OUTPUT_PATH}"
+        actions_require_single_line pre-release "${INPUT_PRE_RELEASE}"
+        actions_require_single_line publish "${INPUT_PUBLISH}"
+        actions_require_single_line skip-duplicate "${INPUT_SKIP_DUPLICATE}"
+        actions_require_single_line target "${INPUT_TARGET}"
+        actions_require_single_line version "${INPUT_VERSION}"
+        actions_require_single_line vsce-version "${INPUT_VSCE_VERSION}"
+        actions_require_single_line working-directory "${INPUT_WORKING_DIRECTORY}"
 
         workspace="$(cd -- "${GITHUB_WORKSPACE}" && pwd -P)"
         runner_temp="$(cd -- "${RUNNER_TEMP}" && pwd -P)"
@@ -197,7 +210,7 @@ runs:
           const fs = require("node:fs");
           const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
           for (const field of ["publisher", "name", "version"]) {
-            if (typeof manifest[field] !== "string" || manifest[field].trim() === "") {
+            if (typeof manifest[field] !== "string" || manifest[field].trim() === "" || /[\r\n]/.test(manifest[field])) {
               console.error(`package.json field ${field} must be a non-empty string`);
               process.exit(1);
             }
@@ -246,9 +259,7 @@ runs:
             candidate="${working_directory}/${output_path}"
           fi
 
-          mkdir -p -- "$(dirname -- "${candidate}")"
-          output_directory="$(cd -- "$(dirname -- "${candidate}")" && pwd -P)"
-          vsix_path="${output_directory}/$(basename -- "${candidate}")"
+          vsix_path="$(realpath -m -- "${candidate}")"
 
           case "${vsix_path}" in
             "${workspace}/"* | "${runner_temp}/"*) ;;
@@ -257,33 +268,36 @@ runs:
               exit 1
               ;;
           esac
+          mkdir -p -- "$(dirname -- "${vsix_path}")"
         fi
+
+        actions_require_single_line working-directory "${working_directory}"
+        actions_require_single_line output-path "${vsix_path}"
 
         if [[ "${vsix_path}" != *.vsix ]]; then
           echo "::error::output-path must end with .vsix"
           exit 1
         fi
 
-        {
-          echo "authentication=${authentication}"
-          echo "extension-id=${extension_id}"
-          echo "manifest-version=${manifest_version}"
-          echo "no-dependencies=${no_dependencies}"
-          echo "pre-release=${pre_release}"
-          echo "publish=${publish}"
-          echo "skip-duplicate=${skip_duplicate}"
-          echo "target=${target}"
-          echo "version=${release_version}"
-          echo "version-request=${version}"
-          echo "vsce-version=${vsce_version}"
-          echo "vsix-path=${vsix_path}"
-          echo "working-directory=${working_directory}"
-        } >> "${GITHUB_OUTPUT}"
+        actions_output authentication "${authentication}"
+        actions_output extension-id "${extension_id}"
+        actions_output manifest-version "${manifest_version}"
+        actions_output no-dependencies "${no_dependencies}"
+        actions_output pre-release "${pre_release}"
+        actions_output publish "${publish}"
+        actions_output skip-duplicate "${skip_duplicate}"
+        actions_output target "${target}"
+        actions_output version "${release_version}"
+        actions_output version-request "${version}"
+        actions_output vsce-version "${vsce_version}"
+        actions_output vsix-path "${vsix_path}"
+        actions_output working-directory "${working_directory}"
 
     - name: Package VS Code Extension
       id: package
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         NO_DEPENDENCIES: ${{ steps.validate.outputs.no-dependencies }}
         PRE_RELEASE: ${{ steps.validate.outputs.pre-release }}
         TARGET: ${{ steps.validate.outputs.target }}
@@ -294,6 +308,7 @@ runs:
         WORKING_DIRECTORY: ${{ steps.validate.outputs.working-directory }}
       run: |
         set -euo pipefail
+        source "${ACTION_PATH}/../lib/actions.sh"
         cd -- "${WORKING_DIRECTORY}"
 
         command=(npx --yes "@vscode/vsce@${VSCE_VERSION}" package)
@@ -318,15 +333,14 @@ runs:
 
         "${command[@]}"
 
-        {
-          echo "version=${VERSION}"
-          echo "vsix-path=${VSIX_PATH}"
-        } >> "${GITHUB_OUTPUT}"
+        actions_output version "${VERSION}"
+        actions_output vsix-path "${VSIX_PATH}"
 
     - name: Publish VS Code Extension
       id: publish
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         AUTHENTICATION: ${{ steps.validate.outputs.authentication }}
         PUBLISH: ${{ steps.validate.outputs.publish }}
         SKIP_DUPLICATE: ${{ steps.validate.outputs.skip-duplicate }}
@@ -336,9 +350,10 @@ runs:
         WORKING_DIRECTORY: ${{ steps.validate.outputs.working-directory }}
       run: |
         set -euo pipefail
+        source "${ACTION_PATH}/../lib/actions.sh"
 
         if [[ "${PUBLISH}" != "true" ]]; then
-          echo "published=false" >> "${GITHUB_OUTPUT}"
+          actions_output published false
           exit 0
         fi
 
@@ -354,4 +369,4 @@ runs:
         fi
 
         "${command[@]}"
-        echo "published=true" >> "${GITHUB_OUTPUT}"
+        actions_output published true

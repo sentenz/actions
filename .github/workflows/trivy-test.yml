@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/trivy-test.yml
       - trivy/**
+      - lib/**
       - trivy.yaml
       - .trivyignore
   pull_request:
@@ -16,6 +17,7 @@ on:
     paths:
       - .github/workflows/trivy-test.yml
       - trivy/**
+      - lib/**
       - trivy.yaml
       - .trivyignore
 
@@ -41,7 +43,7 @@ jobs:
           scan-type: fs
           scan-target: "."
           format: sarif
-        continue-on-error: true
+          exit-code: "0"
 
   trivy-config-scan:
     name: Trivy Action - Configuration Scan
@@ -60,7 +62,7 @@ jobs:
           scan-type: config
           scan-target: "."
           format: sarif
-        continue-on-error: true
+          exit-code: "0"
 
   trivy-sbom-generation:
     name: Trivy Action - SBOM Generation
@@ -77,29 +79,39 @@ jobs:
         uses: ./trivy
         with:
           scan-type: sbom-generate
+          sbom-target: filesystem
+          cache-dir: .cache/trivy
+          skip-dirs: .cache/trivy
+          exit-code: "0"
           scan-target: "."
           format: "cyclonedx"
           output: "sbom.cdx.json"
-        continue-on-error: true
 
       - name: Generate SPDX SBOM
         uses: ./trivy
         with:
           scan-type: sbom-generate
+          sbom-target: filesystem
+          cache-dir: .cache/trivy
+          skip-dirs: .cache/trivy
+          exit-code: "0"
           scan-target: "."
           format: "spdx-json"
           output: "sbom.spdx.json"
-        continue-on-error: true
+
+      - name: Validate SBOM formats
+        run: |
+          jq -e '.bomFormat == "CycloneDX"' sbom.cdx.json
+          jq -e '.spdxVersion | startswith("SPDX-")' sbom.spdx.json
 
       - name: Upload SBOM artifacts
-        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
+          if-no-files-found: error
           name: sbom-files
           path: |
             sbom.cdx.json
             sbom.spdx.json
-        continue-on-error: true
 
   trivy-license-compliance:
     name: Trivy Action - License Compliance
@@ -119,4 +131,4 @@ jobs:
           scan-target: "."
           scanners: "license"
           format: "table"
-        continue-on-error: true
+          exit-code: "0"
