@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.9](https://github.com/sentenz/actions/compare/1.4.8...1.4.9) (2026-09-06)
+
+
+### Bug Fixes
+
+* **actions:** update github composite actions ([#95](https://github.com/sentenz/actions/issues/95)) ([817cc25](https://github.com/sentenz/actions/commit/817cc258d57efadd0e046b6db5b7c04a0ad1c358))
+
 ## [1.4.8](https://github.com/sentenz/actions/compare/1.4.7...1.4.8) (2026-08-30)
 
 
