@@ -12,10 +12,6 @@ tmp/
 temp/
 *.tmp
 
-### Python regression checks ###
-__pycache__/
-*.py[cod]
-
 ### dotenv ###
 # Ignore dotenv files (unencrypted), allow encrypted files with .enc
 .env

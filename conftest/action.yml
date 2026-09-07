@@ -68,7 +68,6 @@ runs:
       id: conftest
       shell: bash
       env:
-        ACTION_PATH: ${{ github.action_path }}
         INPUT_ALL_NAMESPACES: ${{ inputs.all-namespaces }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}
         INPUT_DATA_FILES: ${{ inputs.data-files }}
@@ -79,55 +78,113 @@ runs:
         INPUT_POLICY_PATH: ${{ inputs.policy-path }}
       run: |
         set -euo pipefail
-        source "${ACTION_PATH}/../lib/actions.sh"
-        actions_workspace
 
-        scan_path="$(actions_workspace_path "${INPUT_PATH}" path)"
+        workspace="$(cd -- "${GITHUB_WORKSPACE}" && pwd -P)"
+        workdir="$(pwd -P)"
+        case "${workdir}/" in
+          "${workspace}/"*) ;;
+          *)
+            echo "::error::Conftest must run from inside GITHUB_WORKSPACE"
+            exit 1
+            ;;
+        esac
+
+        workspace_path() {
+          local value="$1"
+          local label="$2"
+          local candidate
+
+          if [[ "${value}" = /* ]]; then
+            candidate="$(realpath -m -- "${value}")"
+          else
+            candidate="$(realpath -m -- "${workdir}/${value}")"
+          fi
+
+          case "${candidate}/" in
+            "${workspace}/"*) printf '%s' "${candidate}" ;;
+            *)
+              printf '::error::%s must resolve inside GITHUB_WORKSPACE: %q\n' "${label}" "${value}" >&2
+              return 1
+              ;;
+          esac
+        }
+
+        require_file() {
+          local path="$1"
+          local label="$2"
+          if [[ ! -f "${path}" ]]; then
+            printf '::error::%s file %q does not exist or is not a file\n' "${label}" "${path}"
+            exit 1
+          fi
+        }
+
+        scan_path="$(workspace_path "${INPUT_PATH}" path)"
         if [[ ! -e "${scan_path}" ]]; then
           printf '::error::Path %q does not exist\n' "${scan_path}"
           exit 1
         fi
+
         conftest_args=(test --output "${INPUT_OUTPUT_FORMAT}")
+
         if [[ -d "${INPUT_POLICY_PATH}" ]]; then
-          policy_path="$(actions_workspace_path "${INPUT_POLICY_PATH}" policy-path)"
+          policy_path="$(workspace_path "${INPUT_POLICY_PATH}" policy-path)"
           conftest_args+=(--policy "${policy_path}")
         elif [[ "${INPUT_POLICY_PATH}" != "policy" || -z "${INPUT_CONFIG_FILE}" ]]; then
           printf '::error::Policy directory %q does not exist\n' "${INPUT_POLICY_PATH}"
           exit 1
         fi
+
         if [[ "${INPUT_FAIL_ON_WARN}" == "true" ]]; then
           conftest_args+=(--fail-on-warn)
         fi
+
         if [[ "${INPUT_ALL_NAMESPACES}" == "true" ]]; then
           conftest_args+=(--all-namespaces)
         fi
+
         if [[ -n "${INPUT_CONFIG_FILE}" ]]; then
-          config_file="$(actions_workspace_path "${INPUT_CONFIG_FILE}" config-file)"
-          actions_require_file "${config_file}" configuration
+          config_file="$(workspace_path "${INPUT_CONFIG_FILE}" config-file)"
+          require_file "${config_file}" configuration
           conftest_args+=(--config-file "${config_file}")
         fi
+
         if [[ -n "${INPUT_DATA_FILES}" ]]; then
-          actions_require_single_line data-files "${INPUT_DATA_FILES}"
+          if [[ "${INPUT_DATA_FILES}" == *$'\n'* || "${INPUT_DATA_FILES}" == *$'\r'* ]]; then
+            echo "::error::data-files must be a single line"
+            exit 1
+          fi
+
           read -r -a data_files <<< "${INPUT_DATA_FILES}"
           for data_file in "${data_files[@]}"; do
-            data_file="$(actions_workspace_path "${data_file}" data-file)"
-            actions_require_file "${data_file}" data
+            data_file="$(workspace_path "${data_file}" data-file)"
+            require_file "${data_file}" data
             conftest_args+=(--data "${data_file}")
           done
         fi
+
         conftest_args+=("${scan_path}")
-        # Preserve the host namespace for both absolute and relative configuration paths.
-        command=(docker run --rm -v "${ACTIONS_WORKSPACE}:${ACTIONS_WORKSPACE}" -w "${ACTIONS_WORKDIR}"
+        command=(docker run --rm -v "${workspace}:${workspace}" -w "${workdir}"
           "${INPUT_IMAGE}" "${conftest_args[@]}")
         printf 'Running:'
         printf ' %q' "${command[@]}"
         printf '\n'
+
         if result="$("${command[@]}" 2>&1)"; then
           exit_code=0
         else
           exit_code=$?
         fi
-        actions_output result "${result}"
-        actions_output exit-code "${exit_code}"
+
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        while grep -Fqx "${delimiter}" <<< "${result}"; do
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        done
+        {
+          printf 'result<<%s\n' "${delimiter}"
+          printf '%s\n' "${result}"
+          printf '%s\n' "${delimiter}"
+          printf 'exit-code=%s\n' "${exit_code}"
+        } >> "${GITHUB_OUTPUT}"
+
         printf '%s\n' "${result}"
         exit "${exit_code}"

@@ -9,7 +9,6 @@ on:
     paths:
       - .github/workflows/conftest-test.yml
       - conftest/**
-      - lib/**
       - tests/policy/**
       - tests/fixtures/conftest/**
   pull_request:
@@ -17,7 +16,6 @@ on:
     paths:
       - .github/workflows/conftest-test.yml
       - conftest/**
-      - lib/**
       - tests/policy/**
       - tests/fixtures/conftest/**
 

@@ -64,7 +64,6 @@ runs:
       id: regal
       shell: bash
       env:
-        ACTION_PATH: ${{ github.action_path }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}
         INPUT_DISABLE_CATEGORY: ${{ inputs.disable-category }}
         INPUT_ENABLE_CATEGORY: ${{ inputs.enable-category }}
@@ -72,35 +71,53 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
       run: |
         set -euo pipefail
-        source "${ACTION_PATH}/../lib/actions.sh"
+
         regal_args=(lint --format "${INPUT_OUTPUT_FORMAT}")
+
         if [[ -n "${INPUT_CONFIG_FILE}" ]]; then
-          actions_require_file "${INPUT_CONFIG_FILE}" configuration
+          if [[ ! -f "${INPUT_CONFIG_FILE}" ]]; then
+            printf '::error::Configuration file %q does not exist or is not a file\n' "${INPUT_CONFIG_FILE}"
+            exit 1
+          fi
           regal_args+=(--config-file "${INPUT_CONFIG_FILE}")
         fi
+
         if [[ -n "${INPUT_DISABLE_CATEGORY}" ]]; then
           IFS=',' read -r -a categories <<< "${INPUT_DISABLE_CATEGORY}"
           for category in "${categories[@]}"; do
             regal_args+=(--disable-category "${category}")
           done
         fi
+
         if [[ -n "${INPUT_ENABLE_CATEGORY}" ]]; then
           IFS=',' read -r -a categories <<< "${INPUT_ENABLE_CATEGORY}"
           for category in "${categories[@]}"; do
             regal_args+=(--enable-category "${category}")
           done
         fi
+
         regal_args+=("${INPUT_PATH}")
         command=(regal "${regal_args[@]}")
         printf 'Running:'
         printf ' %q' "${command[@]}"
         printf '\n'
+
         if result="$("${command[@]}" 2>&1)"; then
           exit_code=0
         else
           exit_code=$?
         fi
-        actions_output result "${result}"
-        actions_output exit-code "${exit_code}"
+
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        while grep -Fqx "${delimiter}" <<< "${result}"; do
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        done
+        {
+          printf 'result<<%s\n' "${delimiter}"
+          printf '%s\n' "${result}"
+          printf '%s\n' "${delimiter}"
+          printf 'exit-code=%s\n' "${exit_code}"
+        } >> "${GITHUB_OUTPUT}"
+
         printf '%s\n' "${result}"
         exit "${exit_code}"

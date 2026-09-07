@@ -97,7 +97,6 @@ runs:
       run: |
         set -euo pipefail
 
-        # Validate scan-type
         case "${INPUT_SCAN_TYPE}" in
           fs | image | config | repository | rootfs | sbom | sbom-generate) ;;
           *)
@@ -106,13 +105,11 @@ runs:
             ;;
         esac
 
-        # Validate scan-target exists for fs/config/rootfs scans
         if [[ "${INPUT_SCAN_TYPE}" =~ ^(fs|config|rootfs)$ ]] && [[ ! -e "${INPUT_SCAN_TARGET}" ]]; then
           printf '::error::Scan target %q does not exist\n' "${INPUT_SCAN_TARGET}"
           exit 1
         fi
 
-        # Validate SBOM format for sbom-generate
         if [[ "${INPUT_SCAN_TYPE}" == "sbom-generate" ]]; then
           if [[ "${INPUT_FORMAT}" != "cyclonedx" && "${INPUT_FORMAT}" != "spdx" && "${INPUT_FORMAT}" != "spdx-json" ]]; then
             echo "::error::For sbom-generate, format must be cyclonedx, spdx, or spdx-json"
@@ -124,7 +121,6 @@ runs:
       id: trivy
       shell: bash
       env:
-        ACTION_PATH: ${{ github.action_path }}
         INPUT_SBOM_TARGET: ${{ inputs.sbom-target }}
         INPUT_CACHE_DIR: ${{ inputs.cache-dir }}
         INPUT_DB_REPOSITORY: ${{ inputs.db-repository }}
@@ -143,12 +139,54 @@ runs:
         INPUT_TRIVYIGNORE_FILE: ${{ inputs.trivyignore-file }}
       run: |
         set -euo pipefail
-        source "${ACTION_PATH}/../lib/actions.sh"
-        actions_workspace
+
+        workspace="$(cd -- "${GITHUB_WORKSPACE}" && pwd -P)"
+        workdir="$(pwd -P)"
+        case "${workdir}/" in
+          "${workspace}/"*) ;;
+          *)
+            echo "::error::Trivy must run from inside GITHUB_WORKSPACE"
+            exit 1
+            ;;
+        esac
+
+        workspace_path() {
+          local value="$1"
+          local label="$2"
+          local candidate
+
+          if [[ "${value}" = /* ]]; then
+            candidate="$(realpath -m -- "${value}")"
+          else
+            candidate="$(realpath -m -- "${workdir}/${value}")"
+          fi
+
+          case "${candidate}/" in
+            "${workspace}/"*) printf '%s' "${candidate}" ;;
+            *)
+              printf '::error::%s must resolve inside GITHUB_WORKSPACE: %q\n' "${label}" "${value}" >&2
+              return 1
+              ;;
+          esac
+        }
+
+        require_file() {
+          local path="$1"
+          local label="$2"
+          if [[ ! -f "${path}" ]]; then
+            printf '::error::%s file %q does not exist or is not a file\n' "${label}" "${path}"
+            exit 1
+          fi
+        }
+
         case "${INPUT_SBOM_TARGET}" in
           auto | filesystem | image) ;;
-          *) echo '::error::sbom-target must be auto, filesystem, or image'; exit 1 ;;
+          *)
+            echo '::error::sbom-target must be auto, filesystem, or image'
+            exit 1
+            ;;
         esac
+
         scan_target="${INPUT_SCAN_TARGET}"
         if [[ "${INPUT_SCAN_TYPE}" == "sbom-generate" ]]; then
           case "${INPUT_SBOM_TARGET}" in
@@ -167,9 +205,10 @@ runs:
         else
           trivy_command="${INPUT_SCAN_TYPE}"
         fi
+
         case "${trivy_command}" in
           filesystem | config | rootfs | sbom)
-            scan_target="$(actions_workspace_path "${scan_target}" scan-target)"
+            scan_target="$(workspace_path "${scan_target}" scan-target)"
             if [[ ! -e "${scan_target}" ]]; then
               printf '::error::Scan target %q does not exist\n' "${scan_target}"
               exit 1
@@ -177,80 +216,109 @@ runs:
             ;;
           repository)
             if [[ -e "${scan_target}" ]]; then
-              scan_target="$(actions_workspace_path "${scan_target}" scan-target)"
+              scan_target="$(workspace_path "${scan_target}" scan-target)"
             fi
             ;;
         esac
+
         trivy_args=("${trivy_command}")
+
         if [[ -n "${INPUT_TRIVY_CONFIG}" ]]; then
-          config_file="$(actions_workspace_path "${INPUT_TRIVY_CONFIG}" trivy-config)"
-          actions_require_file "${config_file}" configuration
+          config_file="$(workspace_path "${INPUT_TRIVY_CONFIG}" trivy-config)"
+          require_file "${config_file}" configuration
           trivy_args+=(--config "${config_file}")
         fi
+
         if [[ -n "${INPUT_FORMAT}" ]]; then
           trivy_args+=(--format "${INPUT_FORMAT}")
         fi
+
         if [[ -n "${INPUT_OUTPUT}" ]]; then
-          output_file="$(actions_workspace_path "${INPUT_OUTPUT}" output)"
+          output_file="$(workspace_path "${INPUT_OUTPUT}" output)"
           mkdir -p -- "$(dirname -- "${output_file}")"
           trivy_args+=(--output "${output_file}")
         fi
+
         if [[ "${INPUT_SCAN_TYPE}" != "sbom-generate" && -n "${INPUT_SEVERITY}" ]]; then
           trivy_args+=(--severity "${INPUT_SEVERITY}")
         fi
+
         if [[ -n "${INPUT_SCANNERS}" && "${INPUT_SCAN_TYPE}" != "sbom-generate" ]]; then
           trivy_args+=(--scanners "${INPUT_SCANNERS}")
         fi
+
         if [[ -n "${INPUT_SKIP_DIRS}" ]]; then
           IFS=',' read -r -a skip_dirs <<< "${INPUT_SKIP_DIRS}"
           for dir in "${skip_dirs[@]}"; do
             trivy_args+=(--skip-dirs "${dir}")
           done
         fi
+
         if [[ -n "${INPUT_SKIP_FILES}" ]]; then
           IFS=',' read -r -a skip_files <<< "${INPUT_SKIP_FILES}"
           for file in "${skip_files[@]}"; do
             trivy_args+=(--skip-files "${file}")
           done
         fi
+
         if [[ -n "${INPUT_EXIT_CODE}" ]]; then
           trivy_args+=(--exit-code "${INPUT_EXIT_CODE}")
         fi
+
         if [[ -n "${INPUT_CACHE_DIR}" ]]; then
-          cache_dir="$(actions_workspace_path "${INPUT_CACHE_DIR}" cache-dir)"
+          cache_dir="$(workspace_path "${INPUT_CACHE_DIR}" cache-dir)"
           mkdir -p -- "${cache_dir}"
           trivy_args+=(--cache-dir "${cache_dir}")
         fi
+
         if [[ -n "${INPUT_DB_REPOSITORY}" ]]; then
           trivy_args+=(--db-repository "${INPUT_DB_REPOSITORY}")
         fi
+
         if [[ -n "${INPUT_TRIVYIGNORE_FILE}" ]]; then
-          ignore_file="$(actions_workspace_path "${INPUT_TRIVYIGNORE_FILE}" trivyignore-file)"
-          actions_require_file "${ignore_file}" ignore-file
+          ignore_file="$(workspace_path "${INPUT_TRIVYIGNORE_FILE}" trivyignore-file)"
+          require_file "${ignore_file}" ignore-file
           trivy_args+=(--ignorefile "${ignore_file}")
         fi
+
         trivy_args+=("${scan_target}")
-        docker_args=(run --rm -v "${ACTIONS_WORKSPACE}:${ACTIONS_WORKSPACE}" -w "${ACTIONS_WORKDIR}")
+        docker_args=(run --rm -v "${workspace}:${workspace}" -w "${workdir}")
+
         if [[ "${trivy_command}" == "image" ]]; then
           docker_args+=(-v /var/run/docker.sock:/var/run/docker.sock)
         fi
+
         if [[ -n "${INPUT_GITHUB_PAT}" ]]; then
           export GITHUB_TOKEN="${INPUT_GITHUB_PAT}"
           docker_args+=(--env GITHUB_TOKEN)
         fi
+
         command=(docker "${docker_args[@]}" "${INPUT_IMAGE}" "${trivy_args[@]}")
         printf 'Running:'
         printf ' %q' "${command[@]}"
         printf '\n'
+
         if result="$("${command[@]}" 2>&1)"; then
           exit_code=0
         else
           exit_code=$?
         fi
-        actions_output result "${result}"
-        actions_output exit-code "${exit_code}"
-        if [[ -n "${INPUT_OUTPUT}" ]]; then
-          actions_output output-file "${INPUT_OUTPUT}"
-        fi
+
+        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        while grep -Fqx "${delimiter}" <<< "${result}" || grep -Fqx "${delimiter}" <<< "${INPUT_OUTPUT}"; do
+          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+        done
+        {
+          printf 'result<<%s\n' "${delimiter}"
+          printf '%s\n' "${result}"
+          printf '%s\n' "${delimiter}"
+          printf 'exit-code=%s\n' "${exit_code}"
+          if [[ -n "${INPUT_OUTPUT}" ]]; then
+            printf 'output-file<<%s\n' "${delimiter}"
+            printf '%s\n' "${INPUT_OUTPUT}"
+            printf '%s\n' "${delimiter}"
+          fi
+        } >> "${GITHUB_OUTPUT}"
+
         printf '%s\n' "${result}"
         exit "${exit_code}"
