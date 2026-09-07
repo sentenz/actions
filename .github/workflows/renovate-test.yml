@@ -30,5 +30,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate repository configuration and shared preset
-        run: renovate-config-validator --no-global renovate.jsonc renovate/config/renovate.json
+      - name: Run Renovate Test 
+         uses: ./renovate 
+         with: 
+           token: ${{ secrets.RENOVATE_TOKEN }} 
+           autodiscover: "false" 
+           log-level: debug 
+         env: 
+           RENOVATE_CONFIG_VALIDATION_ERROR: "true"
