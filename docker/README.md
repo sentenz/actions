@@ -6,6 +6,7 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
+  - [2.3. Permissions](#23-permissions)
 - [3. Usage](#3-usage)
   - [3.1. Publish Using the Repository Name](#31-publish-using-the-repository-name)
   - [3.2. Publish Using a Custom Image Name](#32-publish-using-a-custom-image-name)
@@ -13,10 +14,9 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
   - [3.4. Build for Multiple Platforms](#34-build-for-multiple-platforms)
   - [3.5. Build a Dockerfile Target](#35-build-a-dockerfile-target)
 - [4. Configuration](#4-configuration)
-  - [4.1. Workflow Permissions](#41-workflow-permissions)
-  - [4.2. Image Naming](#42-image-naming)
-  - [4.3. Registry Authentication](#43-registry-authentication)
-  - [4.4. Validation](#44-validation)
+  - [4.1. Image Naming](#41-image-naming)
+  - [4.2. Registry Authentication](#42-registry-authentication)
+  - [4.3. Validation](#43-validation)
 
 ## 1. Details
 
@@ -62,6 +62,23 @@ All third-party actions are pinned to immutable commit SHAs.
 | `image`  | Fully qualified resolved image name, such as `ghcr.io/sentenz/example`                       |
 | `tags`   | Newline-delimited `latest` and version tags                                                  |
 | `digest` | Image manifest digest returned by Docker Buildx; may be empty for some build-only operations |
+
+### 2.3. Permissions
+
+The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Docker configuration.
+
+| Permission | Access  | Description                                                |
+| ---------- | ------- | ---------------------------------------------------------- |
+| `contents` | `read`  | Allows `GITHUB_TOKEN` to read repository contents          |
+| `packages` | `write` | Allows `GITHUB_TOKEN` to publish container images to GHCR  |
+
+```yaml
+jobs:
+  publish:
+    permissions:
+      contents: read
+      packages: write
+```
 
 ## 3. Usage
 
@@ -155,19 +172,7 @@ steps:
 
 ## 4. Configuration
 
-### 4.1. Workflow Permissions
-
-Publishing requires package write access in the calling workflow:
-
-```yaml
-permissions:
-  contents: read
-  packages: write
-```
-
-A composite action cannot grant workflow permissions. Build-only jobs generally require only `contents: read`.
-
-### 4.2. Image Naming
+### 4.1. Image Naming
 
 The action derives the registry owner from `${{ github.repository_owner }}` and normalizes the owner and package names to lowercase.
 
@@ -187,7 +192,7 @@ ghcr.io/<owner>/api:<version>
 
 The `image-name` input accepts only a package-name component. Values containing a registry prefix, owner path, tag, digest, whitespace, or unsupported characters are rejected before authentication and build execution.
 
-### 4.3. Registry Authentication
+### 4.2. Registry Authentication
 
 The package is created under the calling repository owner's GHCR namespace. Package visibility and repository access are managed in GitHub package settings, and organization policies may restrict package creation or visibility.
 
@@ -195,7 +200,7 @@ For private repositories, the supplied token must have access to the repository 
 
 A personal access token is necessary only when publishing across permission boundaries not covered by the workflow token. When supplying a PAT, set `registry-username` to the account that owns the token.
 
-### 4.4. Validation
+### 4.3. Validation
 
 The action fails before authentication or build execution when:
 

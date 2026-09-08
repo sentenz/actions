@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/workflows/renovate-test.yml"
       - "renovate/**"
+      - renovate.jsonc
   schedule:
     - cron: "0 4 * * 0"
 
@@ -15,14 +16,19 @@ concurrency:
   group: renovate-test-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   renovate:
     name: Renovate Action
+    # The maintenance token is only used with code from the default branch.
+    if: >-
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,6 +40,6 @@ jobs:
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           autodiscover: "false"
-          log-level: debug
+          log-level: info
         env:
           RENOVATE_CONFIG_VALIDATION_ERROR: "true"

@@ -6,6 +6,7 @@ Static analysis security scanning using Semgrep.
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
+  - [2.3. Permissions](#23-permissions)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -42,11 +43,26 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 
 ### 2.2. Outputs
 
-| Output           | Description         |
-| ---------------- | ------------------- |
-| `result`         | Semgrep scan result |
-| `exit-code`      | Semgrep exit code   |
-| `findings-count` | Number of findings  |
+The action does not expose composite outputs. The previous `result`, `exit-code`, and `findings-count` outputs have been removed; scanner failures propagate directly as step failures.
+
+Set `sarif-output: semgrep-results.sarif` to write the complete SARIF report to the workspace, then upload that file with `github/codeql-action/upload-sarif`. The report is not captured in action outputs or printed as SARIF to the job log. See the [Semgrep workflow example](../examples/workflows/semgrep.yml).
+
+### 2.3. Permissions
+
+The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Semgrep workflow configuration.
+
+| Permission        | Access  | Description                                                   |
+| ----------------- | ------- | ------------------------------------------------------------- |
+| `contents`        | `read`  | Allows `GITHUB_TOKEN` to read repository contents             |
+| `security-events` | `write` | Allows `GITHUB_TOKEN` to upload SARIF results to code scanning |
+
+```yaml
+jobs:
+  security-scan:
+    permissions:
+      contents: read
+      security-events: write
+```
 
 ## 3. Usage
 

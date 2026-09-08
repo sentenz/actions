@@ -72,18 +72,16 @@ runs:
       run: |
         set -euo pipefail
 
-        # Build regal command arguments
-        regal_args=(lint)
+        regal_args=(lint --format "${INPUT_OUTPUT_FORMAT}")
 
-        # Add output format
-        regal_args+=(--format "${INPUT_OUTPUT_FORMAT}")
-
-        # Add config file if specified
-        if [[ -n "${INPUT_CONFIG_FILE}" && -f "${INPUT_CONFIG_FILE}" ]]; then
+        if [[ -n "${INPUT_CONFIG_FILE}" ]]; then
+          if [[ ! -f "${INPUT_CONFIG_FILE}" ]]; then
+            printf '::error::Configuration file %q does not exist or is not a file\n' "${INPUT_CONFIG_FILE}"
+            exit 1
+          fi
           regal_args+=(--config-file "${INPUT_CONFIG_FILE}")
         fi
 
-        # Add disable categories
         if [[ -n "${INPUT_DISABLE_CATEGORY}" ]]; then
           IFS=',' read -r -a categories <<< "${INPUT_DISABLE_CATEGORY}"
           for category in "${categories[@]}"; do
@@ -91,7 +89,6 @@ runs:
           done
         fi
 
-        # Add enable categories
         if [[ -n "${INPUT_ENABLE_CATEGORY}" ]]; then
           IFS=',' read -r -a categories <<< "${INPUT_ENABLE_CATEGORY}"
           for category in "${categories[@]}"; do
@@ -99,7 +96,6 @@ runs:
           done
         fi
 
-        # Add path
         regal_args+=("${INPUT_PATH}")
 
         command=(regal "${regal_args[@]}")

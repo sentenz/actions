@@ -14,6 +14,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   validate:
     name: Validate Actions
@@ -52,7 +54,7 @@ jobs:
           echo "All action.yml files are valid!"
 
   lint:
-    name: Lint YAML
+    name: Yamllint
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,9 +69,30 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install yamllint
+      - name: Install Yamllint
         run: pip install yamllint
 
-      - name: Yamllint
+      - name: Run Yamllint
         run: yamllint -c .yamllint.yml .
         continue-on-error: true
+
+  security:
+    name: Zizmor Action
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Zizmor
+        uses: zizmorcore/zizmor-action@70fb788f84895a7701f5643d103d587e460b5c99 # v0.6.3
+        with:
+          inputs: .github/workflows/
+          persona: pedantic
+          min-severity: medium
+          advanced-security: false
+          online-audits: false

@@ -65,17 +65,6 @@ inputs:
     required: false
     default: ""
 
-outputs:
-  result:
-    description: "Semgrep scan result"
-    value: ${{ steps.semgrep.outputs.result }}
-  exit-code:
-    description: "Semgrep exit code"
-    value: ${{ steps.semgrep.outputs.exit-code }}
-  findings-count:
-    description: "Number of findings"
-    value: ${{ steps.semgrep.outputs.findings-count }}
-
 runs:
   using: "composite"
   steps:
@@ -174,7 +163,7 @@ runs:
         fi
 
         if [[ -n "${INPUT_SARIF_OUTPUT}" ]]; then
-          semgrep_args+=(--sarif --sarif-output "/src/${INPUT_SARIF_OUTPUT}")
+          semgrep_args+=(--sarif-output "/src/${INPUT_SARIF_OUTPUT}")
         fi
 
         if [[ -n "${INPUT_JSON_OUTPUT}" ]]; then
@@ -193,27 +182,5 @@ runs:
         printf ' %q' "${command[@]}"
         printf '\n'
 
-        if result="$("${command[@]}" 2>&1)"; then
-          exit_code=0
-        else
-          exit_code=$?
-        fi
-
-        # Count findings (approximate)
-        findings_count="$(printf '%s\n' "${result}" | grep -c '^' || printf '0')"
-
-        delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
-        while grep -Fqx "${delimiter}" <<< "${result}"; do
-          delimiter="gha-output-${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
-        done
-        {
-          printf 'result<<%s\n' "${delimiter}"
-          printf '%s\n' "${result}"
-          printf '%s\n' "${delimiter}"
-          printf 'exit-code=%s\n' "${exit_code}"
-          printf 'findings-count=%s\n' "${findings_count}"
-        } >> "${GITHUB_OUTPUT}"
-
-        printf '%s\n' "${result}"
-
-        exit "${exit_code}"
+        # Keep reports in files and propagate the scanner's exit status directly.
+        "${command[@]}"

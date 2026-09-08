@@ -10,6 +10,12 @@ on:
       - beta
       - alpha
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
 jobs:
   semantic-release:
     name: Semantic-Release Action
@@ -18,7 +24,6 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
-      id-token: write
     outputs:
       new-release-published: ${{ steps.release.outputs.new-release-published }}
       new-release-version: ${{ steps.release.outputs.new-release-version }}
@@ -27,7 +32,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Semantic Release
         id: release

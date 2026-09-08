@@ -48,7 +48,7 @@ inputs:
     required: false
     default: "true"
   working-directory:
-    description: "Repository-relative directory in which semantic-release runs"
+    description: "Repository-relative directory in which semantic-release runs. CR/LF characters are rejected before release steps."
     required: false
     default: "."
   tag-format:
@@ -150,6 +150,11 @@ runs:
         validate_boolean "unset-gha-env" "${INPUT_UNSET_GHA_ENV}"
         validate_boolean "use-default-config" "${INPUT_USE_DEFAULT_CONFIG}"
 
+        if [[ "${INPUT_WORKING_DIRECTORY}" == *$'\n'* || "${INPUT_WORKING_DIRECTORY}" == *$'\r'* ]]; then
+          echo "::error::working-directory must be a single line"
+          exit 1
+        fi
+
         workspace="$(cd -- "${GITHUB_WORKSPACE}" && pwd -P)"
         if ! working_directory="$(cd -- "${GITHUB_WORKSPACE}/${INPUT_WORKING_DIRECTORY}" && pwd -P)"; then
           echo "::error::working-directory does not exist: ${INPUT_WORKING_DIRECTORY}"
@@ -163,6 +168,11 @@ runs:
             exit 1
             ;;
         esac
+
+        if [[ "${working_directory}" == *$'\n'* || "${working_directory}" == *$'\r'* ]]; then
+          echo "::error::resolved working-directory must be a single line"
+          exit 1
+        fi
 
         echo "working-directory=${working_directory}" >> "${GITHUB_OUTPUT}"
 

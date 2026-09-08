@@ -78,7 +78,7 @@ outputs:
     description: "Trivy exit code"
     value: ${{ steps.trivy.outputs.exit-code }}
   output-file:
-    description: "Path to the output file (if specified)"
+    description: "Requested output path (if specified)"
     value: ${{ steps.trivy.outputs.output-file }}
 
 runs:
