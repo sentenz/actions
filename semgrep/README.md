@@ -43,11 +43,9 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 
 ### 2.2. Outputs
 
-| Output           | Description         |
-| ---------------- | ------------------- |
-| `result`         | Semgrep scan result |
-| `exit-code`      | Semgrep exit code   |
-| `findings-count` | Number of findings  |
+The action does not expose composite outputs. The previous `result`, `exit-code`, and `findings-count` outputs have been removed; scanner failures propagate directly as step failures.
+
+Set `sarif-output: semgrep-results.sarif` to write the complete SARIF report to the workspace, then upload that file with `github/codeql-action/upload-sarif`. The report is not captured in action outputs or printed as SARIF to the job log. See the [Semgrep workflow example](../examples/workflows/semgrep.yml).
 
 ### 2.3. Permissions
 
