@@ -6,6 +6,7 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
+  - [2.3. Permissions](#23-permissions)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -65,6 +66,25 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 | `last-release-version`      | Previous release version            |
 | `last-release-git-head`     | Previous release Git commit         |
 | `last-release-git-tag`      | Previous release Git tag            |
+
+### 2.3. Permissions
+
+The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active semantic-release configuration.
+
+| Permission      | Access  | Description                                       |
+| --------------- | ------- | ------------------------------------------------- |
+| `contents`      | `write` | Allows `GITHUB_TOKEN` to create releases and tags |
+| `issues`        | `write` | Allows `GITHUB_TOKEN` to update issues            |
+| `pull-requests` | `write` | Allows `GITHUB_TOKEN` to update pull requests     |
+
+```yaml
+jobs:
+  release:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+```
 
 ## 3. Usage
 

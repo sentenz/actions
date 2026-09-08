@@ -6,6 +6,7 @@ Comprehensive security scanning with Trivy for vulnerability detection, SBOM gen
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
+  - [2.3. Permissions](#23-permissions)
 - [3. Usage](#3-usage)
   - [3.1. Filesystem Vulnerability Scanning](#31-filesystem-vulnerability-scanning)
   - [3.2. Container Image Scanning](#32-container-image-scanning)
@@ -68,6 +69,23 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `result`      | Trivy scan result                    |
 | `exit-code`   | Trivy exit code                      |
 | `output-file` | Path to the output file (if created) |
+
+### 2.3. Permissions
+
+The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Trivy workflow configuration.
+
+| Permission        | Access           | Description                                                                                           |
+| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| `contents`        | `read` / `write` | Allows `GITHUB_TOKEN` to read repository contents; `write` is required to attach SBOM files to releases |
+| `security-events` | `write`          | Allows `GITHUB_TOKEN` to upload SARIF results to code scanning                                        |
+
+```yaml
+jobs:
+  security-scan:
+    permissions:
+      contents: read
+      security-events: write
+```
 
 ## 3. Usage
 

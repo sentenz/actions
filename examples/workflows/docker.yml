@@ -9,12 +9,13 @@ on:
   release:
     types: [published]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   validate:
     name: Docker Validate
+    permissions:
+      contents: read
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:

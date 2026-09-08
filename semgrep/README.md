@@ -6,6 +6,7 @@ Static analysis security scanning using Semgrep.
 - [2. Action](#2-action)
   - [2.1. Inputs](#21-inputs)
   - [2.2. Outputs](#22-outputs)
+  - [2.3. Permissions](#23-permissions)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -47,6 +48,23 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 | `result`         | Semgrep scan result |
 | `exit-code`      | Semgrep exit code   |
 | `findings-count` | Number of findings  |
+
+### 2.3. Permissions
+
+The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Semgrep workflow configuration.
+
+| Permission        | Access  | Description                                                   |
+| ----------------- | ------- | ------------------------------------------------------------- |
+| `contents`        | `read`  | Allows `GITHUB_TOKEN` to read repository contents             |
+| `security-events` | `write` | Allows `GITHUB_TOKEN` to upload SARIF results to code scanning |
+
+```yaml
+jobs:
+  security-scan:
+    permissions:
+      contents: read
+      security-events: write
+```
 
 ## 3. Usage
 

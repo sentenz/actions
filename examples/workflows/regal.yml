@@ -14,6 +14,8 @@ on:
     paths:
       - "**/*.rego"
 
+permissions: {}
+
 jobs:
   regal:
     name: Regal Action
