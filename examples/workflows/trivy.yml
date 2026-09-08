@@ -16,7 +16,7 @@ permissions: {}
 
 jobs:
   trivy-fs-scan:
-    name: Trivy Action - Filesystem Scan
+    name: Trivy Action | Filesystem Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,7 +43,7 @@ jobs:
         continue-on-error: false
 
   trivy-config-scan:
-    name: Trivy Action - Configuration Scan
+    name: Trivy Action | Configuration Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -71,7 +71,7 @@ jobs:
         continue-on-error: false
 
   trivy-sbom-generation:
-    name: Trivy Action - SBOM Generation
+    name: Trivy Action | SBOM Generation
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -106,7 +106,7 @@ jobs:
             sbom.spdx.json
 
   trivy-sbom-publish:
-    name: Trivy Action - Publish SBOM
+    name: Trivy Action | Publish SBOM
     if: github.event_name == 'release'
     needs: trivy-sbom-generation
     runs-on: ubuntu-latest
@@ -128,7 +128,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   trivy-sbom-scan:
-    name: Trivy Action - SBOM Scan
+    name: Trivy Action | SBOM Scan
     needs: trivy-sbom-generation
     runs-on: ubuntu-latest
     permissions:
@@ -154,7 +154,7 @@ jobs:
         continue-on-error: false
 
   trivy-license-compliance:
-    name: Trivy Action - License Compliance
+    name: Trivy Action | License Compliance
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -33,11 +33,11 @@ inputs:
     required: false
     default: "true"
   config-file:
-    description: "Path to conftest configuration file"
+    description: "Path to a readable Conftest configuration file"
     required: false
     default: ""
   data-files:
-    description: "Path to data files (space-separated)"
+    description: "Space-separated paths to readable data files"
     required: false
     default: ""
 

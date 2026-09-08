@@ -27,7 +27,7 @@ permissions: {}
 
 jobs:
   trivy-fs-scan:
-    name: Trivy Action - Filesystem Scan
+    name: Trivy Action | Filesystem Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,10 +43,10 @@ jobs:
           scan-type: fs
           scan-target: "."
           format: sarif
-        continue-on-error: true
+          exit-code: "0"
 
   trivy-config-scan:
-    name: Trivy Action - Configuration Scan
+    name: Trivy Action | Configuration Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,10 +62,10 @@ jobs:
           scan-type: config
           scan-target: "."
           format: sarif
-        continue-on-error: true
+          exit-code: "0"
 
   trivy-sbom-generation:
-    name: Trivy Action - SBOM Generation
+    name: Trivy Action | SBOM Generation
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,32 +79,37 @@ jobs:
         uses: ./trivy
         with:
           scan-type: sbom-generate
+          sbom-target: filesystem
+          cache-dir: .cache/trivy
+          skip-dirs: .cache/trivy
+          exit-code: "0"
           scan-target: "."
           format: "cyclonedx"
           output: "sbom.cdx.json"
-        continue-on-error: true
 
       - name: Generate SPDX SBOM
         uses: ./trivy
         with:
           scan-type: sbom-generate
+          sbom-target: filesystem
+          cache-dir: .cache/trivy
+          skip-dirs: .cache/trivy
+          exit-code: "0"
           scan-target: "."
           format: "spdx-json"
           output: "sbom.spdx.json"
-        continue-on-error: true
 
-      - name: Upload SBOM artifacts
-        if: always()
+      - name: Upload SBOM Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
+          if-no-files-found: error
           name: sbom-files
           path: |
             sbom.cdx.json
             sbom.spdx.json
-        continue-on-error: true
 
   trivy-license-compliance:
-    name: Trivy Action - License Compliance
+    name: Trivy Action | License Compliance
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -121,4 +126,4 @@ jobs:
           scan-target: "."
           scanners: "license"
           format: "table"
-        continue-on-error: true
+          exit-code: "0"

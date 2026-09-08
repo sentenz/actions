@@ -36,6 +36,8 @@ The [Conftest Action](./action.yml) runs to validate configuration files against
 | `output-format`  | Output format (stdout, json, tap, table, junit, github) | No       | `github`                   |
 | `fail-on-warn`   | Fail on warnings                                        | No       | `false`                    |
 | `all-namespaces` | Use all namespaces                                      | No       | `true`                     |
+| `config-file`    | Path to a readable Conftest configuration file          | No       | ``                         |
+| `data-files`     | Space-separated paths to readable data files            | No       | ``                         |
 
 ### 2.2. Outputs
 

@@ -68,16 +68,16 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | ------------- | ------------------------------------ |
 | `result`      | Trivy scan result                    |
 | `exit-code`   | Trivy exit code                      |
-| `output-file` | Path to the output file (if created) |
+| `output-file` | Requested output path (if specified) |
 
 ### 2.3. Permissions
 
 The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Trivy workflow configuration.
 
-| Permission        | Access           | Description                                                                                           |
-| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| Permission        | Access           | Description                                                                                             |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------- |
 | `contents`        | `read` / `write` | Allows `GITHUB_TOKEN` to read repository contents; `write` is required to attach SBOM files to releases |
-| `security-events` | `write`          | Allows `GITHUB_TOKEN` to upload SARIF results to code scanning                                        |
+| `security-events` | `write`          | Allows `GITHUB_TOKEN` to upload SARIF results to code scanning                                          |
 
 ```yaml
 jobs:
