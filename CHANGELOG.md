@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.11](https://github.com/sentenz/actions/compare/1.4.10...1.4.11) (2026-09-09)
+
+
+### Bug Fixes
+
+* **actions:** update renovatebot/github-action action to v46.2.6 ([#99](https://github.com/sentenz/actions/issues/99)) ([f620114](https://github.com/sentenz/actions/commit/f620114467ce198af0d87c287da2166d89d8dc2d))
+
 ## [1.4.10](https://github.com/sentenz/actions/compare/1.4.9...1.4.10) (2026-09-06)
 
 
