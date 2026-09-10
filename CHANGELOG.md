@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.5.0](https://github.com/sentenz/actions/compare/1.4.11...1.5.0) (2026-09-10)
+
+
+### Features
+
+* **trufflehog:** add composite secret scanning action ([#101](https://github.com/sentenz/actions/issues/101)) ([e10c798](https://github.com/sentenz/actions/commit/e10c798fbd43226be646697184938f0c654eae38))
+
 ## [1.4.11](https://github.com/sentenz/actions/compare/1.4.10...1.4.11) (2026-09-09)
 
 
