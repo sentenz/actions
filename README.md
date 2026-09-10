@@ -13,6 +13,7 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
   - [1.6. Trivy](#16-trivy)
   - [1.7. Docker](#17-docker)
   - [1.8. VS Code Extension](#18-vs-code-extension)
+  - [1.9. TruffleHog](#19-trufflehog)
 - [2. References](#2-references)
 
 ## 1. Composite Actions
@@ -56,6 +57,11 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
 
 - [VS Code Extension Action](./vscode-extension/README.md)
   > Package and publish VS Code extensions to Visual Studio Marketplace.
+
+### 1.9. TruffleHog
+
+- [TruffleHog Action](./trufflehog/README.md)
+  > Scan Git repositories for leaked credentials with automatic PR and push commit ranges.
 
 ## 2. References
 
