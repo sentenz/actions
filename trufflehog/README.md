@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: sentenz/actions/trufflehog@0cd66856de0b52048989564908d897c75f0b7e08
+      - uses: sentenz/actions/trufflehog@e59be3f004f11bc57b50715d04baa6fe139487bb
 ```
 
 An executable example is available in [examples/workflows/trufflehog.yml](../examples/workflows/trufflehog.yml).

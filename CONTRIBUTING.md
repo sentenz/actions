@@ -403,7 +403,7 @@ SAST (Static Application Security Testing) tools for identifying security vulner
     - CI/CD
 
       ```yaml
-      uses: sentenz/actions/trufflehog@0cd66856de0b52048989564908d897c75f0b7e08
+      uses: sentenz/actions/trufflehog@e59be3f004f11bc57b50715d04baa6fe139487bb
       ```
 
     - Tasks
