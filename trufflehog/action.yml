@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: Apache-2.0
+name: TruffleHog
+description: Scan Git repositories for leaked credentials using TruffleHog
+author: sentenz
+
+branding:
+  icon: shield
+  color: red
+
+inputs:
+  path:
+    description: Path to the checked-out Git repository
+    required: false
+    default: ./
+  base:
+    description: Optional scan base; leave both base and head empty for automatic event-based ranges
+    required: false
+    default: ""
+  head:
+    description: Optional scan head; leave both base and head empty for automatic event-based ranges
+    required: false
+    default: ""
+  trufflehog-version:
+    description: TruffleHog container version tag, optionally followed by @sha256:digest
+    required: false
+    default: latest
+  image:
+    description: TruffleHog container repository without a version tag, optionally using a registry mirror
+    required: false
+    default: ghcr.io/trufflesecurity/trufflehog
+  extra-args:
+    description: Additional space-separated TruffleHog CLI arguments
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: TruffleHog
+      uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
+      with:
+        path: ${{ inputs.path }}
+        base: ${{ inputs.base }}
+        head: ${{ inputs.head }}
+        version: ${{ inputs.trufflehog-version }}
+        image: ${{ inputs.image }}
+        extra_args: ${{ inputs.extra-args }}

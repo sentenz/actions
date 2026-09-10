@@ -392,7 +392,10 @@ SAST (Static Application Security Testing) tools for identifying security vulner
 
 1. Insights and Details
 
-    - [.github/workflows/trufflehog.yml](.github/workflows/trufflehog.yml)
+    - [TruffleHog Action](trufflehog/README.md)
+      > Composite action for secret scanning with automatic PR and push commit ranges.
+
+    - [TruffleHog Example](examples/workflows/trufflehog.yml)
       > Workflow definition for TruffleHog-based secret scanning in CI.
 
 2. Usage and Instructions
@@ -400,7 +403,7 @@ SAST (Static Application Security Testing) tools for identifying security vulner
     - CI/CD
 
       ```yaml
-      uses: trufflesecurity/trufflehog@latest
+      uses: sentenz/actions/trufflehog@e59be3f004f11bc57b50715d04baa6fe139487bb
       ```
 
     - Tasks

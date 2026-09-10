@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: TruffleHog Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - trufflehog/**
+      - .github/workflows/trufflehog-test.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - trufflehog/**
+      - .github/workflows/trufflehog-test.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: { }
+
+jobs:
+  trufflehog:
+    name: TruffleHog Action
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan automatic event range
+        uses: ./trufflehog
+
+  fixtures:
+    name: TruffleHog Findings and Ranges
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Create fixture repository
+        id: fixture
+        shell: bash
+        run: bash trufflehog/test/create-fixture.sh
+
+      - name: Scan clean commit range
+        uses: ./trufflehog
+        with:
+          path: ${{ steps.fixture.outputs.path }}
+          base: ${{ steps.fixture.outputs.base }}
+          head: ${{ steps.fixture.outputs.clean }}
+          trufflehog-version: 3.97.4
+          extra-args: --no-verification --include-detectors=URI
+
+      - name: Scan synthetic credential
+        id: finding
+        continue-on-error: true
+        uses: ./trufflehog
+        with:
+          path: ${{ steps.fixture.outputs.path }}
+          base: ${{ steps.fixture.outputs.clean }}
+          head: ${{ steps.fixture.outputs.finding }}
+          trufflehog-version: 3.97.4
+          extra-args: --no-verification --include-detectors=URI
+
+      - name: Verify failure propagation
+        shell: bash
+        env:
+          SCAN_OUTCOME: ${{ steps.finding.outcome }}
+        run: |
+          set -euo pipefail
+          if [[ "${SCAN_OUTCOME}" != "failure" ]]; then
+            echo "::error::The synthetic credential must fail the scan"
+            exit 1
+          fi
