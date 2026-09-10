@@ -1,40 +1,40 @@
 # SPDX-License-Identifier: Apache-2.0
-name: "TruffleHog"
-description: "Scan Git repositories for leaked credentials using TruffleHog"
-author: "sentenz"
+name: TruffleHog
+description: Scan Git repositories for leaked credentials using TruffleHog
+author: sentenz
 
 branding:
-  icon: "shield"
-  color: "red"
+  icon: shield
+  color: red
 
 inputs:
   path:
-    description: "Path to the checked-out Git repository"
+    description: Path to the checked-out Git repository
     required: false
-    default: "./"
+    default: ./
   base:
-    description: "Optional scan base; leave both base and head empty for automatic event-based ranges"
+    description: Optional scan base; leave both base and head empty for automatic event-based ranges
     required: false
     default: ""
   head:
-    description: "Optional scan head; leave both base and head empty for automatic event-based ranges"
+    description: Optional scan head; leave both base and head empty for automatic event-based ranges
     required: false
     default: ""
   trufflehog-version:
-    description: "TruffleHog container version tag, optionally followed by @sha256:digest"
+    description: TruffleHog container version tag, optionally followed by @sha256:digest
     required: false
-    default: "latest"
+    default: latest
   image:
-    description: "TruffleHog container repository without a version tag, optionally using a registry mirror"
+    description: TruffleHog container repository without a version tag, optionally using a registry mirror
     required: false
-    default: "ghcr.io/trufflesecurity/trufflehog"
+    default: ghcr.io/trufflesecurity/trufflehog
   extra-args:
-    description: "Additional space-separated TruffleHog CLI arguments"
+    description: Additional space-separated TruffleHog CLI arguments
     required: false
     default: ""
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: TruffleHog
       uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4

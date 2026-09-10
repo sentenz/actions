@@ -8,20 +8,20 @@ on:
     branches:
       - main
     paths:
-      - "trufflehog/**"
-      - ".github/workflows/trufflehog-test.yml"
+      - trufflehog/**
+      - .github/workflows/trufflehog-test.yml
   pull_request:
     branches:
       - main
     paths:
-      - "trufflehog/**"
-      - ".github/workflows/trufflehog-test.yml"
+      - trufflehog/**
+      - .github/workflows/trufflehog-test.yml
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-permissions: {}
+permissions: { }
 
 jobs:
   trufflehog:
@@ -63,7 +63,7 @@ jobs:
           path: ${{ steps.fixture.outputs.path }}
           base: ${{ steps.fixture.outputs.base }}
           head: ${{ steps.fixture.outputs.clean }}
-          trufflehog-version: "3.97.4"
+          trufflehog-version: 3.97.4
           extra-args: --no-verification --include-detectors=URI
 
       - name: Scan synthetic credential
@@ -74,7 +74,7 @@ jobs:
           path: ${{ steps.fixture.outputs.path }}
           base: ${{ steps.fixture.outputs.clean }}
           head: ${{ steps.fixture.outputs.finding }}
-          trufflehog-version: "3.97.4"
+          trufflehog-version: 3.97.4
           extra-args: --no-verification --include-detectors=URI
 
       - name: Verify failure propagation
