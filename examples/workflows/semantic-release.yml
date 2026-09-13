@@ -29,23 +29,30 @@ jobs:
       new-release-version: ${{ steps.release.outputs.new-release-version }}
     steps:
       - name: Checkout (full history)
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Semantic Release
+      - name: Run Semantic Release
         id: release
-        uses: sentenz/actions/semantic-release@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+        uses: sentenz/actions/semantic-release@48302ad4cbb2e77116d2666bbad2821e74dd5ada # 1.4.8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          semantic-version: "latest"
+          semantic-version: "25.0.3"
+          extra-plugins: |
+            @semantic-release/changelog@^6
+            @semantic-release/git@^10
+            @semantic-release/npm@^13.1.1
+            conventional-changelog-conventionalcommits@9.3.1
 
-      - name: Release Summary
-        if: steps.release.outputs.new-release-published == 'true'
-        env:
-          RELEASE_VERSION: ${{ steps.release.outputs.new-release-version }}
-        run: |
-          echo "## New Release Published!" >> "${GITHUB_STEP_SUMMARY}"
-          echo >> "${GITHUB_STEP_SUMMARY}"
-          echo "**Version:** ${RELEASE_VERSION}" >> "${GITHUB_STEP_SUMMARY}"
+  trigger:
+    name: Trigger Workflows
+    needs:
+      - semantic-release
+    if: always() && needs.semantic-release.outputs.new-release-published == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/sbom.yml
+    with:
+      version: ${{ needs.semantic-release.outputs.new-release-version }}

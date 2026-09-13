@@ -23,12 +23,12 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Trivy Filesystem Scan
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+      - name: Scan Trivy Filesystem
+        uses: sentenz/actions/trivy@9f37c086ab1c2d31687e731bfbc6184e0b882a7f # 1.4.10
         with:
           scan-type: fs
           scan-target: "."
@@ -37,7 +37,7 @@ jobs:
 
       - name: Upload results to GitHub Security
         if: always()
-        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           sarif_file: trivy-results.sarif
         continue-on-error: false
@@ -50,12 +50,10 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Trivy Config Scan
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+      - name: Scan Trivy Configuration
+        uses: sentenz/actions/trivy@9f37c086ab1c2d31687e731bfbc6184e0b882a7f # 1.4.10
         with:
           scan-type: config
           scan-target: "."
@@ -63,94 +61,11 @@ jobs:
           output: trivy-iac.sarif
           severity: HIGH,CRITICAL
 
-      - name: Upload Trivy Config Scan
+      - name: Upload Trivy Configuration Scan
         if: always()
-        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           sarif_file: trivy-iac.sarif
-        continue-on-error: false
-
-  trivy-sbom-generation:
-    name: Trivy Action | SBOM Generation
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Generate CycloneDX SBOM
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
-        with:
-          scan-type: sbom-generate
-          scan-target: "."
-          format: cyclonedx
-          output: sbom.cdx.json
-
-      - name: Generate SPDX SBOM
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
-        with:
-          scan-type: sbom-generate
-          scan-target: "."
-          format: spdx-json
-          output: sbom.spdx.json
-
-      - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: sbom-files
-          path: |
-            sbom.cdx.json
-            sbom.spdx.json
-
-  trivy-sbom-publish:
-    name: Trivy Action | Publish SBOM
-    if: github.event_name == 'release'
-    needs: trivy-sbom-generation
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download SBOM artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: sbom-files
-
-      - name: Publish SBOM to release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          files: |
-            sbom.cdx.json
-            sbom.spdx.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  trivy-sbom-scan:
-    name: Trivy Action | SBOM Scan
-    needs: trivy-sbom-generation
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Download SBOM artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: sbom-files
-
-      - name: Scan SBOM for vulnerabilities
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
-        with:
-          scan-type: sbom
-          scan-target: sbom.cdx.json
-          format: table
-          severity: HIGH,CRITICAL
         continue-on-error: false
 
   trivy-license-compliance:
@@ -160,15 +75,16 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: License Compliance Scan
-        uses: sentenz/actions/trivy@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
+      - name: Scan License Compliance
+        uses: sentenz/actions/trivy@9f37c086ab1c2d31687e731bfbc6184e0b882a7f # 1.4.10
         with:
           scan-type: fs
           scan-target: "."
           scanners: license
           format: table
+          severity: UNKNOWN,HIGH,CRITICAL
         continue-on-error: false
