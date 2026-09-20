@@ -206,6 +206,28 @@
       "automerge": true
     },
     {
+      "description": "Group non-container GitHub Actions workflow dependency updates.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchFileNames": [
+        "/^\\.github/workflows/.*\\.ya?ml$/"
+      ],
+      "matchDepTypes": [
+        "action",
+        "uses-with",
+        "github-runner"
+      ],
+      "groupName": "github actions workflow dependencies",
+      "groupSlug": "github-actions-workflow-dependencies",
+      "separateMajorMinor": true,
+      "separateMinorPatch": false,
+      "automerge": false,
+      "semanticCommits": "enabled",
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps"
+    },
+    {
       "description": "Group all dependency updates in published GitHub composite actions.",
       "matchFileNames": [
         "/(^|/)action\\.ya?ml$/"
