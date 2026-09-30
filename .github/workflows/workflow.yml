@@ -1,0 +1,474 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Workflow
+
+"on":
+  workflow_call:
+    inputs:
+      runs-on:
+        description: Runner label used for all reusable workflow jobs.
+        required: false
+        type: string
+        default: ubuntu-latest
+      run-conftest:
+        description: Run the Conftest composite action.
+        required: false
+        type: boolean
+        default: false
+      run-regal:
+        description: Run the Regal composite action.
+        required: false
+        type: boolean
+        default: false
+      run-renovate:
+        description: Run the Renovate composite action.
+        required: false
+        type: boolean
+        default: false
+      run-semantic-release:
+        description: Run the Semantic Release composite action.
+        required: false
+        type: boolean
+        default: false
+      run-semgrep:
+        description: Run the Semgrep composite action.
+        required: false
+        type: boolean
+        default: false
+      run-trivy:
+        description: Run the Trivy composite action.
+        required: false
+        type: boolean
+        default: false
+
+      conftest-path:
+        description: Path to the files or directories for Conftest to test.
+        required: false
+        type: string
+        default: .
+      conftest-policy-path:
+        description: Path to the Conftest policy directory.
+        required: false
+        type: string
+        default: policy
+      conftest-image:
+        description: Conftest Docker image with version tag and digest.
+        required: false
+        type: string
+        default: openpolicyagent/conftest:v0.65.0@sha256:afa510df6d4562ebe24fb3e457da6f6d6924124140a13b51b950cc6cb1d25525
+      conftest-output-format:
+        description: Conftest output format.
+        required: false
+        type: string
+        default: github
+      conftest-fail-on-warn:
+        description: Fail Conftest on warnings.
+        required: false
+        type: string
+        default: "false"
+      conftest-all-namespaces:
+        description: Run Conftest with all namespaces.
+        required: false
+        type: string
+        default: "true"
+      conftest-config-file:
+        description: Path to the Conftest configuration file.
+        required: false
+        type: string
+        default: ""
+      conftest-data-files:
+        description: Space-separated Conftest data files.
+        required: false
+        type: string
+        default: ""
+
+      regal-path:
+        description: Path to the Regal policy directory.
+        required: false
+        type: string
+        default: ./policy
+      regal-version:
+        description: Regal version.
+        required: false
+        type: string
+        default: latest
+      regal-output-format:
+        description: Regal output format.
+        required: false
+        type: string
+        default: github
+      regal-config-file:
+        description: Path to the Regal configuration file.
+        required: false
+        type: string
+        default: ""
+      regal-disable-category:
+        description: Comma-separated Regal categories to disable.
+        required: false
+        type: string
+        default: ""
+      regal-enable-category:
+        description: Comma-separated Regal categories to enable.
+        required: false
+        type: string
+        default: ""
+
+      renovate-version:
+        description: Renovate version.
+        required: false
+        type: string
+        default: 46.1.17
+      renovate-autodiscover:
+        description: Enable Renovate autodiscovery.
+        required: false
+        type: string
+        default: "true"
+      renovate-config-file:
+        description: Path to the Renovate configuration file.
+        required: false
+        type: string
+        default: ""
+      renovate-platform:
+        description: Renovate platform.
+        required: false
+        type: string
+        default: github
+
+      semantic-release-version:
+        description: semantic-release version.
+        required: false
+        type: string
+        default: 25.0.2
+      semantic-release-branches:
+        description: Release branches as a JSON array.
+        required: false
+        type: string
+        default: '["main"]'
+      semantic-release-dry-run:
+        description: Run semantic-release in dry-run mode.
+        required: false
+        type: string
+        default: "false"
+      semantic-release-extra-plugins:
+        description: Extra semantic-release plugins to install.
+        required: false
+        type: string
+        default: |
+          @semantic-release/changelog
+          @semantic-release/git
+          @semantic-release/exec
+          semantic-release-commitlint
+          semantic-commitlint
+      semantic-release-working-directory:
+        description: semantic-release working directory.
+        required: false
+        type: string
+        default: .
+      semantic-release-tag-format:
+        description: semantic-release tag format.
+        required: false
+        type: string
+        default: ${version}
+
+      semgrep-path:
+        description: Path to scan with Semgrep.
+        required: false
+        type: string
+        default: .
+      semgrep-image:
+        description: Semgrep Docker image with version tag and digest.
+        required: false
+        type: string
+        default: docker.io/semgrep/semgrep:1.145.2@sha256:791a85e244b61e83ef96364997fd069f33e78ce2c4b5541d7bee22f07ee117c9
+      semgrep-config:
+        description: Semgrep configuration.
+        required: false
+        type: string
+        default: auto
+      semgrep-severity:
+        description: Minimum Semgrep severity to report.
+        required: false
+        type: string
+        default: ""
+      semgrep-exclude:
+        description: Comma-separated Semgrep patterns to exclude.
+        required: false
+        type: string
+        default: ""
+      semgrep-include:
+        description: Comma-separated Semgrep patterns to include.
+        required: false
+        type: string
+        default: ""
+      semgrep-max-target-bytes:
+        description: Maximum Semgrep target file size in bytes.
+        required: false
+        type: string
+        default: ""
+      semgrep-timeout:
+        description: Semgrep timeout per file in seconds.
+        required: false
+        type: string
+        default: ""
+      semgrep-jobs:
+        description: Number of Semgrep parallel jobs.
+        required: false
+        type: string
+        default: ""
+      semgrep-metrics:
+        description: Semgrep metrics mode.
+        required: false
+        type: string
+        default: "off"
+      semgrep-no-secrets-validation:
+        description: Disable Semgrep secrets validation.
+        required: false
+        type: string
+        default: "true"
+      semgrep-gitlab-sast-output:
+        description: Path to Semgrep GitLab SAST output.
+        required: false
+        type: string
+        default: ""
+      semgrep-sarif-output:
+        description: Path to Semgrep SARIF output.
+        required: false
+        type: string
+        default: ""
+      semgrep-json-output:
+        description: Path to Semgrep JSON output.
+        required: false
+        type: string
+        default: ""
+
+      trivy-scan-type:
+        description: Type of Trivy scan to perform.
+        required: false
+        type: string
+        default: fs
+      trivy-scan-target:
+        description: Trivy scan target.
+        required: false
+        type: string
+        default: .
+      trivy-image:
+        description: Trivy Docker image with version tag and digest.
+        required: false
+        type: string
+        default: aquasec/trivy:0.68.2@sha256:05d0126976bdedcd0782a0336f77832dbea1c81b9cc5e4b3a5ea5d2ec863aca7
+      trivy-format:
+        description: Trivy output format.
+        required: false
+        type: string
+        default: ""
+      trivy-output:
+        description: Trivy output file path.
+        required: false
+        type: string
+        default: ""
+      trivy-severity:
+        description: Trivy severities to report.
+        required: false
+        type: string
+        default: ""
+      trivy-scanners:
+        description: Trivy scanners to use.
+        required: false
+        type: string
+        default: ""
+      trivy-skip-dirs:
+        description: Comma-separated Trivy directories to skip.
+        required: false
+        type: string
+        default: ""
+      trivy-skip-files:
+        description: Comma-separated Trivy files to skip.
+        required: false
+        type: string
+        default: ""
+      trivy-exit-code:
+        description: Trivy exit code when findings are present.
+        required: false
+        type: string
+        default: ""
+      trivy-cache-dir:
+        description: Trivy cache directory.
+        required: false
+        type: string
+        default: ""
+      trivy-db-repository:
+        description: Trivy custom vulnerability database repository.
+        required: false
+        type: string
+        default: ""
+      trivyignore-file:
+        description: Path to the Trivy ignore file.
+        required: false
+        type: string
+        default: ""
+      trivy-config:
+        description: Path to the Trivy configuration file.
+        required: false
+        type: string
+        default: ""
+    secrets:
+      github_token:
+        description: Fallback GitHub token for actions that need repository access.
+        required: false
+      renovate_token:
+        description: GitHub token used by Renovate.
+        required: false
+      semantic_release_token:
+        description: GitHub token used by semantic-release.
+        required: false
+      trivy_github_pat:
+        description: GitHub token used by Trivy for private repositories.
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  conftest:
+    name: Conftest
+    if: ${{ inputs.run-conftest }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v4
+
+      - name: Run Conftest
+        uses: sentenz/actions/conftest@main
+        with:
+          path: ${{ inputs.conftest-path }}
+          policy-path: ${{ inputs.conftest-policy-path }}
+          image: ${{ inputs.conftest-image }}
+          output-format: ${{ inputs.conftest-output-format }}
+          fail-on-warn: ${{ inputs.conftest-fail-on-warn }}
+          all-namespaces: ${{ inputs.conftest-all-namespaces }}
+          config-file: ${{ inputs.conftest-config-file }}
+          data-files: ${{ inputs.conftest-data-files }}
+
+  regal:
+    name: Regal
+    if: ${{ inputs.run-regal }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v4
+
+      - name: Run Regal
+        uses: sentenz/actions/regal@main
+        with:
+          path: ${{ inputs.regal-path }}
+          regal-version: ${{ inputs.regal-version }}
+          output-format: ${{ inputs.regal-output-format }}
+          config-file: ${{ inputs.regal-config-file }}
+          disable-category: ${{ inputs.regal-disable-category }}
+          enable-category: ${{ inputs.regal-enable-category }}
+
+  renovate:
+    name: Renovate
+    if: ${{ inputs.run-renovate }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v4
+
+      - name: Run Renovate
+        uses: sentenz/actions/renovate@main
+        with:
+          token: ${{ secrets.renovate_token || secrets.github_token || github.token }}
+          version: ${{ inputs.renovate-version }}
+          autodiscover: ${{ inputs.renovate-autodiscover }}
+          config-file: ${{ inputs.renovate-config-file }}
+          platform: ${{ inputs.renovate-platform }}
+
+  semantic-release:
+    name: Semantic Release
+    if: ${{ inputs.run-semantic-release }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Semantic Release
+        uses: sentenz/actions/semantic-release@main
+        with:
+          github-token: ${{ secrets.semantic_release_token || secrets.github_token || github.token }}
+          semantic-version: ${{ inputs.semantic-release-version }}
+          branches: ${{ inputs.semantic-release-branches }}
+          dry-run: ${{ inputs.semantic-release-dry-run }}
+          extra-plugins: ${{ inputs.semantic-release-extra-plugins }}
+          working-directory: ${{ inputs.semantic-release-working-directory }}
+          tag-format: ${{ inputs.semantic-release-tag-format }}
+
+  semgrep:
+    name: Semgrep
+    if: ${{ inputs.run-semgrep }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: sentenz/actions/semgrep@main
+        with:
+          path: ${{ inputs.semgrep-path }}
+          image: ${{ inputs.semgrep-image }}
+          config: ${{ inputs.semgrep-config }}
+          severity: ${{ inputs.semgrep-severity }}
+          exclude: ${{ inputs.semgrep-exclude }}
+          include: ${{ inputs.semgrep-include }}
+          max-target-bytes: ${{ inputs.semgrep-max-target-bytes }}
+          timeout: ${{ inputs.semgrep-timeout }}
+          jobs: ${{ inputs.semgrep-jobs }}
+          metrics: ${{ inputs.semgrep-metrics }}
+          no-secrets-validation: ${{ inputs.semgrep-no-secrets-validation }}
+          gitlab-sast-output: ${{ inputs.semgrep-gitlab-sast-output }}
+          sarif-output: ${{ inputs.semgrep-sarif-output }}
+          json-output: ${{ inputs.semgrep-json-output }}
+
+  trivy:
+    name: Trivy
+    if: ${{ inputs.run-trivy }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy
+        uses: sentenz/actions/trivy@main
+        with:
+          scan-type: ${{ inputs.trivy-scan-type }}
+          scan-target: ${{ inputs.trivy-scan-target }}
+          image: ${{ inputs.trivy-image }}
+          format: ${{ inputs.trivy-format }}
+          output: ${{ inputs.trivy-output }}
+          severity: ${{ inputs.trivy-severity }}
+          scanners: ${{ inputs.trivy-scanners }}
+          skip-dirs: ${{ inputs.trivy-skip-dirs }}
+          skip-files: ${{ inputs.trivy-skip-files }}
+          exit-code: ${{ inputs.trivy-exit-code }}
+          cache-dir: ${{ inputs.trivy-cache-dir }}
+          db-repository: ${{ inputs.trivy-db-repository }}
+          trivyignore-file: ${{ inputs.trivyignore-file }}
+          trivy-config: ${{ inputs.trivy-config }}
+          github-pat: ${{ secrets.trivy_github_pat }}
