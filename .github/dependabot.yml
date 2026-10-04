@@ -15,14 +15,13 @@ updates:
       - /trufflehog
       - /vscode-extension
     schedule:
-      interval: weekly
-      day: monday
-      time: "03:00"
+      interval: "weekly"
+      day: "friday"
       timezone: Etc/UTC
     # Allow time to assess new releases before routine adoption.
     # Cooldown does not delay Dependabot security updates.
     cooldown:
-      default-days: 7
+      default-days: 3
     labels:
       - dependencies
       - github-actions
