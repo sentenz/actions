@@ -1,6 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
 version: 2
 updates:
   - package-ecosystem: github-actions
+    # Root workflows and every composite action maintained by this repository.
     directories:
       - /
       - /conftest
@@ -10,10 +12,16 @@ updates:
       - /semantic-release
       - /semgrep
       - /trivy
+      - /trufflehog
+      - /vscode-extension
     schedule:
-      interval: weekly
-      day: monday
-      time: "03:00"
+      interval: "weekly"
+      day: "friday"
+      timezone: Etc/UTC
+    # Allow time to assess new releases before routine adoption.
+    # Cooldown does not delay Dependabot security updates.
+    cooldown:
+      default-days: 3
     labels:
       - dependencies
       - github-actions
@@ -21,17 +29,19 @@ updates:
       prefix: chore
       include: scope
     open-pull-requests-limit: 10
-    allow:
-      - dependency-type: direct
 
-    # Group updates by semantic version type
+    # Keep patch updates separate for the patch-only auto-merge workflow.
+    # Major upgrades and security updates remain individual PRs for focused review.
     groups:
       github-actions-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
         update-types:
           - patch
       github-actions-minor:
+        applies-to: version-updates
+        patterns:
+          - "*"
         update-types:
           - minor
-      github-actions-major:
-        update-types:
-          - major
