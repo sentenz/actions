@@ -78,7 +78,7 @@ skills-agent-restore:
 
 # ─── Dependency Manager ──────────────────────────────────────────────────────────────────────────
 
-DEPENDENCY_IMAGE_RENOVATE ?= docker.io/renovate/renovate:44.149.3@sha256:11431b10c52c306bb280171f80d409e1fb482e5a61a845cfef93f34b4d649d5d
+DEPENDENCY_IMAGE_RENOVATE ?= docker.io/renovate/renovate:44.155.0@sha256:da8b7c264a6813ec19210c4855c6d1b6006fa415aa548b9435ae24fceb05573f
 
 ## Update project dependencies locally using Renovate and generate a report
 dependency-renovate-update:
@@ -257,7 +257,7 @@ policy-regal-lint:
 
 # ─── Static Analysis ─────────────────────────────────────────────────────────────────────────────
 
-LINT_IMAGE_MARKDOWNLINT ?= davidanson/markdownlint-cli2:v0.22.1@sha256:0ed9a5f4c77ef447da2a2ac6e67caf74b214a7f80288819565e8b7d2ac148fe5
+LINT_IMAGE_MARKDOWNLINT ?= davidanson/markdownlint-cli2:v0.23.3@sha256:d5f3f3f04b2e285dcbcdcd13b4454d119e273e3c393a9dabd163dba4abad526d
 LINT_FILES_MARKDOWNLINT ?= "**/*.md"
 
 ## Lint Markdown files using markdownlint and generate a report
