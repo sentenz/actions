@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/sentenz/actions/compare/1.5.1...1.5.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **deps:** bump the github-actions-patch group across 2 directories with 2 updates ([#124](https://github.com/sentenz/actions/issues/124)) ([7a346d7](https://github.com/sentenz/actions/commit/7a346d774c4cfa4bb921670c0f030d2bd03def7e))
+
 ## [1.5.1](https://github.com/sentenz/actions/compare/1.5.0...1.5.1) (2026-10-04)
 
 
