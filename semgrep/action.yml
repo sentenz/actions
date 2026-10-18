@@ -15,7 +15,7 @@ inputs:
   image:
     description: "Semgrep Docker image with version tag and digest"
     required: false
-    default: "docker.io/semgrep/semgrep:1.179.0@sha256:93963d9295a366f59e4850127b1550400ee7b388f04fe144e4a1f6325d96e01b"
+    default: "docker.io/semgrep/semgrep:1.181.0@sha256:81474464c1f07483ba0682a44787fd93c91397419762a04abe2bafaae396304b"
   config:
     description: "Semgrep configuration (auto, p/default, path to config file)"
     required: false
