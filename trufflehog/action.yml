@@ -37,7 +37,7 @@ runs:
   using: composite
   steps:
     - name: TruffleHog
-      uses: trufflesecurity/trufflehog@e63326d6545de8f425d93ce24078c6e68d83f70e # v3.99.3
+      uses: trufflesecurity/trufflehog@3bd461f135e30079cb130a54e8264df47ca9999b # v3.99.5
       with:
         path: ${{ inputs.path }}
         base: ${{ inputs.base }}
