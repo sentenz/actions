@@ -84,6 +84,17 @@ steps. Authenticate to the image registry before invoking image signing.
 
 ## 2. Usage
 
+Copy [the complete Sigstore workflow](../examples/workflows/sigstore.yml) to
+`.github/workflows/sigstore.yml` in the consuming repository. It generates,
+signs, and verifies source archives when a release is published or when
+manually dispatched with an existing release tag. It retains the archives
+and their bundles as an Actions artifact for 90 days.
+
+The example derives the exact signing identity from `github.workflow_ref`.
+Consumers should approve the resulting workflow path and ref before
+verification. Manual runs use the selected workflow branch or tag, while
+release events use the release tag.
+
 Replace `<commit-sha>` with a reviewed commit of `sentenz/actions` containing
 `sigstore/action.yml`. Examples use Ubuntu runners. Set `identity` to the
 approved workflow path and ref for the consuming repository.
