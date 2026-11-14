@@ -243,15 +243,3 @@ the same names.
 The semantic-release workflow calls the Sigstore workflow directly after
 creating a release. This also covers releases created with `GITHUB_TOKEN`,
 whose release events do not trigger additional workflows.
-
-To backfill an existing release such as `1.6.0`, manually run **Sigstore Test**
-from a branch containing this workflow and set `version` to `1.6.0`. The
-workflow checks out its tools at the workflow commit and scans the release tag
-in a separate directory. An empty `version` runs the signing test with the
-usual 90-day Actions artifact retention. Release assets persist independently
-of that artifact expiration.
-
-
-The action was imported from
-[template-k8s PR #152](https://github.com/sentenz/template-k8s/pull/152)
-at commit `3f626d9b5eec82d4fe85bfed29b3234aa92b694e`.
