@@ -496,16 +496,16 @@ export SSCS_COSIGN_IDENTITY SSCS_COSIGN_ISSUER SSCS_COSIGN_TRUSTED_ROOT
 
 ## Verify a file signature using its Sigstore bundle and an exact trusted identity
 sscs-cosign-verify-blob:
-	@command -v "$SSCS_COSIGN" >/dev/null || { echo "error: install Cosign v3.1.4 or set SSCS_COSIGN" >&2; exit 1; }
-	[[ -f "$SSCS_COSIGN_FILE" && -s "$SSCS_COSIGN_FILE" ]] || { echo "error: SSCS_COSIGN_FILE must name a nonempty file" >&2; exit 1; }
-	[[ -f "$SSCS_COSIGN_BUNDLE" && -s "$SSCS_COSIGN_BUNDLE" ]] || { echo "error: signature bundle is missing or empty" >&2; exit 1; }
-	[[ -n "$SSCS_COSIGN_IDENTITY" && -n "$SSCS_COSIGN_ISSUER" ]] || { echo "error: set an exact SSCS_COSIGN_IDENTITY and SSCS_COSIGN_ISSUER" >&2; exit 1; }
-	options=(--bundle "$SSCS_COSIGN_BUNDLE" --certificate-identity "$SSCS_COSIGN_IDENTITY" --certificate-oidc-issuer "$SSCS_COSIGN_ISSUER")
-	if [[ -n "$SSCS_COSIGN_TRUSTED_ROOT" ]]; then
-	    [[ -f "$SSCS_COSIGN_TRUSTED_ROOT" && -s "$SSCS_COSIGN_TRUSTED_ROOT" ]] || { echo "error: trusted root is missing or empty" >&2; exit 1; }
-	    options+=(--trusted-root "$SSCS_COSIGN_TRUSTED_ROOT")
+	@command -v "$$SSCS_COSIGN" >/dev/null || { echo "error: install Cosign v3.1.4 or set SSCS_COSIGN" >&2; exit 1; }
+	[[ -f "$$SSCS_COSIGN_FILE" && -s "$$SSCS_COSIGN_FILE" ]] || { echo "error: SSCS_COSIGN_FILE must name a nonempty file" >&2; exit 1; }
+	[[ -f "$$SSCS_COSIGN_BUNDLE" && -s "$$SSCS_COSIGN_BUNDLE" ]] || { echo "error: signature bundle is missing or empty" >&2; exit 1; }
+	[[ -n "$$SSCS_COSIGN_IDENTITY" && -n "$$SSCS_COSIGN_ISSUER" ]] || { echo "error: set an exact SSCS_COSIGN_IDENTITY and SSCS_COSIGN_ISSUER" >&2; exit 1; }
+	options=(--bundle "$$SSCS_COSIGN_BUNDLE" --certificate-identity "$$SSCS_COSIGN_IDENTITY" --certificate-oidc-issuer "$$SSCS_COSIGN_ISSUER")
+	if [[ -n "$$SSCS_COSIGN_TRUSTED_ROOT" ]]; then
+	    [[ -f "$$SSCS_COSIGN_TRUSTED_ROOT" && -s "$$SSCS_COSIGN_TRUSTED_ROOT" ]] || { echo "error: trusted root is missing or empty" >&2; exit 1; }
+	    options+=(--trusted-root "$$SSCS_COSIGN_TRUSTED_ROOT")
 	fi
-	"$SSCS_COSIGN" verify-blob "${options[@]}" "$SSCS_COSIGN_FILE"
+	"$$SSCS_COSIGN" verify-blob "$${options[@]}" "$$SSCS_COSIGN_FILE"
 .PHONY: sscs-cosign-verify-blob
 
 
