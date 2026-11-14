@@ -232,6 +232,14 @@ dispatches. Fork pull requests skip this job because they lack the required
 OIDC permission. Signing uses public Sigstore and records signing metadata
 in its transparency log.
 
-The action was imported from
-[template-k8s PR #152](https://github.com/sentenz/template-k8s/pull/152)
-at commit `3f626d9b5eec82d4fe85bfed29b3234aa92b694e`.
+### Release assets
+
+Release runs generate SBOMs from the exact release tag, sign and verify them,
+then attach both SBOMs and their `.sigstore.json` bundles to the existing GitHub
+Release. A separate publishing job has `contents: write` and downloads the
+verified files from the successful signing job. Retries replace assets with
+the same names.
+
+The semantic-release workflow calls the Sigstore workflow directly after
+creating a release. This also covers releases created with `GITHUB_TOKEN`,
+whose release events do not trigger additional workflows.

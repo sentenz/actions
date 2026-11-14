@@ -3,7 +3,21 @@
 name: Sigstore Test
 
 on:
+  release:
+    types: [published]
+  workflow_call:
+    inputs:
+      version:
+        description: Existing release tag whose SBOMs will be signed and attached
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      version:
+        description: Existing release tag to publish signed SBOMs for (empty runs a test)
+        required: false
+        default: ""
+        type: string
   push:
     branches: [main]
     paths:
@@ -20,7 +34,7 @@ on:
       - ".github/workflows/sigstore-test.yml"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  group: sigstore-${{ github.event.release.tag_name || inputs.version || github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions: {}
@@ -28,6 +42,8 @@ permissions: {}
 jobs:
   sbom:
     name: Generate, sign, and verify SBOMs
+    outputs:
+      artifact-id: ${{ steps.retain.outputs.artifact-id }}
     # Fork pull requests do not receive the OIDC permission needed for signing.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
@@ -36,16 +52,25 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Checkout
+      - name: Checkout workflow tools
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Checkout release source
+        if: github.event_name == 'release' || inputs.version != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name || inputs.version }}
+          path: release-source
           persist-credentials: false
 
       - name: Generate CycloneDX SBOM
         uses: ./trivy
         with:
           scan-type: sbom-generate
-          scan-target: "."
+          scan-target: ${{ (github.event_name == 'release' || inputs.version != '') && 'release-source' || '.' }}
           format: cyclonedx
           output: sbom.cdx.json
 
@@ -53,19 +78,20 @@ jobs:
         uses: ./trivy
         with:
           scan-type: sbom-generate
-          scan-target: "."
+          scan-target: ${{ (github.event_name == 'release' || inputs.version != '') && 'release-source' || '.' }}
           format: spdx-json
           output: sbom.spdx.json
 
       - name: Sign and verify SBOMs
         uses: ./sigstore
         with:
-          identity: https://github.com/${{ github.workflow_ref }}
+          identity: https://github.com/${{ github.repository }}/.github/workflows/sigstore-test.yml@${{ github.ref }}
           files: |
             sbom.cdx.json
             sbom.spdx.json
 
       - name: Retain SBOMs and verification bundles
+        id: retain
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: signed-sboms-${{ github.run_id }}-${{ github.run_attempt }}
@@ -76,3 +102,35 @@ jobs:
             sbom.spdx.json.sigstore.json
           if-no-files-found: error
           retention-days: 90
+
+  publish:
+    name: Attach verified SBOMs to release
+    needs: sbom
+    if: github.event_name == 'release' || inputs.version != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified SBOMs and bundles
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.sbom.outputs.artifact-id }}
+          merge-multiple: true
+          path: signed-sboms
+
+      - name: Attach SBOMs and bundles to existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "$RELEASE_TAG" >/dev/null
+          gh release upload "$RELEASE_TAG" \
+            signed-sboms/sbom.cdx.json \
+            signed-sboms/sbom.cdx.json.sigstore.json \
+            signed-sboms/sbom.spdx.json \
+            signed-sboms/sbom.spdx.json.sigstore.json \
+            --clobber
