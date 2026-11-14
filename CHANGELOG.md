@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.6.0](https://github.com/sentenz/actions/compare/1.5.8...1.6.0) (2026-11-14)
+
+
+### Features
+
+* add Sigstore Cosign composite action ([#144](https://github.com/sentenz/actions/issues/144)) ([a5164f3](https://github.com/sentenz/actions/commit/a5164f30e37bdf723b2f5c43fe82a043c64b5e53))
+
 ## [1.5.8](https://github.com/sentenz/actions/compare/1.5.7...1.5.8) (2026-11-08)
 
 
