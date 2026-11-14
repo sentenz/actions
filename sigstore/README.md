@@ -221,12 +221,16 @@ Docker action establishes registry authentication when publishing an image.
 
 ## 5. Development
 
-Run `python3 sigstore/test/test_action.py` from the repository root. The tests
-execute the action's Bash script with a mock Cosign executable to check input
-validation, bundle handling, command arguments, and verification failures.
-The [test workflow](../.github/workflows/sigstore-test.yml) runs these checks
-with read-only repository access. Live OIDC and registry signing require a
-trusted workflow run with the permissions described above.
+The [test workflow](../.github/workflows/sigstore-test.yml) generates CycloneDX
+and SPDX SBOMs with the local Trivy action, then signs and verifies both through
+the local Sigstore action using GitHub Actions OIDC. A successful run uploads
+the SBOMs and their verification bundles as an Actions artifact for 90 days.
+
+The job grants `contents: read` for checkout and `id-token: write` for signing.
+It runs on matching pushes to `main`, same-repository pull requests, and manual
+dispatches. Fork pull requests skip this job because they lack the required
+OIDC permission. Signing uses public Sigstore and records signing metadata
+in its transparency log.
 
 The action was imported from
 [template-k8s PR #152](https://github.com/sentenz/template-k8s/pull/152)
