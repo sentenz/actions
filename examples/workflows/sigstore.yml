@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Copy this file to .github/workflows/sigstore.yml in the consuming repository.
+# Run it when a release is published, or select an existing tag in a manual run.
+# Public Sigstore receives signing metadata. See sigstore/README.md for private trust.
+
+name: Sigstore
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing Git release tag to archive and sign (for example, 1.2.3)
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: sigstore-${{ github.event.release.tag_name || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    name: Sign and verify release archives
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name || inputs.version }}
+          persist-credentials: false
+
+      - name: Create release archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          git archive --format=tar --prefix=source/ HEAD | gzip -n > dist/source.tar.gz
+          git archive --format=zip --prefix=source/ HEAD > dist/source.zip
+
+      # The remote action is independent of the checked-out release tag.
+      - name: Sign and verify release archives
+        uses: sentenz/actions/sigstore@5f023a6be46d6be053a2fd456842d838066a1c2a
+        with:
+          identity: https://github.com/${{ github.workflow_ref }}
+          files: |
+            dist/source.tar.gz
+            dist/source.zip
+
+      - name: Retain archives and verification bundles
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/source.tar.gz
+            dist/source.tar.gz.sigstore.json
+            dist/source.zip
+            dist/source.zip.sigstore.json
+          if-no-files-found: error
+          retention-days: 90
