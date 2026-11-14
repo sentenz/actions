@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/sentenz/actions/compare/1.6.0...1.6.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* attach verified SBOM bundles to GitHub releases ([#145](https://github.com/sentenz/actions/issues/145)) ([6229924](https://github.com/sentenz/actions/commit/6229924587665ddd920942738cbcc4869c9ee538))
+
 # [1.6.0](https://github.com/sentenz/actions/compare/1.5.8...1.6.0) (2026-11-14)
 
 
