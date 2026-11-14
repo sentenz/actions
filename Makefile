@@ -480,7 +480,34 @@ sast-trufflehog-git:
 	docker run --rm -v "${PWD}:/workspace" -w /workspace "$(SAST_IMAGE_TRUFFLEHOG)" git file:///workspace --no-update --json > logs/sast/trufflehog-git.json 2> logs/sast/trufflehog-git.log
 .PHONY: sast-trufflehog-git
 
-# ─── Supply Chain Security ───────────────────────────────────────────────────────────────────────
+# ─── Software Supply Chain Security (SSCS) ─────────────────────────────────────────────────────────
+
+# Install Cosign v3.1.4 on the host, matching the Sigstore action.
+# Usage: make sscs-cosign-verify-blob SSCS_COSIGN_FILE=sbom.cdx.json SSCS_COSIGN_IDENTITY=<approved-workflow-identity>
+# The default bundle is adjacent to the file. Override it for another location.
+SSCS_COSIGN ?= cosign
+SSCS_COSIGN_FILE ?=
+SSCS_COSIGN_BUNDLE ?= $(SSCS_COSIGN_FILE).sigstore.json
+SSCS_COSIGN_IDENTITY ?=
+SSCS_COSIGN_ISSUER ?= https://token.actions.githubusercontent.com
+SSCS_COSIGN_TRUSTED_ROOT ?=
+export SSCS_COSIGN SSCS_COSIGN_FILE SSCS_COSIGN_BUNDLE
+export SSCS_COSIGN_IDENTITY SSCS_COSIGN_ISSUER SSCS_COSIGN_TRUSTED_ROOT
+
+## Verify a file signature using its Sigstore bundle and an exact trusted identity
+sscs-cosign-verify-blob:
+	@command -v "$$SSCS_COSIGN" >/dev/null || { echo "error: install Cosign v3.1.4 or set SSCS_COSIGN" >&2; exit 1; }
+	[[ -f "$$SSCS_COSIGN_FILE" && -s "$$SSCS_COSIGN_FILE" ]] || { echo "error: SSCS_COSIGN_FILE must name a nonempty file" >&2; exit 1; }
+	[[ -f "$$SSCS_COSIGN_BUNDLE" && -s "$$SSCS_COSIGN_BUNDLE" ]] || { echo "error: signature bundle is missing or empty" >&2; exit 1; }
+	[[ -n "$$SSCS_COSIGN_IDENTITY" && -n "$$SSCS_COSIGN_ISSUER" ]] || { echo "error: set an exact SSCS_COSIGN_IDENTITY and SSCS_COSIGN_ISSUER" >&2; exit 1; }
+	options=(--bundle "$$SSCS_COSIGN_BUNDLE" --certificate-identity "$$SSCS_COSIGN_IDENTITY" --certificate-oidc-issuer "$$SSCS_COSIGN_ISSUER")
+	if [[ -n "$$SSCS_COSIGN_TRUSTED_ROOT" ]]; then
+	    [[ -f "$$SSCS_COSIGN_TRUSTED_ROOT" && -s "$$SSCS_COSIGN_TRUSTED_ROOT" ]] || { echo "error: trusted root is missing or empty" >&2; exit 1; }
+	    options+=(--trusted-root "$$SSCS_COSIGN_TRUSTED_ROOT")
+	fi
+	"$$SSCS_COSIGN" verify-blob "$${options[@]}" "$$SSCS_COSIGN_FILE"
+.PHONY: sscs-cosign-verify-blob
+
 
 SAST_IMAGE_COSIGN ?= cgr.dev/chainguard/cosign:3.0.0@sha256:b6bc266358e9368be1b3d01fca889b78d5ad5a47832986e14640c34a237ef638
 
