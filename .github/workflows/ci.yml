@@ -53,6 +53,9 @@ jobs:
           done
           echo "All action.yml files are valid!"
 
+      - name: Test Docker metadata and attestation inputs
+        run: bash docker/tests/test-metadata.sh
+
   lint:
     name: Yamllint
     runs-on: ubuntu-latest
