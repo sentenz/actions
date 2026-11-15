@@ -1,6 +1,6 @@
 # Docker Composite Action
 
-Build OCI container images with Docker Buildx and optionally publish versioned and `latest` tags to GitHub Container Registry (GHCR).
+Build OCI container images with Docker Buildx, configure provenance and SBOM attestations, and optionally publish versioned and `latest` tags to GitHub Container Registry (GHCR).
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
@@ -14,10 +14,12 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
   - [3.3. Build Without Publishing](#33-build-without-publishing)
   - [3.4. Build for Multiple Platforms](#34-build-for-multiple-platforms)
   - [3.5. Build a Dockerfile Target](#35-build-a-dockerfile-target)
+  - [3.6. Publish Attested Versioned Images](#36-publish-attested-versioned-images)
 - [4. Configuration](#4-configuration)
   - [4.1. Image Naming](#41-image-naming)
   - [4.2. Registry Authentication](#42-registry-authentication)
   - [4.3. Validation](#43-validation)
+  - [4.4. Provenance and SBOM Attestations](#44-provenance-and-sbom-attestations)
 
 ## 1. Details
 
@@ -37,7 +39,7 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
 
 The [Docker Action](./action.yml) builds an OCI container image and optionally publishes it to the calling repository owner's GHCR namespace.
 
-A publishing run applies `latest` and the supplied version tag to the same build result. The action uses the calling repository name as the default package name, supports an optional package name under the same owner namespace, and provides multi-platform builds, build arguments, Dockerfile targets, per-image GitHub Actions cache storage, and build-only validation through `push: false`.
+By default, a publishing run applies `latest` and the supplied version tag to the same build result. Set `publish-latest: false` to push only the immutable version tag, which is useful when promotion to `latest` must happen after release verification. The action uses the calling repository name as the default package name, supports an optional package name under the same owner namespace, and provides multi-platform builds, build arguments, Dockerfile targets, per-image GitHub Actions cache storage, and build-only validation through `push: false`. BuildKit can embed provenance and SBOM attestations in the pushed OCI image index.
 
 ### 2.1. Dependencies
 
@@ -62,18 +64,22 @@ A publishing run applies `latest` and the supplied version tag to the same build
 | `build-args`        | Newline-delimited Docker build arguments                                   | No       | ``                      |
 | `target`            | Dockerfile build target                                                    | No       | ``                      |
 | `push`              | Publish the image to GHCR; set to `false` for build-only validation        | No       | `true`                  |
+| `publish-latest`    | Publish the `latest` tag as well as the versioned tag                       | No       | `true`                  |
+| `provenance`        | BuildKit provenance: `auto`, `true`, `false`, `mode=min`, or `mode=max`      | No       | `auto`                  |
+| `sbom`              | Image SBOM attestation: `auto`, `true`, or `false`                          | No       | `auto`                  |
+| `attests`           | Advanced newline-delimited BuildKit attestation parameters                 | No       | ``                      |
 
 ### 2.3. Outputs
 
 | Output   | Description                                                                                  |
 | -------- | -------------------------------------------------------------------------------------------- |
 | `image`  | Fully qualified resolved image name, such as `ghcr.io/sentenz/example`                       |
-| `tags`   | Newline-delimited `latest` and version tags                                                  |
+| `tags`   | Newline-delimited published tags (`latest` is omitted when `publish-latest: false`)           |
 | `digest` | Image manifest digest returned by Docker Buildx; may be empty for some build-only operations |
 
 ### 2.4. Permissions
 
-The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Docker configuration.
+The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Docker configuration. BuildKit provenance and SBOM generation do not require OIDC permissions; a separate Sigstore signing step requires `id-token: write`.
 
 | Permission | Access  | Description                                                |
 | ---------- | ------- | ---------------------------------------------------------- |
@@ -178,6 +184,34 @@ steps:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+### 3.6. Publish Attested Versioned Images
+
+Release workflows can explicitly request maximum-detail provenance and an image SBOM while deferring `latest` promotion:
+
+```yaml
+- name: Publish attested versioned image
+  id: docker-build
+  uses: sentenz/actions/docker@latest
+  with:
+    version: ${{ github.ref_name }}
+    context: .
+    file: container/k8s/Dockerfile
+    image-name: k8s
+    platforms: linux/amd64,linux/arm64
+    push: true
+    publish-latest: false
+    provenance: mode=max
+    sbom: true
+
+- name: Report the immutable image reference
+  env:
+    IMAGE: ${{ steps.docker-build.outputs.image }}
+    DIGEST: ${{ steps.docker-build.outputs.digest }}
+  run: echo "${IMAGE}@${DIGEST}"
+```
+
+Grant `packages: write` in the publishing job, and pin the action to a reviewed commit SHA in production. The `digest` output identifies the OCI image index, including BuildKit-generated attestation manifests, for subsequent signing and verification with `sentenz/actions/sigstore`.
+
 ## 4. Configuration
 
 ### 4.1. Image Naming
@@ -214,6 +248,21 @@ The action fails before authentication or build execution when:
 
 - `version`, `context`, `file`, or `platforms` is empty;
 - `version` is not a valid Docker tag or resolves to `latest`;
-- `push` is not exactly `true` or `false`;
+- `push` or `publish-latest` is not exactly `true` or `false`;
+- `sbom` is not `auto`, `true`, or `false`;
+- `provenance` is not `auto`, `true`, `false`, `mode=min`, or `mode=max`;
 - `registry-username` is empty while `push` is `true`; or
 - `image-name` contains a registry prefix, owner path, tag, digest, whitespace, or unsupported characters.
+
+### 4.4. Provenance and SBOM Attestations
+
+Both attestations are produced by BuildKit during the image build and stored in GHCR as part of the OCI image index when `push: true`. They are not independent workflow artifact files. Build-only validation (`push: false`) does not persist them to a registry.
+
+- `provenance: auto` (default) leaves the upstream `docker/build-push-action` behavior unchanged: public GitHub repositories receive `mode=max` by default; private repositories receive `mode=min`. Set `mode=max` explicitly to require rich build provenance on release images, regardless of repository visibility.
+- `provenance: mode=min` limits details, while `mode=max` includes richer build parameters. **Do not pass secrets as Docker build arguments:** max-level provenance can disclose build argument values. Use BuildKit secret mounts for credentials.
+- `provenance: false` disables the BuildKit provenance attestation; `provenance: true` uses BuildKit's enabled behavior.
+- `sbom: true` generates an additional SBOM attestation. The default `auto` leaves the SBOM shortcut unset (no automatic SBOM), while allowing advanced SBOM configuration through `attests`. Set `false` to explicitly disable it.
+- `attests` passes advanced parameters to the upstream build action (for example `type=provenance,mode=max,version=v1` or `type=sbom,generator=image`). Explicit `provenance` and `sbom` inputs take precedence over the corresponding types in `attests`; keep their values at `auto` when configuring the same types using `attests`.
+- `publish-latest: false` is independent of attestation settings and publishes only the specified version tag. It is intended for release pipelines that promote `latest` after policy checks, image signing, and release asset publication.
+
+BuildKit attestations describe the build; they are not a replacement for a separate cryptographic signature or verification policy. Use the `image` and `digest` outputs with the Sigstore action to sign the immutable image reference. Consult [Docker's GitHub Actions attestation guide](https://docs.docker.com/build/ci/github-actions/attestations/) and [provenance specification](https://docs.docker.com/build/metadata/attestations/slsa-provenance/) for details.
