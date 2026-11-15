@@ -33,8 +33,6 @@ The [Semgrep Action](./action.yml) runs Semgrep for static application security 
 
 ### 2.1. Dependencies
 
-No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
-
 | Images | Reference | Purpose |
 | --- | --- | --- |
 | [semgrep/semgrep](https://hub.docker.com/r/semgrep/semgrep) | `docker.io/semgrep/semgrep` | Run Semgrep static application security scans in a container. |
