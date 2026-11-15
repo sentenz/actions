@@ -67,6 +67,7 @@ By default, a publishing run applies `latest` and the supplied version tag to th
 | `publish-latest`    | Publish the `latest` tag as well as the versioned tag                       | No       | `true`                  |
 | `provenance`        | BuildKit provenance: `auto`, `true`, `false`, `mode=min`, or `mode=max`      | No       | `auto`                  |
 | `sbom`              | Generate an SBOM attestation with the OCI image (`true` or `false`)         | No       | `false`                 |
+| `attests`           | Advanced newline-delimited BuildKit attestation parameters                 | No       | ``                      |
 
 ### 2.3. Outputs
 
@@ -260,6 +261,7 @@ Both attestations are produced by BuildKit during the image build and stored in 
 - `provenance: mode=min` limits details, while `mode=max` includes richer build parameters. **Do not pass secrets as Docker build arguments:** max-level provenance can disclose build argument values. Use BuildKit secret mounts for credentials.
 - `provenance: false` disables the BuildKit provenance attestation; `provenance: true` uses BuildKit's enabled behavior.
 - `sbom: true` generates an additional SBOM attestation. The default `false` preserves the action's historical behavior.
+- `attests` passes advanced parameters to the upstream build action (for example `type=provenance,mode=max,version=v1` or `type=sbom,generator=image`). Avoid declaring the same attestation type through both `attests` and its `provenance`/`sbom` shortcut.
 - `publish-latest: false` is independent of attestation settings and publishes only the specified version tag. It is intended for release pipelines that promote `latest` after policy checks, image signing, and release asset publication.
 
 BuildKit attestations describe the build; they are not a replacement for a separate cryptographic signature or verification policy. Use the `image` and `digest` outputs with the Sigstore action to sign the immutable image reference. Consult [Docker's GitHub Actions attestation guide](https://docs.docker.com/build/ci/github-actions/attestations/) and [provenance specification](https://docs.docker.com/build/metadata/attestations/slsa-provenance/) for details.
