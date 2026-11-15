@@ -4,9 +4,10 @@ Comprehensive security scanning with Trivy for vulnerability detection, SBOM gen
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
-  - [2.3. Permissions](#23-permissions)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
+  - [2.4. Permissions](#24-permissions)
 - [3. Usage](#3-usage)
   - [3.1. Filesystem Vulnerability Scanning](#31-filesystem-vulnerability-scanning)
   - [3.2. Container Image Scanning](#32-container-image-scanning)
@@ -42,7 +43,13 @@ Comprehensive security scanning with Trivy for vulnerability detection, SBOM gen
 
 The [Trivy Action](./action.yml) provides comprehensive security scanning capabilities including vulnerability detection, SBOM generation and scanning (SPDX and CycloneDX formats), license compliance checking, and more.
 
-### 2.1. Inputs
+### 2.1. Dependencies
+
+| Images | Reference | Purpose |
+| --- | --- | --- |
+| [aquasec/trivy](https://hub.docker.com/r/aquasec/trivy) | `docker.io/aquasec/trivy` | Run Trivy security scans and SBOM operations in a container. |
+
+### 2.2. Inputs
 
 | Input              | Description                                                                         | Required | Default         |
 | ------------------ | ----------------------------------------------------------------------------------- | -------- | --------------- |
@@ -62,7 +69,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `trivy-config`     | Path to trivy.yaml config file                                                      | No       | ``              |
 | `github-pat`       | GitHub Personal Access Token for private repositories                               | No       | ``              |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 | Output        | Description                          |
 | ------------- | ------------------------------------ |
@@ -70,7 +77,7 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 | `exit-code`   | Trivy exit code                      |
 | `output-file` | Requested output path (if specified) |
 
-### 2.3. Permissions
+### 2.4. Permissions
 
 The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Trivy workflow configuration.
 

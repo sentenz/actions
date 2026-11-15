@@ -4,8 +4,9 @@ Linting for Rego policies using [Regal](https://github.com/StyraInc/regal).
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -23,7 +24,13 @@ Linting for Rego policies using [Regal](https://github.com/StyraInc/regal).
 
 The [Regal Action](./action.yml) runs Regal to lint Rego policy files, ensuring best practices and coding standards are enforced.
 
-### 2.1. Inputs
+### 2.1. Dependencies
+
+| Actions | Reference | Purpose |
+| --- | --- | --- |
+| [open-policy-agent/setup-regal](https://github.com/open-policy-agent/setup-regal) | `open-policy-agent/setup-regal` | Install Regal for linting Rego policy files. |
+
+### 2.2. Inputs
 
 | Input           | Description                                          | Required | Default    |
 | --------------- | ---------------------------------------------------- | -------- | ---------- |
@@ -32,7 +39,7 @@ The [Regal Action](./action.yml) runs Regal to lint Rego policy files, ensuring 
 | `output-format` | Output format (pretty, compact, json, github, sarif) | No       | `github`   |
 | `config-file`   | Path to Regal configuration file                     | No       | ``         |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 | Output      | Description       |
 | ----------- | ----------------- |
