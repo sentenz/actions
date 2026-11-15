@@ -59,6 +59,10 @@ inputs:
     description: Generate an image SBOM attestation (true or false)
     required: false
     default: "false"
+  attests:
+    description: Optional newline-delimited advanced BuildKit attestation parameters
+    required: false
+    default: ""
 
 outputs:
   image:
@@ -282,5 +286,6 @@ runs:
         tags: ${{ steps.metadata.outputs.tags }}
         provenance: ${{ steps.metadata.outputs.provenance }}
         sbom: ${{ steps.metadata.outputs.sbom }}
+        attests: ${{ inputs.attests }}
         cache-from: type=gha,scope=${{ steps.metadata.outputs.image }}
         cache-to: type=gha,mode=max,scope=${{ steps.metadata.outputs.image }}
