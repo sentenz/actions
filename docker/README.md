@@ -66,7 +66,7 @@ By default, a publishing run applies `latest` and the supplied version tag to th
 | `push`              | Publish the image to GHCR; set to `false` for build-only validation        | No       | `true`                  |
 | `publish-latest`    | Publish the `latest` tag as well as the versioned tag                       | No       | `true`                  |
 | `provenance`        | BuildKit provenance: `auto`, `true`, `false`, `mode=min`, or `mode=max`      | No       | `auto`                  |
-| `sbom`              | Generate an SBOM attestation with the OCI image (`true` or `false`)         | No       | `false`                 |
+| `sbom`              | Image SBOM attestation: `auto`, `true`, or `false`                          | No       | `auto`                  |
 | `attests`           | Advanced newline-delimited BuildKit attestation parameters                 | No       | ``                      |
 
 ### 2.3. Outputs
@@ -248,7 +248,8 @@ The action fails before authentication or build execution when:
 
 - `version`, `context`, `file`, or `platforms` is empty;
 - `version` is not a valid Docker tag or resolves to `latest`;
-- `push`, `publish-latest`, or `sbom` is not exactly `true` or `false`;
+- `push` or `publish-latest` is not exactly `true` or `false`;
+- `sbom` is not `auto`, `true`, or `false`;
 - `provenance` is not `auto`, `true`, `false`, `mode=min`, or `mode=max`;
 - `registry-username` is empty while `push` is `true`; or
 - `image-name` contains a registry prefix, owner path, tag, digest, whitespace, or unsupported characters.
@@ -260,8 +261,8 @@ Both attestations are produced by BuildKit during the image build and stored in 
 - `provenance: auto` (default) leaves the upstream `docker/build-push-action` behavior unchanged: public GitHub repositories receive `mode=max` by default; private repositories receive `mode=min`. Set `mode=max` explicitly to require rich build provenance on release images, regardless of repository visibility.
 - `provenance: mode=min` limits details, while `mode=max` includes richer build parameters. **Do not pass secrets as Docker build arguments:** max-level provenance can disclose build argument values. Use BuildKit secret mounts for credentials.
 - `provenance: false` disables the BuildKit provenance attestation; `provenance: true` uses BuildKit's enabled behavior.
-- `sbom: true` generates an additional SBOM attestation. The default `false` preserves the action's historical behavior.
-- `attests` passes advanced parameters to the upstream build action (for example `type=provenance,mode=max,version=v1` or `type=sbom,generator=image`). Avoid declaring the same attestation type through both `attests` and its `provenance`/`sbom` shortcut.
+- `sbom: true` generates an additional SBOM attestation. The default `auto` leaves the SBOM shortcut unset (no automatic SBOM), while allowing advanced SBOM configuration through `attests`. Set `false` to explicitly disable it.
+- `attests` passes advanced parameters to the upstream build action (for example `type=provenance,mode=max,version=v1` or `type=sbom,generator=image`). Explicit `provenance` and `sbom` inputs take precedence over the corresponding types in `attests`; keep their values at `auto` when configuring the same types using `attests`.
 - `publish-latest: false` is independent of attestation settings and publishes only the specified version tag. It is intended for release pipelines that promote `latest` after policy checks, image signing, and release asset publication.
 
 BuildKit attestations describe the build; they are not a replacement for a separate cryptographic signature or verification policy. Use the `image` and `digest` outputs with the Sigstore action to sign the immutable image reference. Consult [Docker's GitHub Actions attestation guide](https://docs.docker.com/build/ci/github-actions/attestations/) and [provenance specification](https://docs.docker.com/build/metadata/attestations/slsa-provenance/) for details.
