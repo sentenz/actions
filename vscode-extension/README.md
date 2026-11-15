@@ -42,7 +42,8 @@ installation, tests, compilation, and bundling remain the responsibility of the 
 
 ### 2.1. Dependencies
 
-No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
+> [!NOTE]
+> No direct dependencies are declared in `action.yml`.
 
 ### 2.2. Inputs
 
