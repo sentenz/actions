@@ -38,18 +38,16 @@ The [Docker Action](./action.yml) builds an OCI container image and optionally p
 
 A publishing run applies `latest` and the supplied version tag to the same build result. The action uses the calling repository name as the default package name, supports an optional package name under the same owner namespace, and provides multi-platform builds, build arguments, Dockerfile targets, per-image GitHub Actions cache storage, and build-only validation through `push: false`.
 
-All third-party actions are pinned to immutable commit SHAs.
+### 2.1. Dependencies 
 
-**Action dependencies (`uses:`)**
-
-| Dependency | `uses:` reference | Purpose |
+| Actions | Reference | Purpose |
 | --- | --- | --- |
-| [docker/setup-qemu-action](https://github.com/docker/setup-qemu-action) | `docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1` (`v4.4.0`) | Enable QEMU emulation for non-native target architectures when needed. |
-| [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) | `docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069` (`v4.4.1`) | Configure Docker Buildx for building container images. |
-| [docker/login-action](https://github.com/docker/login-action) | `docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550` (`v4.8.0`) | Authenticate to GHCR when image publishing is enabled. |
-| [docker/build-push-action](https://github.com/docker/build-push-action) | `docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc` (`v7.4.0`) | Build the image and optionally publish its versioned and `latest` tags. |
+| [docker/setup-qemu-action](https://github.com/docker/setup-qemu-action) | `docker/setup-qemu-action` | Enable QEMU emulation for non-native target architectures when needed. |
+| [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action | `docker/setup-buildx-action`) | Configure Docker Buildx for building container images. |
+| [docker/login-action](https://github.com/docker/login-action) | `docker/login-action` | Authenticate to GHCR when image publishing is enabled. |
+| [docker/build-push-action](https://github.com/docker/build-push-action) | `docker/build-push-action` | Build the image and optionally publish its versioned and `latest` tags. |
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input               | Description                                                                | Required | Default                 |
 | ------------------- | -------------------------------------------------------------------------- | -------- | ----------------------- |
@@ -64,7 +62,7 @@ All third-party actions are pinned to immutable commit SHAs.
 | `target`            | Dockerfile build target                                                    | No       | ``                      |
 | `push`              | Publish the image to GHCR; set to `false` for build-only validation        | No       | `true`                  |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 | Output   | Description                                                                                  |
 | -------- | -------------------------------------------------------------------------------------------- |
@@ -72,7 +70,7 @@ All third-party actions are pinned to immutable commit SHAs.
 | `tags`   | Newline-delimited `latest` and version tags                                                  |
 | `digest` | Image manifest digest returned by Docker Buildx; may be empty for some build-only operations |
 
-### 2.3. Permissions
+### 2.4. Permissions
 
 The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Docker configuration.
 
