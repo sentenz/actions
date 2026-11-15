@@ -4,8 +4,9 @@ Package a Visual Studio Code extension as a VSIX file and optionally publish the
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
 - [3. Usage](#3-usage)
   - [3.1. Publish with a Marketplace Token](#31-publish-with-a-marketplace-token)
   - [3.2. Publish with a Release Version](#32-publish-with-a-release-version)
@@ -39,11 +40,11 @@ packages the extension with `@vscode/vsce`, and optionally publishes the generat
 Packaging and publishing use the same VSIX file. The action does not install project dependencies; dependency
 installation, tests, compilation, and bundling remain the responsibility of the calling workflow.
 
-**Action dependencies (`uses:`)**
+### 2.1. Dependencies
 
 No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input               | Description                                                                                           | Required | Default |
 | ------------------- | ----------------------------------------------------------------------------------------------------- | -------- | ------- |
@@ -59,7 +60,7 @@ No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 | `skip-duplicate`    | Treat an already-published extension version as a successful publish                                   | No       | `false` |
 | `publish`           | Publish the packaged VSIX to Visual Studio Marketplace                                                 | No       | `true`  |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 | Output         | Description                                                        |
 | -------------- | ------------------------------------------------------------------ |

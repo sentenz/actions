@@ -4,9 +4,10 @@ Secret scanning for Git repositories using [TruffleHog](https://github.com/truff
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
-  - [2.3. Permissions](#23-permissions)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
+  - [2.4. Permissions](#24-permissions)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -29,13 +30,13 @@ The [TruffleHog Action](./action.yml) wraps the SHA-pinned upstream GitHub actio
 
 A Linux runner with Docker, Git, and jq is required, such as `ubuntu-latest`. Check out the repository before invoking the action and use `fetch-depth: 0` so the scan range is available.
 
-**Action dependencies (`uses:`)**
+### 2.1. Dependencies
 
-| Dependency | `uses:` reference | Purpose |
+| Actions | Reference | Purpose |
 | --- | --- | --- |
-| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) | `trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb` (`v3.99.8`) | Scan Git history for leaked secrets using the configured commit range. |
+| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) | `trufflesecurity/trufflehog` | Scan Git history for leaked secrets using the configured commit range. |
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input                | Description                                                                       | Required | Default                             |
 | -------------------- | --------------------------------------------------------------------------------- | -------- | ----------------------------------- |
@@ -46,13 +47,13 @@ A Linux runner with Docker, Git, and jq is required, such as `ubuntu-latest`. Ch
 | `image`              | Container repository without a version tag; supports registry mirrors              | No       | `ghcr.io/trufflesecurity/trufflehog` |
 | `extra-args`         | Additional space-separated TruffleHog CLI arguments                                | No       | `""`                                |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 The action does not define custom outputs. TruffleHog emits GitHub Actions annotations and fails the step when a finding matches the selected result types or when scanning encounters an error. Failures propagate directly to the calling job.
 
 Callers that intentionally use `continue-on-error` can inspect the step's `outcome`.
 
-### 2.3. Permissions
+### 2.4. Permissions
 
 The calling workflow must grant the `GITHUB_TOKEN` permission required to check out the repository being scanned.
 

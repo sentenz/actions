@@ -4,8 +4,9 @@ Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -26,11 +27,11 @@ Policy-as-Code (PaC) testing using Conftest from Open Policy Agent (OPA).
 
 The [Conftest Action](./action.yml) runs to validate configuration files against Rego policies.
 
-**Action dependencies (`uses:`)**
+### 2.1. Dependencies
 
 No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input            | Description                                             | Required | Default                    |
 | ---------------- | ------------------------------------------------------- | -------- | -------------------------- |
@@ -43,7 +44,7 @@ No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 | `config-file`    | Path to a readable Conftest configuration file          | No       | ``                         |
 | `data-files`     | Space-separated paths to readable data files            | No       | ``                         |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 | Output      | Description                |
 | ----------- | -------------------------- |

@@ -4,9 +4,10 @@ Build OCI container images with Docker Buildx and optionally publish versioned a
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
-  - [2.3. Permissions](#23-permissions)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
+  - [2.4. Permissions](#24-permissions)
 - [3. Usage](#3-usage)
   - [3.1. Publish Using the Repository Name](#31-publish-using-the-repository-name)
   - [3.2. Publish Using a Custom Image Name](#32-publish-using-a-custom-image-name)
@@ -38,12 +39,12 @@ The [Docker Action](./action.yml) builds an OCI container image and optionally p
 
 A publishing run applies `latest` and the supplied version tag to the same build result. The action uses the calling repository name as the default package name, supports an optional package name under the same owner namespace, and provides multi-platform builds, build arguments, Dockerfile targets, per-image GitHub Actions cache storage, and build-only validation through `push: false`.
 
-### 2.1. Dependencies 
+### 2.1. Dependencies
 
 | Actions | Reference | Purpose |
 | --- | --- | --- |
 | [docker/setup-qemu-action](https://github.com/docker/setup-qemu-action) | `docker/setup-qemu-action` | Enable QEMU emulation for non-native target architectures when needed. |
-| [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action | `docker/setup-buildx-action`) | Configure Docker Buildx for building container images. |
+| [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action) | `docker/setup-buildx-action` | Configure Docker Buildx for building container images. |
 | [docker/login-action](https://github.com/docker/login-action) | `docker/login-action` | Authenticate to GHCR when image publishing is enabled. |
 | [docker/build-push-action](https://github.com/docker/build-push-action) | `docker/build-push-action` | Build the image and optionally publish its versioned and `latest` tags. |
 

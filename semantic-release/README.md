@@ -4,9 +4,10 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
-  - [2.3. Permissions](#23-permissions)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
+  - [2.4. Permissions](#24-permissions)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -33,13 +34,13 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 
 The [Semantic-Release Action](./action.yml) runs semantic-release with validated inputs, repository-level configuration support, and Conventional Commits defaults.
 
-**Action dependencies (`uses:`)**
+### 2.1. Dependencies
 
-| Dependency | `uses:` reference | Purpose |
+| Actions | Reference | Purpose |
 | --- | --- | --- |
-| [cycjimmy/semantic-release-action](https://github.com/cycjimmy/semantic-release-action) | `cycjimmy/semantic-release-action@ad51787758d9654d5a75150a89a6fa9b3ccef95e` (`v8.1.4`) | Run semantic-release to determine versions and publish releases. |
+| [cycjimmy/semantic-release-action](https://github.com/cycjimmy/semantic-release-action) | `cycjimmy/semantic-release-action` | Run semantic-release to determine versions and publish releases. |
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input                | Description                                                                                                       | Required | Default               |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- | --------------------- |
@@ -56,7 +57,7 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 | `tag-format`         | Override the tag format; empty preserves repository configuration                                                 | No       | ``                    |
 | `repository-url`     | Override the Git repository URL                                                                                   | No       | ``                    |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 | Output                      | Description                         |
 | --------------------------- | ----------------------------------- |
@@ -73,7 +74,7 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 | `last-release-git-head`     | Previous release Git commit         |
 | `last-release-git-tag`      | Previous release Git tag            |
 
-### 2.3. Permissions
+### 2.4. Permissions
 
 The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active semantic-release configuration.
 

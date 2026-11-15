@@ -5,9 +5,10 @@ require immediate signature verification. The action installs Cosign v3.1.4
 through a commit-pinned installer and uses ephemeral signing keys.
 
 - [1. Action](#1-action)
-  - [1.1. Inputs](#11-inputs)
-  - [1.2. Outputs](#12-outputs)
-  - [1.3. Permissions](#13-permissions)
+  - [1.1. Dependencies](#11-dependencies)
+  - [1.2. Inputs](#12-inputs)
+  - [1.3. Outputs](#13-outputs)
+  - [1.4. Permissions](#14-permissions)
 - [2. Usage](#2-usage)
   - [2.1. Images](#21-images)
   - [2.2. Files](#22-files)
@@ -32,13 +33,13 @@ requires a separately produced OCI attestation, such as `cosign attest`.
 Artifact production, release publication, and deployment verification belong
 to the calling workflow and consuming systems.
 
-**Action dependencies (`uses:`)**
+### 1.1. Dependencies
 
-| Dependency | `uses:` reference | Purpose |
+| Actions | Reference | Purpose |
 | --- | --- | --- |
-| [sigstore/cosign-installer](https://github.com/sigstore/cosign-installer) | `sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532` | Install Cosign `v3.1.4` for signing and verifying images or files. |
+| [sigstore/cosign-installer](https://github.com/sigstore/cosign-installer) | `sigstore/cosign-installer` | Install Cosign `v3.1.4` for signing and verifying images or files. |
 
-### 1.1. Inputs
+### 1.2. Inputs
 
 | Input | Default | Required | Purpose |
 | --- | --- | --- | --- |
@@ -56,7 +57,7 @@ Supply exactly one of `image` and `files`. Leave `signing-config` and
 empty file lists, missing or empty files, artifact symlinks, file inputs ending
 in `.sigstore.json`, and symlinked bundle destinations.
 
-### 1.2. Outputs
+### 1.3. Outputs
 
 The action declares no GitHub Actions step outputs. Subsequent steps consume
 these artifacts by path or registry reference.
@@ -71,7 +72,7 @@ The action checks that each expected bundle exists and is nonempty. Retain
 registry signatures and distribute files with their bundles for the artifact
 support lifetime. Configure upload destinations and retention in the caller.
 
-### 1.3. Permissions
+### 1.4. Permissions
 
 Grant permissions at job scope according to the signing mode and publication
 steps. Authenticate to the image registry before invoking image signing.

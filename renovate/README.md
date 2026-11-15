@@ -4,8 +4,9 @@ Run self-hosted Renovate with explicit authentication and repository selection.
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Authentication](#22-authentication)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Authentication](#23-authentication)
 - [3. Usage](#3-usage)
   - [3.1. Personal Access Token](#31-personal-access-token)
   - [3.2. GitHub App Installation Token](#32-github-app-installation-token)
@@ -28,13 +29,13 @@ Run self-hosted Renovate with explicit authentication and repository selection.
 
 The [Renovate Action](./action.yml) validates authentication, selects either the current repository or autodiscovery, and delegates execution to `renovatebot/github-action`.
 
-**Action dependencies (`uses:`)**
+### 2.1. Dependencies
 
-| Dependency | `uses:` reference | Purpose |
+| Actions | Reference | Purpose |
 | --- | --- | --- |
-| [renovatebot/github-action](https://github.com/renovatebot/github-action) | `renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc` (`v46.3.12`) | Run Renovate using the action's validated authentication and repository settings. |
+| [renovatebot/github-action](https://github.com/renovatebot/github-action) | `renovatebot/github-action` | Run Renovate using the action's validated authentication and repository settings. |
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input          | Description                                              | Required | Default  |
 | -------------- | -------------------------------------------------------- | -------- | -------- |
@@ -46,7 +47,7 @@ The [Renovate Action](./action.yml) validates authentication, selects either the
 
 The Renovate CLI version is delegated to `renovatebot/github-action` and follows the default provided by the pinned upstream action release.
 
-### 2.2. Authentication
+### 2.3. Authentication
 
 For GitHub, provide either:
 

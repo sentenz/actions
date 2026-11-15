@@ -4,9 +4,10 @@ Static analysis security scanning using Semgrep.
 
 - [1. Details](#1-details)
 - [2. Action](#2-action)
-  - [2.1. Inputs](#21-inputs)
-  - [2.2. Outputs](#22-outputs)
-  - [2.3. Permissions](#23-permissions)
+  - [2.1. Dependencies](#21-dependencies)
+  - [2.2. Inputs](#22-inputs)
+  - [2.3. Outputs](#23-outputs)
+  - [2.4. Permissions](#24-permissions)
 - [3. Usage](#3-usage)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
@@ -30,11 +31,11 @@ Static analysis security scanning using Semgrep.
 
 The [Semgrep Action](./action.yml) runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
 
-**Action dependencies (`uses:`)**
+### 2.1. Dependencies
 
 No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 
-### 2.1. Inputs
+### 2.2. Inputs
 
 | Input      | Description                                         | Required | Default           |
 | ---------- | --------------------------------------------------- | -------- | ----------------- |
@@ -45,13 +46,13 @@ No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 | `exclude`  | Patterns to exclude (comma-separated)               | No       | ``                |
 | `include`  | Patterns to include (comma-separated)               | No       | ``                |
 
-### 2.2. Outputs
+### 2.3. Outputs
 
 The action does not expose composite outputs. The previous `result`, `exit-code`, and `findings-count` outputs have been removed; scanner failures propagate directly as step failures.
 
 Set `sarif-output: semgrep-results.sarif` to write the complete SARIF report to the workspace, then upload that file with `github/codeql-action/upload-sarif`. The report is not captured in action outputs or printed as SARIF to the job log. See the [Semgrep workflow example](../examples/workflows/semgrep.yml).
 
-### 2.3. Permissions
+### 2.4. Permissions
 
 The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active Semgrep workflow configuration.
 
