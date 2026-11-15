@@ -76,13 +76,19 @@ The [Semantic-Release Action](./action.yml) runs semantic-release with validated
 
 ### 2.4. Permissions
 
-The calling workflow must grant the `GITHUB_TOKEN` permissions required by the active semantic-release configuration.
+The `github-token` input is forwarded to semantic-release as `GITHUB_TOKEN` for Git authentication and GitHub API operations. The **credential supplied to that input** must be able to create tags/releases and, when `@semantic-release/git` is enabled, push release commits.
 
-| Permission      | Access  | Description                                       |
-| --------------- | ------- | ------------------------------------------------- |
-| `contents`      | `write` | Allows `GITHUB_TOKEN` to create releases and tags |
-| `issues`        | `write` | Allows `GITHUB_TOKEN` to update issues            |
-| `pull-requests` | `write` | Allows `GITHUB_TOKEN` to update pull requests     |
+The caller's `permissions:` block controls **only the workflow-provided `GITHUB_TOKEN`**. It does **not** grant permissions to a Personal Access Token (PAT) or GitHub App installation token; those are configured independently.
+
+#### Workflow-provided `GITHUB_TOKEN`
+
+When passing `${{ secrets.GITHUB_TOKEN }}` (or using the action's default), grant permissions appropriate to the enabled plugins:
+
+| Permission | Access | When needed |
+| --- | --- | --- |
+| `contents` | `write` | Create Git tags, GitHub Releases, and release commits. |
+| `issues` | `write` | Comment on or update released issues with `@semantic-release/github`. |
+| `pull-requests` | `write` | Comment on or update related pull requests with `@semantic-release/github`. |
 
 ```yaml
 jobs:
@@ -93,7 +99,34 @@ jobs:
       pull-requests: write
 ```
 
+**Workflow-triggering limitation:** Tags or commits pushed using the workflow-provided `GITHUB_TOKEN` do not trigger subsequent `push` workflows. To automatically start tag-based publication workflows, authenticate the release push with a PAT or GitHub App installation token, or explicitly trigger the next workflow using `workflow_dispatch` / `repository_dispatch`. See [GitHub's workflow-triggering documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+
+#### Fine-grained Personal Access Token (PAT)
+
+For automatic downstream `push.tags` workflows, create a fine-grained PAT, restrict it to the release repository, and store it as an Actions repository secret such as `RELEASE_PAT`.
+
+| Repository permission | Access | When needed |
+| --- | --- | --- |
+| **Contents** | **Read and write** | Required to push release tags/commits and create GitHub Releases. |
+| Issues | Read and write | When the release configuration updates or comments on issues. |
+| Pull requests | Read and write | When the release configuration updates or comments on pull requests. |
+| Workflows | Read and write | Only if the release commit itself modifies GitHub Actions workflow files; **not** required merely to trigger existing workflows by pushing a tag. |
+
+GitHub grants fine-grained PATs `Metadata: read` automatically. For classic PATs, `repo` (private repositories) or `public_repo` (public repositories) is generally required instead. The token owner's access and the repository's branch/tag rulesets must also authorize release pushes. A PAT does not bypass branch protections automatically.
+
+When an external token is used, the job can keep the built-in `GITHUB_TOKEN` at `contents: read` for checkout; the external token supplies release write access. Prefer narrowly scoped, short-lived credentials and rotate stored PATs. See [semantic-release authentication guidance](https://semantic-release.gitbook.io/semantic-release/usage/ci-configuration).
+
+#### GitHub App installation token
+
+A GitHub App installation token is another option for automatic downstream `push` workflows. Install the App on the release repository and grant **Contents: read and write**, plus **Issues** and **Pull requests: read and write** when the release plugins need them. **Workflows: read and write** is only needed when the release process modifies workflow files, not for ordinary tag creation.
+
+GitHub App permissions are granted to the App installation and cannot be increased using the calling job's `permissions:` block. For repositories with protected release branches, configure the applicable ruleset permissions or an approved App bypass explicitly. Short-lived installation tokens are preferable to long-lived PATs where feasible.
+
 ## 3. Usage
+
+### Using the workflow-provided `GITHUB_TOKEN`
+
+Suitable when downstream `push` workflows are not required, or when they are dispatched explicitly:
 
 ```yaml
 jobs:
@@ -104,13 +137,37 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: sentenz/actions/semantic-release@latest
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### Using `RELEASE_PAT` for automatic tag-triggered workflows
+
+A tag created using `RELEASE_PAT` can trigger separately defined `on: push: tags:` workflows:
+
+```yaml
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: sentenz/actions/semantic-release@latest
+        with:
+          github-token: ${{ secrets.RELEASE_PAT }}
+```
+
+`persist-credentials: false` prevents the checkout step's built-in token credentials from taking precedence over the release credential. The composite action passes the supplied token to semantic-release for both Git and GitHub API authentication. If the release configuration commits generated files back to a protected branch, that push must also be allowed by the branch's protection rules.
+
 
 ## 4. Configuration
 
