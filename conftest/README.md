@@ -29,8 +29,6 @@ The [Conftest Action](./action.yml) runs to validate configuration files against
 
 ### 2.1. Dependencies
 
-No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
-
 | Images | Reference | Purpose |
 | --- | --- | --- |
 | [openpolicyagent/conftest](https://hub.docker.com/r/openpolicyagent/conftest) | `docker.io/openpolicyagent/conftest` | Run Conftest's Rego policy checks in a container. |
