@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Docker
-description: Build an OCI container image and optionally publish versioned and latest tags to GHCR
+description: Build OCI images with configurable provenance and SBOM attestations and optionally publish to GHCR
 author: sentenz
 
 branding:
@@ -47,6 +47,18 @@ inputs:
     description: Publish the image to GHCR; set to false for build-only validation
     required: false
     default: "true"
+  publish-latest:
+    description: Publish the latest tag alongside the versioned tag
+    required: false
+    default: "true"
+  provenance:
+    description: BuildKit provenance attestation (auto, true, false, mode=min, or mode=max)
+    required: false
+    default: auto
+  sbom:
+    description: Generate an image SBOM attestation (true or false)
+    required: false
+    default: "false"
 
 outputs:
   image:
@@ -75,6 +87,9 @@ runs:
         INPUT_PLATFORMS: ${{ inputs.platforms }}
         INPUT_TARGET: ${{ inputs.target }}
         INPUT_PUSH: ${{ inputs.push }}
+        INPUT_PUBLISH_LATEST: ${{ inputs.publish-latest }}
+        INPUT_PROVENANCE: ${{ inputs.provenance }}
+        INPUT_SBOM: ${{ inputs.sbom }}
         REPOSITORY: ${{ github.repository }}
         REPOSITORY_OWNER: ${{ github.repository_owner }}
         RUNNER_ARCH: ${{ runner.arch }}
@@ -94,6 +109,9 @@ runs:
         platforms="$(trim "${INPUT_PLATFORMS}")"
         target="$(trim "${INPUT_TARGET}")"
         push="$(trim "${INPUT_PUSH}")"
+        publish_latest="$(trim "${INPUT_PUBLISH_LATEST}")"
+        provenance="$(trim "${INPUT_PROVENANCE}")"
+        sbom="$(trim "${INPUT_SBOM}")"
         registry_username="$(trim "${INPUT_REGISTRY_USERNAME}")"
         image_name="$(trim "${INPUT_IMAGE_NAME}")"
 
@@ -131,6 +149,31 @@ runs:
           true | false) ;;
           *)
             echo "::error::push must be true or false"
+            exit 1
+            ;;
+        esac
+
+        case "${publish_latest}" in
+          true | false) ;;
+          *)
+            echo "::error::publish-latest must be true or false"
+            exit 1
+            ;;
+        esac
+
+        case "${provenance}" in
+          auto) provenance="" ;;
+          true | false | mode=min | mode=max) ;;
+          *)
+            echo "::error::provenance must be auto, true, false, mode=min, or mode=max"
+            exit 1
+            ;;
+        esac
+
+        case "${sbom}" in
+          true | false) ;;
+          *)
+            echo "::error::sbom must be true or false"
             exit 1
             ;;
         esac
@@ -196,11 +239,15 @@ runs:
           echo "qemu-platforms=${qemu_platforms}"
           echo "target=${target}"
           echo "push=${push}"
+          echo "provenance=${provenance}"
+          echo "sbom=${sbom}"
           echo "registry_username=${registry_username}"
         } >> "${GITHUB_OUTPUT}"
         {
           echo "tags<<EOF"
-          echo "${image}:latest"
+          if [[ "${publish_latest}" == "true" ]]; then
+            echo "${image}:latest"
+          fi
           echo "${image}:${version}"
           echo "EOF"
         } >> "${GITHUB_OUTPUT}"
@@ -233,5 +280,7 @@ runs:
         target: ${{ steps.metadata.outputs.target }}
         push: ${{ steps.metadata.outputs.push }}
         tags: ${{ steps.metadata.outputs.tags }}
+        provenance: ${{ steps.metadata.outputs.provenance }}
+        sbom: ${{ steps.metadata.outputs.sbom }}
         cache-from: type=gha,scope=${{ steps.metadata.outputs.image }}
         cache-to: type=gha,mode=max,scope=${{ steps.metadata.outputs.image }}
