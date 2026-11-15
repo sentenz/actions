@@ -56,9 +56,9 @@ inputs:
     required: false
     default: auto
   sbom:
-    description: Generate an image SBOM attestation (true or false)
+    description: Image SBOM attestation (auto, true, or false)
     required: false
-    default: "false"
+    default: auto
   attests:
     description: Optional newline-delimited advanced BuildKit attestation parameters
     required: false
@@ -175,9 +175,10 @@ runs:
         esac
 
         case "${sbom}" in
+          auto) sbom="" ;;
           true | false) ;;
           *)
-            echo "::error::sbom must be true or false"
+            echo "::error::sbom must be auto, true, or false"
             exit 1
             ;;
         esac
