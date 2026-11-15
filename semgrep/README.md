@@ -30,6 +30,10 @@ Static analysis security scanning using Semgrep.
 
 The [Semgrep Action](./action.yml) runs Semgrep for static application security testing (SAST), detecting bugs, security vulnerabilities, and anti-patterns in code.
 
+**Action dependencies (`uses:`)**
+
+No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
+
 ### 2.1. Inputs
 
 | Input      | Description                                         | Required | Default           |

@@ -33,6 +33,12 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 
 The [Semantic-Release Action](./action.yml) runs semantic-release with validated inputs, repository-level configuration support, and Conventional Commits defaults.
 
+**Action dependencies (`uses:`)**
+
+| Dependency | `uses:` reference | Purpose |
+| --- | --- | --- |
+| [cycjimmy/semantic-release-action](https://github.com/cycjimmy/semantic-release-action) | `cycjimmy/semantic-release-action@ad51787758d9654d5a75150a89a6fa9b3ccef95e` (`v8.1.4`) | Run semantic-release to determine versions and publish releases. |
+
 ### 2.1. Inputs
 
 | Input                | Description                                                                                                       | Required | Default               |

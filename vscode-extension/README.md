@@ -39,6 +39,10 @@ packages the extension with `@vscode/vsce`, and optionally publishes the generat
 Packaging and publishing use the same VSIX file. The action does not install project dependencies; dependency
 installation, tests, compilation, and bundling remain the responsibility of the calling workflow.
 
+**Action dependencies (`uses:`)**
+
+No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
+
 ### 2.1. Inputs
 
 | Input               | Description                                                                                           | Required | Default |

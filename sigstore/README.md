@@ -32,6 +32,12 @@ requires a separately produced OCI attestation, such as `cosign attest`.
 Artifact production, release publication, and deployment verification belong
 to the calling workflow and consuming systems.
 
+**Action dependencies (`uses:`)**
+
+| Dependency | `uses:` reference | Purpose |
+| --- | --- | --- |
+| [sigstore/cosign-installer](https://github.com/sigstore/cosign-installer) | `sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532` | Install Cosign `v3.1.4` for signing and verifying images or files. |
+
 ### 1.1. Inputs
 
 | Input | Default | Required | Purpose |

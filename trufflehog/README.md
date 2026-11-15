@@ -29,6 +29,12 @@ The [TruffleHog Action](./action.yml) wraps the SHA-pinned upstream GitHub actio
 
 A Linux runner with Docker, Git, and jq is required, such as `ubuntu-latest`. Check out the repository before invoking the action and use `fetch-depth: 0` so the scan range is available.
 
+**Action dependencies (`uses:`)**
+
+| Dependency | `uses:` reference | Purpose |
+| --- | --- | --- |
+| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) | `trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb` (`v3.99.8`) | Scan Git history for leaked secrets using the configured commit range. |
+
 ### 2.1. Inputs
 
 | Input                | Description                                                                       | Required | Default                             |

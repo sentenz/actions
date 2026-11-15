@@ -23,6 +23,12 @@ Linting for Rego policies using [Regal](https://github.com/StyraInc/regal).
 
 The [Regal Action](./action.yml) runs Regal to lint Rego policy files, ensuring best practices and coding standards are enforced.
 
+**Action dependencies (`uses:`)**
+
+| Dependency | `uses:` reference | Purpose |
+| --- | --- | --- |
+| [open-policy-agent/setup-regal](https://github.com/open-policy-agent/setup-regal) | `open-policy-agent/setup-regal@761188c3b435761fa254beca508a44875619648f` (`v2.0.0`) | Install Regal for linting Rego policy files. |
+
 ### 2.1. Inputs
 
 | Input           | Description                                          | Required | Default    |

@@ -28,6 +28,12 @@ Run self-hosted Renovate with explicit authentication and repository selection.
 
 The [Renovate Action](./action.yml) validates authentication, selects either the current repository or autodiscovery, and delegates execution to `renovatebot/github-action`.
 
+**Action dependencies (`uses:`)**
+
+| Dependency | `uses:` reference | Purpose |
+| --- | --- | --- |
+| [renovatebot/github-action](https://github.com/renovatebot/github-action) | `renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc` (`v46.3.12`) | Run Renovate using the action's validated authentication and repository settings. |
+
 ### 2.1. Inputs
 
 | Input          | Description                                              | Required | Default  |

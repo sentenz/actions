@@ -42,6 +42,10 @@ Comprehensive security scanning with Trivy for vulnerability detection, SBOM gen
 
 The [Trivy Action](./action.yml) provides comprehensive security scanning capabilities including vulnerability detection, SBOM generation and scanning (SPDX and CycloneDX formats), license compliance checking, and more.
 
+**Action dependencies (`uses:`)**
+
+No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
+
 ### 2.1. Inputs
 
 | Input              | Description                                                                         | Required | Default         |
