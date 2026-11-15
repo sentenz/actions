@@ -34,8 +34,6 @@ Automated semantic versioning and releases using [semantic-release](https://gith
 
 ## 2. Action
 
-The [Semantic-Release Action](./action.yml) runs semantic-release with validated inputs, repository-level configuration support, and Conventional Commits defaults.
-
 ### 2.1. Dependencies
 
 | Actions | Reference | Purpose |
@@ -101,7 +99,10 @@ jobs:
       pull-requests: write
 ```
 
-**Workflow-triggering limitation:** Tags or commits pushed using the workflow-provided `GITHUB_TOKEN` do not trigger subsequent `push` workflows. To automatically start tag-based publication workflows, authenticate the release push with a PAT or GitHub App installation token, or explicitly trigger the next workflow using `workflow_dispatch` / `repository_dispatch`. See [GitHub's workflow-triggering documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+> [!NOTE]
+> Workflow-triggering Limitation
+>
+> Tags or commits pushed using the workflow-provided `GITHUB_TOKEN` do not trigger subsequent `push` workflows. To automatically start tag-based publication workflows, authenticate the release push with a PAT or GitHub App installation token, or explicitly trigger the next workflow using `workflow_dispatch` / `repository_dispatch`. See [GitHub's workflow-triggering documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
 #### Fine-grained Personal Access Token (PAT)
 
