@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.7.0](https://github.com/sentenz/actions/compare/1.6.1...1.7.0) (2026-11-15)
+
+
+### Features
+
+* **docker:** configure BuildKit provenance and SBOM attestations ([#151](https://github.com/sentenz/actions/issues/151)) ([df6abdf](https://github.com/sentenz/actions/commit/df6abdf4c93db5d926177c074f25362775658ca3))
+
 ## [1.6.1](https://github.com/sentenz/actions/compare/1.6.0...1.6.1) (2026-11-14)
 
 
