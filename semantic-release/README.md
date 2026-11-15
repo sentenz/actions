@@ -9,6 +9,8 @@ Automated semantic versioning and releases using [semantic-release](https://gith
   - [2.3. Outputs](#23-outputs)
   - [2.4. Permissions](#24-permissions)
 - [3. Usage](#3-usage)
+  - [3.1. Using the workflow-provided `GITHUB_TOKEN`](#31-using-the-workflow-provided-github_token)
+  - [3.2. Using `RELEASE_PAT` for automatic tag-triggered workflows](#32-using-release_pat-for-automatic-tag-triggered-workflows)
 - [4. Configuration](#4-configuration)
   - [4.1. Internal Configuration](#41-internal-configuration)
   - [4.2. External Configuration](#42-external-configuration)
@@ -124,7 +126,7 @@ GitHub App permissions are granted to the App installation and cannot be increas
 
 ## 3. Usage
 
-### Using the workflow-provided `GITHUB_TOKEN`
+### 3.1. Using the workflow-provided `GITHUB_TOKEN`
 
 Suitable when downstream `push` workflows are not required, or when they are dispatched explicitly:
 
@@ -146,7 +148,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### Using `RELEASE_PAT` for automatic tag-triggered workflows
+### 3.2. Using `RELEASE_PAT` for automatic tag-triggered workflows
 
 A tag created using `RELEASE_PAT` can trigger separately defined `on: push: tags:` workflows:
 
@@ -167,7 +169,6 @@ jobs:
 ```
 
 `persist-credentials: false` prevents the checkout step's built-in token credentials from taking precedence over the release credential. The composite action passes the supplied token to semantic-release for both Git and GitHub API authentication. If the release configuration commits generated files back to a protected branch, that push must also be allowed by the branch's protection rules.
-
 
 ## 4. Configuration
 
