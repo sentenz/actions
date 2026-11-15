@@ -36,6 +36,10 @@ A Linux runner with Docker, Git, and jq is required, such as `ubuntu-latest`. Ch
 | --- | --- | --- |
 | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) | `trufflesecurity/trufflehog` | Scan Git history for leaked secrets using the configured commit range. |
 
+| Images | Reference | Purpose |
+| --- | --- | --- |
+| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog/pkgs/container/trufflehog) | `ghcr.io/trufflesecurity/trufflehog` | Supply the container image used by the upstream TruffleHog action for secret scanning. |
+
 ### 2.2. Inputs
 
 | Input                | Description                                                                       | Required | Default                             |

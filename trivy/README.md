@@ -47,6 +47,10 @@ The [Trivy Action](./action.yml) provides comprehensive security scanning capabi
 
 No direct `uses:` dependencies are declared in [`action.yml`](./action.yml).
 
+| Images | Reference | Purpose |
+| --- | --- | --- |
+| [aquasec/trivy](https://hub.docker.com/r/aquasec/trivy) | `docker.io/aquasec/trivy` | Run Trivy security scans and SBOM operations in a container. |
+
 ### 2.2. Inputs
 
 | Input              | Description                                                                         | Required | Default         |
