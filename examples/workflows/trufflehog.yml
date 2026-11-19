@@ -14,6 +14,7 @@ jobs:
   trufflehog:
     name: TruffleHog Action
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -24,7 +25,6 @@ jobs:
           persist-credentials: false
 
       - name: Run Secret Scanning
-        uses: sentenz/actions/trufflehog@c600775dda21753455e72c46d37d32b452c35817 # 1.5.0
+        uses: sentenz/actions/trufflehog@23361c53dc10a0980b449d78bb4481e4997da7d3 # 1.7.1
         with:
           path: ./
-          extra-args: --debug

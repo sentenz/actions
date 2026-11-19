@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Use this example with a Dockerfile at the root of the build context.
+name: Docker Image Signing
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  # Select an existing tag when dispatching a recovery run.
+  workflow_dispatch:
+
+concurrency:
+  group: docker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  build:
+    name: Docker Action - Build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Docker Build
+        uses: sentenz/actions/docker@23361c53dc10a0980b449d78bb4481e4997da7d3 # 1.7.1
+        with:
+          version: pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          platforms: linux/amd64,linux/arm64
+          push: false
+
+  publish:
+    name: Docker Action - Publish
+    if: github.ref_type == 'tag' && github.event.deleted != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Publish Attested Image
+        id: docker-build
+        uses: sentenz/actions/docker@23361c53dc10a0980b449d78bb4481e4997da7d3 # 1.7.1
+        with:
+          version: ${{ github.ref_name }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          publish-latest: false
+          provenance: mode=max
+          sbom: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sign and Verify
+        uses: sentenz/actions/sigstore@23361c53dc10a0980b449d78bb4481e4997da7d3 # 1.7.1
+        with:
+          image: ${{ steps.docker-build.outputs.image }}@${{ steps.docker-build.outputs.digest }}
+          identity: ${{ github.server_url }}/${{ github.workflow_ref }}
+
+      - name: Retain Verification Bundle
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-signature-${{ github.run_id }}-${{ github.run_attempt }}
+          path: image.sigstore.json
+          if-no-files-found: error
+          retention-days: 90
