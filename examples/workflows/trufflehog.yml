@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   trufflehog:
-    name: TruffleHog
+    name: TruffleHog Action
     runs-on: ubuntu-latest
     permissions:
       contents: read
