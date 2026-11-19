@@ -11,7 +11,7 @@ on:
       - "**/*.yml"
       - "**/*.json"
       - "**/*.toml"
-      - "**/policy/**"
+      - "**/*.rego"
   pull_request:
     branches:
       - main
@@ -20,7 +20,7 @@ on:
       - "**/*.yml"
       - "**/*.json"
       - "**/*.toml"
-      - "**/policy/**"
+      - "**/*.rego"
 
 permissions: {}
 
@@ -37,9 +37,8 @@ jobs:
           persist-credentials: false
 
       - name: Run Conftest
-        uses: sentenz/actions/conftest@48302ad4cbb2e77116d2666bbad2821e74dd5ada # 1.4.8
+        uses: sentenz/actions/conftest@23361c53dc10a0980b449d78bb4481e4997da7d3 # 1.7.1
         with:
-          policy-path: "./tests/policy"
-          config-file: "./conftest.toml"
+          policy-path: ${{ vars.POLICY_PATH || 'policy' }}
           fail-on-warn: "true"
           all-namespaces: "false"

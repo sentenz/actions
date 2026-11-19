@@ -6,9 +6,6 @@ on:
   push:
     branches:
       - main
-      - next
-      - beta
-      - alpha
 
 permissions: {}
 
@@ -21,12 +18,7 @@ jobs:
     name: Semantic-Release Action
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    outputs:
-      new-release-published: ${{ steps.release.outputs.new-release-published }}
-      new-release-version: ${{ steps.release.outputs.new-release-version }}
+      contents: read
     steps:
       - name: Checkout (full history)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -35,23 +27,13 @@ jobs:
           persist-credentials: false
 
       - name: Run Semantic Release
-        id: release
-        uses: sentenz/actions/semantic-release@48302ad4cbb2e77116d2666bbad2821e74dd5ada # 1.4.8
+        uses: sentenz/actions/semantic-release@23361c53dc10a0980b449d78bb4481e4997da7d3 # 1.7.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Use a release PAT so tag pushes start trivy-sbom-sigstore.yml.
+          # Configure @semantic-release/git to omit [skip ci] from tagged commits.
+          github-token: ${{ secrets.RELEASE_TOKEN }}
           semantic-version: "25.0.3"
           extra-plugins: |
             @semantic-release/changelog@^6
             @semantic-release/git@^10
-            @semantic-release/npm@^13.1.1
             conventional-changelog-conventionalcommits@9.3.1
-
-  trigger:
-    name: Publish Release SBOMs
-    needs: semantic-release
-    if: always() && needs.semantic-release.outputs.new-release-published == 'true'
-    permissions:
-      contents: write
-    uses: ./.github/workflows/sbom.yml
-    with:
-      version: ${{ needs.semantic-release.outputs.new-release-version }}
