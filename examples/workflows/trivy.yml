@@ -10,13 +10,14 @@ on:
     branches:
       - main
   release:
-    types: [created]
+    types:
+      - created
 
 permissions: {}
 
 jobs:
   trivy-fs-scan:
-    name: Trivy Action | Filesystem Scan
+    name: Trivy Action - Filesystem Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,7 +28,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Scan Trivy Filesystem
+      - name: Run Trivy Filesystem Scan
         uses: sentenz/actions/trivy@9f37c086ab1c2d31687e731bfbc6184e0b882a7f # 1.4.10
         with:
           scan-type: fs
@@ -43,7 +44,7 @@ jobs:
         continue-on-error: false
 
   trivy-config-scan:
-    name: Trivy Action | Configuration Scan
+    name: Trivy Action - Configuration Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,7 +53,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Scan Trivy Configuration
+      - name: Run Trivy Config Scan
         uses: sentenz/actions/trivy@9f37c086ab1c2d31687e731bfbc6184e0b882a7f # 1.4.10
         with:
           scan-type: config
@@ -61,7 +62,7 @@ jobs:
           output: trivy-iac.sarif
           severity: HIGH,CRITICAL
 
-      - name: Upload Trivy Configuration Scan
+      - name: Upload Trivy Config Scan
         if: always()
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
@@ -69,7 +70,7 @@ jobs:
         continue-on-error: false
 
   trivy-license-compliance:
-    name: Trivy Action | License Compliance
+    name: Trivy Action - License Compliance
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,7 +80,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Scan License Compliance
+      - name: Run License Compliance Scan
         uses: sentenz/actions/trivy@9f37c086ab1c2d31687e731bfbc6184e0b882a7f # 1.4.10
         with:
           scan-type: fs

@@ -12,13 +12,13 @@ on:
 
 jobs:
   sbom:
-    name: SBOM Action
+    name: Generate, Scan and Publish SBOMs
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: write
     steps:
-      - name: Checkout Release
+      - name: Checkout Release Tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.version }}
@@ -54,7 +54,7 @@ jobs:
           scan-target: sbom.cdx.json
         continue-on-error: false
 
-      - name: Publish SBOM Artifacts
+      - name: Publish Release Assets
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ inputs.version }}

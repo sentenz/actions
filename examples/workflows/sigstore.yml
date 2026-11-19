@@ -8,7 +8,8 @@ name: Sigstore
 
 on:
   release:
-    types: [published]
+    types:
+      - published
   workflow_dispatch:
     inputs:
       version:
@@ -24,20 +25,20 @@ concurrency:
 
 jobs:
   sign:
-    name: Sign and verify release archives
+    name: Sigstore Action - Release Archives
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
     steps:
-      - name: Checkout release tag
+      - name: Checkout Release Tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: refs/tags/${{ github.event.release.tag_name || inputs.version }}
           persist-credentials: false
 
-      - name: Create release archives
+      - name: Create Release Archives
         shell: bash
         run: |
           set -euo pipefail
@@ -46,7 +47,7 @@ jobs:
           git archive --format=zip --prefix=source/ HEAD > dist/source.zip
 
       # The remote action is independent of the checked-out release tag.
-      - name: Sign and verify release archives
+      - name: Sign and Verify Archives
         uses: sentenz/actions/sigstore@5f023a6be46d6be053a2fd456842d838066a1c2a
         with:
           identity: https://github.com/${{ github.workflow_ref }}
@@ -54,7 +55,7 @@ jobs:
             dist/source.tar.gz
             dist/source.zip
 
-      - name: Retain archives and verification bundles
+      - name: Retain Archives and Verification Bundles
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: signed-source-${{ github.run_id }}-${{ github.run_attempt }}

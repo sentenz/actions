@@ -7,24 +7,25 @@ on:
     branches:
       - main
   release:
-    types: [published]
+    types:
+      - published
 
 permissions: {}
 
 jobs:
   validate:
-    name: Docker Validate
-    permissions:
-      contents: read
+    name: Docker Action - Build
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Validate container build
+      - name: Run Docker Build
         uses: sentenz/actions/docker@ed8d725668082b21a56c2d043b6c7b32b5da1c63 # 1.4.5
         with:
           version: 0.0.0-pr-${{ github.event.pull_request.number }}
@@ -33,7 +34,7 @@ jobs:
           push: false
 
   publish:
-    name: Docker Publish
+    name: Docker Action - Publish
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
