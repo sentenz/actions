@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1](https://github.com/sentenz/actions/compare/1.7.0...1.7.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **actions:** update github composite actions ([#148](https://github.com/sentenz/actions/issues/148)) ([35a9192](https://github.com/sentenz/actions/commit/35a91923ef78c70862fb2371934853041ed9875d))
+* **deps:** bump github/codeql-action/upload-sarif ([#139](https://github.com/sentenz/actions/issues/139)) ([108b884](https://github.com/sentenz/actions/commit/108b88491b2b00be75daacef9e09de3b436aa86d))
+
 # [1.7.0](https://github.com/sentenz/actions/compare/1.6.1...1.7.0) (2026-11-15)
 
 
