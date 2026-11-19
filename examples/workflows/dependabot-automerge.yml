@@ -18,13 +18,13 @@ concurrency:
 jobs:
   auto-merge:
     name: Auto-merge Dependabot patch updates
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
     # Verify the PR's origin, not only the actor that triggered this run.
     if: >-
       github.event.pull_request.user.login == 'dependabot[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.commits == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
       pull-requests: write
@@ -35,7 +35,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Approve and enable auto-merge for the verified patch update
+      - name: Approve and auto-merge verified patch update
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
         env:
           GH_TOKEN: ${{ github.token }}
