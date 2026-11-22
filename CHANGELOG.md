@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/sentenz/actions/compare/1.8.0...1.8.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* **actions:** add optional `gfm` flavor with empty default in zensical ([#161](https://github.com/sentenz/actions/issues/161)) ([65353ef](https://github.com/sentenz/actions/commit/65353eff8704ffdfea5f96624c6b64e0ea4d74d5))
+
 # [1.8.0](https://github.com/sentenz/actions/compare/1.7.1...1.8.0) (2026-11-22)
 
 
