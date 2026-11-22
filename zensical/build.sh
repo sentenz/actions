@@ -6,9 +6,9 @@ export PYTHONPATH="/opt/zensical-extensions${PYTHONPATH:+:${PYTHONPATH}}"
 export PATH="${HOME}/.local/bin:${PATH}"
 
 case "${FLAVOR:-zensical}" in
-  zensical|gdm) ;;
+  zensical|gfm) ;;
   *)
-    echo "Unsupported Markdown flavor: ${FLAVOR}. Expected zensical or gdm." >&2
+    echo "Unsupported Markdown flavor: ${FLAVOR}. Expected zensical or gfm." >&2
     exit 2
     ;;
 esac
@@ -17,7 +17,7 @@ esac
 # sentenz_gfm, even when the flavor input is omitted.
 python -m pip install --user --disable-pip-version-check -r /opt/zensical-extensions/requirements-gfm.txt
 
-if [ "${FLAVOR:-zensical}" = "gdm" ]; then
+if [ "${FLAVOR:-zensical}" = "gfm" ]; then
   config="$(python /opt/zensical-extensions/enable_gfm.py)"
   trap 'rm -f "${config}"' EXIT
   python -m zensical build --clean --config-file "${config}"
