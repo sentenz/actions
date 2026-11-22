@@ -18,17 +18,20 @@ Build documentation with [Zensical](https://zensical.org/) and upload the genera
 - [Zensical](https://zensical.org/)
   > Static site generator used to build project documentation.
 
+- [GitHub Flavored Markdown](https://github.github.com/gfm/)
+  > CommonMark dialect with extensions for tables, task lists, strikethrough, autolinks, and raw HTML filtering.
+
 - [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
   > GitHub's hosting service deploys the site from an artifact produced by a workflow.
 
 - [Zensical Test](../.github/workflows/zensical-test.yml)
-  > Integration workflow that builds the Convention and Skills documentation and a standalone site using the bundled CLI.
+  > Integration workflow that builds the Convention and Skills documentation, exercises the bundled CLI, and checks GFM in the published HTML artifact.
 
 ## 2. Action
 
 The [Zensical Action](./action.yml) installs project dependencies, runs documentation tests, builds the site, and uploads the generated files. The defaults follow the project layouts in [sentenz/convention](https://github.com/sentenz/convention) and [sentenz/skills](https://github.com/sentenz/skills).
 
-Check out the site repository on a Linux runner with Docker, such as `ubuntu-latest`, before invoking the action. All input paths are relative to the checkout root.
+Check out the site repository on a Linux runner with Docker, such as `ubuntu-latest`, before invoking the action. Relative input paths resolve from the checkout root.
 
 ### 2.1. Dependencies
 
@@ -75,7 +78,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: sentenz/actions/zensical@02a5db1f63690448e3f4443a86ab2308499666e3
+      - uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
 ```
 
 Select **GitHub Actions** under **Settings → Pages → Build and deployment → Source** in the site repository. Copy the complete [publishing workflow](../examples/workflows/zensical.yml) to `.github/workflows/zensical.yml`. It builds pull requests and deploys successful builds from pushes or manual runs on `main`. The deployment job uses the `github-pages` environment and serializes deployments through the `pages` concurrency group.
@@ -91,13 +94,35 @@ The action pins the container image by digest in [action.yml](./action.yml). It 
 For a standalone project with no extra dependencies or tests, use the CLI bundled in the image and upload Zensical's default `site/` directory.
 
 ```yaml
-- uses: sentenz/actions/zensical@02a5db1f63690448e3f4443a86ab2308499666e3
+- uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
   with:
     requirements-file: ''
     tests-directory: ''
     build-script: ''
     site-directory: site
 ```
+
+To render **GitHub Flavored Markdown**, add `sentenz_gfm = {}` to the site's Markdown extensions in `zensical.toml`.
+
+```toml
+[project.markdown_extensions]
+sentenz_gfm = {}
+```
+
+The renderer uses Comrak for GFM syntax, including nested lists, fenced code, pipe tables, task lists, strikethrough, extended autolinks, and tag filtering. It also renders GitHub alerts such as `> [!NOTE]` as Zensical admonitions. Zensical continues to generate heading anchors, the table of contents, and site-relative links. Projects using Python-Markdown-specific source syntax can keep their existing renderer by leaving `sentenz_gfm` out of the configuration.
+
+For a standalone GFM site, use the bundled dependency file in the build step.
+
+```yaml
+- uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
+  with:
+    requirements-file: /opt/zensical-extensions/requirements-gfm.txt
+    tests-directory: ''
+    build-script: ''
+    site-directory: site
+```
+
+For a project with its own requirements file, include the dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt) alongside the project's existing dependencies. The container makes the [renderer](./extensions/sentenz_gfm.py) available to both the CLI and project build scripts. For a local preview, install the same dependencies and add this repository's `zensical/extensions` directory to `PYTHONPATH` before starting Zensical.
 
 To use a registry mirror, set `image` to the full image reference, for example `registry.example.org/docs/zensical:0.1.0`. Keep any Zensical version pin in the requirements file aligned with the selected image. Set `site-directory` to the output directory configured by the project. When overriding `artifact-name`, pass the same name to `actions/deploy-pages` in the deployment job.
 
