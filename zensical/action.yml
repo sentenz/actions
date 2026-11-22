@@ -8,9 +8,10 @@ branding:
   color: blue
 
 inputs:
-  image-version:
-    description: Official zensical/zensical image tag, optionally followed by a digest
-    default: 0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
+  image:
+    description: Zensical Docker image with version tag and digest
+    required: false
+    default: docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
   requirements-file:
     description: Pip requirements for the documentation project (empty uses the image as supplied)
     default: requirements-docs.txt
@@ -33,7 +34,7 @@ runs:
     - name: Test and build in the Zensical container
       shell: bash
       env:
-        IMAGE_VERSION: ${{ inputs.image-version }}
+        INPUT_IMAGE: ${{ inputs.image }}
         REQUIREMENTS_FILE: ${{ inputs.requirements-file }}
         TESTS_DIRECTORY: ${{ inputs.tests-directory }}
         BUILD_SCRIPT: ${{ inputs.build-script }}
@@ -42,7 +43,7 @@ runs:
           --user "$(id -u):$(id -g)" \
           --volume "${GITHUB_WORKSPACE}:/docs" --workdir /docs \
           --env HOME=/tmp --env REQUIREMENTS_FILE --env TESTS_DIRECTORY --env BUILD_SCRIPT \
-          --entrypoint /bin/sh "docker.io/zensical/zensical:${IMAGE_VERSION}" \
+          --entrypoint /bin/sh -- "${INPUT_IMAGE}" \
           -eu < "${GITHUB_ACTION_PATH}/build.sh"
 
     - name: Check Pages entry point

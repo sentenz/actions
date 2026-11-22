@@ -61,6 +61,7 @@ jobs:
         if: matrix.project == 'plain'
         uses: ./.actions/zensical
         with:
+          image: docker.io/zensical/zensical@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
           requirements-file: ''
           tests-directory: ''
           build-script: ''
