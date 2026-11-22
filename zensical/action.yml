@@ -13,7 +13,7 @@ inputs:
     required: false
     default: docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
   flavor:
-    description: Markdown flavor (zensical or gdm for GitHub Flavored Markdown)
+    description: Markdown flavor (zensical or gfm for GitHub Flavored Markdown)
     required: false
     default: zensical
   site-directory:
