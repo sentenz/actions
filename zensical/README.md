@@ -48,7 +48,7 @@ Check out the site repository on a Linux runner with Docker, such as `ubuntu-lat
 | Input | Description | Required | Default |
 | --- | --- | --- | --- |
 | `image` | Full Zensical Docker image reference, including registry and repository | No | `docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70` |
-| `flavor` | Markdown flavor: `zensical` (project default) or `gfm` (enable GFM rendering) | No | `zensical` |
+| `flavor` | Optional Markdown flavor: empty for standard Zensical rendering; `gfm` to enable GitHub Flavored Markdown | No | Empty (`''`) |
 | `site-directory` | Generated site directory containing a nonempty `index.html` | No | `public` |
 | `artifact-name` | Name of the uploaded Pages artifact | No | `github-pages` |
 
@@ -87,7 +87,7 @@ Select **GitHub Actions** under **Settings → Pages → Build and deployment �
 
 ### 4.1. Internal Configuration
 
-The action pins the container image by digest in [action.yml](./action.yml). It mounts the checkout at `/docs` and runs the [build script](./build.sh) as the runner user. The script installs the dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt). With `flavor: zensical`, it builds from the project's existing configuration. With `flavor: gfm`, it enables the bundled GFM renderer in a temporary `zensical.toml` and builds using that file, without modifying the checkout's configuration. The upload starts after the build succeeds and `site-directory` contains a nonempty `index.html`.
+The action pins the container image by digest in [action.yml](./action.yml). It mounts the checkout at `/docs` and runs the [build script](./build.sh) as the runner user. The script installs the dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt). When `flavor` is omitted or empty, it builds from the project's existing Zensical configuration. With `flavor: gfm`, it enables the bundled GFM renderer in a temporary `zensical.toml` and builds using that file, without modifying the checkout's configuration. The upload starts after the build succeeds and `site-directory` contains a nonempty `index.html`.
 
 ### 4.2. External Configuration
 
@@ -99,7 +99,7 @@ For a standalone project, set `site-directory` to Zensical's default output dire
     site-directory: site
 ```
 
-To render **GitHub Flavored Markdown (GFM)**, select the action's `gfm` flavor. A `zensical.toml` file must be present at the checkout root.
+The action uses standard Zensical rendering when `flavor` is omitted (or set to `''`). To render **GitHub Flavored Markdown (GFM)**, select `flavor: gfm`. A `zensical.toml` file must be present at the checkout root.
 
 ```yaml
 - uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
