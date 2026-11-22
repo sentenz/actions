@@ -46,6 +46,7 @@ jobs:
         uses: ./.actions/zensical
         with:
           site-directory: site
+          flavor: ${{ matrix.project == 'gfm' && 'gdm' || 'zensical' }}
           artifact-name: pages-${{ matrix.project }}
 
       - name: Install GFM verifier dependency
