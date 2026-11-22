@@ -47,6 +47,7 @@ jobs:
         with:
           site-directory: site
           artifact-name: pages-${{ matrix.project }}
+          gfm: ${{ matrix.project == 'gfm' }}
 
       - name: Install GFM verifier dependency
         if: matrix.project == 'gfm'
