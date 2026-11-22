@@ -53,6 +53,20 @@ jobs:
           done
           echo "All action.yml files are valid!"
 
+      - name: Check Zensical README format against TruffleHog
+        shell: bash
+        run: |
+          readme_outline() {
+            awk '
+              /^```/ { fenced = !fenced; next }
+              fenced { next }
+              /^##+ / || /^ *- \[[0-9]+\./ { print }
+              /^\| (Actions|Images|Input|Permission) +\|/ { gsub(/ +\|/, " |"); print }
+            ' "$1"
+          }
+          diff -u --label trufflehog/README.md --label zensical/README.md \
+            <(readme_outline trufflehog/README.md) <(readme_outline zensical/README.md)
+
   lint:
     name: Yamllint
     runs-on: ubuntu-latest
