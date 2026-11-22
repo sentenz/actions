@@ -22,7 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [plain, gfm]
+        include:
+          - project: plain
+            flavor: ''
+          - project: gfm
+            flavor: gfm
     timeout-minutes: 10
     steps:
       - name: Checkout action under test
@@ -46,7 +50,7 @@ jobs:
         uses: ./.actions/zensical
         with:
           site-directory: site
-          flavor: ${{ matrix.project == 'gfm' || '' }}
+          flavor: ${{ matrix.flavor }}
           artifact-name: pages-${{ matrix.project }}
 
       - name: Install GFM verifier dependency
