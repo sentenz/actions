@@ -29,7 +29,7 @@ Build documentation with [Zensical](https://zensical.org/) and upload the genera
 
 ## 2. Action
 
-The [Zensical Action](./action.yml) installs the bundled GFM renderer dependencies, builds the site using the Zensical CLI, and uploads the generated files. Project-specific preprocessing and tests belong in the calling workflow.
+The [Zensical Action](./action.yml) optionally installs the bundled GFM renderer dependencies when `gfm` is enabled, builds the site using the Zensical CLI, and uploads the generated files. Project-specific preprocessing and tests belong in the calling workflow.
 
 Check out the site repository on a Linux runner with Docker, such as `ubuntu-latest`, before invoking the action. The `site-directory` input is relative to the checkout root.
 
@@ -48,6 +48,7 @@ Check out the site repository on a Linux runner with Docker, such as `ubuntu-lat
 | Input | Description | Required | Default |
 | --- | --- | --- | --- |
 | `image` | Full Zensical Docker image reference, including registry and repository | No | `docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70` |
+| `gfm` | Install dependencies for the optional GitHub Flavored Markdown renderer (`true` or `false`) | No | `false` |
 | `site-directory` | Generated site directory containing a nonempty `index.html` | No | `public` |
 | `artifact-name` | Name of the uploaded Pages artifact | No | `github-pages` |
 
@@ -86,7 +87,7 @@ Select **GitHub Actions** under **Settings → Pages → Build and deployment �
 
 ### 4.1. Internal Configuration
 
-The action pins the container image by digest in [action.yml](./action.yml). It mounts the checkout at `/docs` and runs the [build script](./build.sh) as the runner user. The script installs the GFM dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt) and invokes `python -m zensical build --clean`. The upload starts after the build succeeds and `site-directory` contains a nonempty `index.html`.
+The action pins the container image by digest in [action.yml](./action.yml). It mounts the checkout at `/docs` and runs the [build script](./build.sh) as the runner user. When `gfm: 'true'` is set, the script installs dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt); otherwise, it skips that installation. The script then invokes `python -m zensical build --clean`. The upload starts after the build succeeds and `site-directory` contains a nonempty `index.html`.
 
 ### 4.2. External Configuration
 
@@ -98,7 +99,14 @@ For a standalone project, set `site-directory` to Zensical's default output dire
     site-directory: site
 ```
 
-To render **GitHub Flavored Markdown**, add `sentenz_gfm = {}` to the site's Markdown extensions in `zensical.toml`.
+To render **GitHub Flavored Markdown**, set `gfm: 'true'` in the action inputs and add `sentenz_gfm = {}` to the site's Markdown extensions in `zensical.toml`.
+
+```yaml
+- uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
+  with:
+    gfm: 'true'
+    site-directory: site
+```
 
 ```toml
 [project.markdown_extensions]
@@ -107,7 +115,7 @@ sentenz_gfm = {}
 
 The renderer uses Comrak for GFM syntax, including nested lists, fenced code, pipe tables, task lists, strikethrough, extended autolinks, and tag filtering. It also renders GitHub alerts such as `> [!NOTE]` as Zensical admonitions. Zensical continues to generate heading anchors, the table of contents, and site-relative links. Projects using Python-Markdown-specific source syntax can keep their existing renderer by leaving `sentenz_gfm` out of the configuration.
 
-For a standalone GFM site, use the same action invocation: the GFM dependencies are installed automatically in the container.
+GFM is disabled by default. When `gfm` is `false`, the bundled dependencies are not installed. Projects configuring `sentenz_gfm` must enable `gfm` to make those dependencies available.
 
 For projects requiring additional Python packages during the build, provide a custom container through `image` with those packages preinstalled. Run project-specific preprocessing and tests separately in the calling workflow. For a local preview, install the dependencies in [requirements-gfm.txt](./extensions/requirements-gfm.txt) and add this repository's `zensical/extensions` directory to `PYTHONPATH` before starting Zensical.
 
