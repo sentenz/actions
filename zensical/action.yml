@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Zensical
+description: Build documentation with Zensical and upload a GitHub Pages artifact
+author: sentenz
+
+branding:
+  icon: book-open
+  color: blue
+
+inputs:
+  image:
+    description: Zensical Docker image with version tag and digest
+    required: false
+    default: docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
+  site-directory:
+    description: Generated Pages site directory, relative to the checkout
+    default: public
+  artifact-name:
+    description: Pages artifact name
+    default: github-pages
+
+runs:
+  using: composite
+  steps:
+    - name: Build documentation in the Zensical container
+      shell: bash
+      env:
+        INPUT_IMAGE: ${{ inputs.image }}
+      run: |
+        docker run --rm --interactive \
+          --user "$(id -u):$(id -g)" \
+          --volume "${GITHUB_WORKSPACE}:/docs" --workdir /docs \
+          --volume "${GITHUB_ACTION_PATH}/extensions:/opt/zensical-extensions:ro" \
+          --env HOME=/tmp \
+          --entrypoint /bin/sh -- "${INPUT_IMAGE}" \
+          -eu < "${GITHUB_ACTION_PATH}/build.sh"
+
+    - name: Check Pages entry point
+      shell: bash
+      env:
+        SITE_DIRECTORY: ${{ inputs.site-directory }}
+      run: |
+        if [[ -z "${SITE_DIRECTORY}" || ! -s "${SITE_DIRECTORY}/index.html" ]]; then
+          echo "::error::Expected a generated index.html in the configured site-directory"
+          exit 1
+        fi
+
+    - name: Upload GitHub Pages artifact
+      uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.site-directory }}

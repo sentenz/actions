@@ -14,6 +14,7 @@ updates:
       - /trivy
       - /trufflehog
       - /vscode-extension
+      - /zensical
     schedule:
       interval: "weekly"
       day: "friday"
