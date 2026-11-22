@@ -8,11 +8,11 @@ branding:
   color: blue
 
 inputs:
-  python-version:
-    description: Python version for the documentation build
-    default: "3.12"
+  image-version:
+    description: Official zensical/zensical image tag, optionally followed by a digest
+    default: 0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
   requirements-file:
-    description: Pip requirements file containing Zensical and project extensions
+    description: Pip requirements for the documentation project (empty uses the image as supplied)
     default: requirements-docs.txt
   tests-directory:
     description: Python unittest discovery directory (empty skips tests)
@@ -23,38 +23,27 @@ inputs:
   site-directory:
     description: Generated Pages site directory, relative to the checkout
     default: public
+  artifact-name:
+    description: Pages artifact name
+    default: github-pages
 
 runs:
   using: composite
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-      with:
-        python-version: ${{ inputs.python-version }}
-
-    - name: Install documentation dependencies
+    - name: Test and build in the Zensical container
       shell: bash
       env:
+        IMAGE_VERSION: ${{ inputs.image-version }}
         REQUIREMENTS_FILE: ${{ inputs.requirements-file }}
-      run: python -m pip install -r "${REQUIREMENTS_FILE}"
-
-    - name: Test documentation
-      if: inputs.tests-directory != ''
-      shell: bash
-      env:
         TESTS_DIRECTORY: ${{ inputs.tests-directory }}
-      run: python -m unittest discover -s "${TESTS_DIRECTORY}" -v
-
-    - name: Build site
-      shell: bash
-      env:
         BUILD_SCRIPT: ${{ inputs.build-script }}
       run: |
-        if [[ -n "${BUILD_SCRIPT}" ]]; then
-          python -- "${BUILD_SCRIPT}" build
-        else
-          python -m zensical build --clean
-        fi
+        docker run --rm --interactive \
+          --user "$(id -u):$(id -g)" \
+          --volume "${GITHUB_WORKSPACE}:/docs" --workdir /docs \
+          --env HOME=/tmp --env REQUIREMENTS_FILE --env TESTS_DIRECTORY --env BUILD_SCRIPT \
+          --entrypoint /bin/sh "docker.io/zensical/zensical:${IMAGE_VERSION}" \
+          -eu < "${GITHUB_ACTION_PATH}/build.sh"
 
     - name: Check Pages entry point
       shell: bash
@@ -69,4 +58,5 @@ runs:
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
       with:
+        name: ${{ inputs.artifact-name }}
         path: ${{ inputs.site-directory }}
