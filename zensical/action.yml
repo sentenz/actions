@@ -42,6 +42,7 @@ runs:
         docker run --rm --interactive \
           --user "$(id -u):$(id -g)" \
           --volume "${GITHUB_WORKSPACE}:/docs" --workdir /docs \
+          --volume "${GITHUB_ACTION_PATH}/extensions:/opt/zensical-extensions:ro" \
           --env HOME=/tmp --env REQUIREMENTS_FILE --env TESTS_DIRECTORY --env BUILD_SCRIPT \
           --entrypoint /bin/sh -- "${INPUT_IMAGE}" \
           -eu < "${GITHUB_ACTION_PATH}/build.sh"

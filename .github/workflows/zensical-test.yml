@@ -28,10 +28,11 @@ jobs:
           - project: convention
             ref: 21dd1fb6b70ee05db80d41acaa8fe6afabf0b6c4
           - project: plain
+          - project: gfm
     timeout-minutes: 10
     steps:
       - name: Checkout documentation project
-        if: matrix.project != 'plain'
+        if: matrix.ref != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: sentenz/${{ matrix.project }}
@@ -44,8 +45,14 @@ jobs:
           path: .actions
           persist-credentials: false
 
+      - name: Enable GFM alongside the Skills link extension
+        if: matrix.project == 'skills'
+        run: |
+          sed -i '/^\[project.markdown_extensions\]$/a sentenz_gfm = {}' zensical.toml
+          echo '-r /opt/zensical-extensions/requirements-gfm.txt' >> requirements-docs.txt
+
       - name: Build project with documentation dependencies and tests
-        if: matrix.project != 'plain'
+        if: matrix.ref != ''
         uses: ./.actions/zensical
         with:
           artifact-name: pages-${{ matrix.project }}
@@ -66,3 +73,17 @@ jobs:
           tests-directory: ''
           build-script: ''
           site-directory: site
+
+      - name: Prepare GFM documentation
+        if: matrix.project == 'gfm'
+        run: cp -R .actions/zensical/test/gfm/{docs,zensical.toml} .
+
+      - name: Build and verify GitHub Flavored Markdown
+        if: matrix.project == 'gfm'
+        uses: ./.actions/zensical
+        with:
+          requirements-file: /opt/zensical-extensions/requirements-gfm.txt
+          tests-directory: ''
+          build-script: .actions/zensical/test/gfm/build.py
+          site-directory: site
+          artifact-name: pages-gfm
