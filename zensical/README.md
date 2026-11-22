@@ -25,13 +25,13 @@ Build documentation with [Zensical](https://zensical.org/) and upload the genera
   > GitHub's hosting service deploys the site from an artifact produced by a workflow.
 
 - [Zensical Test](../.github/workflows/zensical-test.yml)
-  > Integration workflow that builds the Convention and Skills documentation, exercises the bundled CLI, and checks GFM in the published HTML artifact.
+  > Integration workflow that builds standalone and GFM fixtures, then verifies GFM in the generated HTML.
 
 ## 2. Action
 
-The [Zensical Action](./action.yml) installs project dependencies, runs documentation tests, builds the site, and uploads the generated files. The defaults follow the project layouts in [sentenz/convention](https://github.com/sentenz/convention) and [sentenz/skills](https://github.com/sentenz/skills).
+The [Zensical Action](./action.yml) installs the bundled GFM renderer dependencies, builds the site using the Zensical CLI, and uploads the generated files. Project-specific preprocessing and tests belong in the calling workflow.
 
-Check out the site repository on a Linux runner with Docker, such as `ubuntu-latest`, before invoking the action. Relative input paths resolve from the checkout root.
+Check out the site repository on a Linux runner with Docker, such as `ubuntu-latest`, before invoking the action. The `site-directory` input is relative to the checkout root.
 
 ### 2.1. Dependencies
 
@@ -41,18 +41,15 @@ Check out the site repository on a Linux runner with Docker, such as `ubuntu-lat
 
 | Images | Reference | Purpose |
 | --- | --- | --- |
-| [zensical/zensical](https://hub.docker.com/r/zensical/zensical) | `docker.io/zensical/zensical` | Provide Python and the Zensical CLI for tests and builds. |
+| [zensical/zensical](https://hub.docker.com/r/zensical/zensical) | `docker.io/zensical/zensical` | Provide Python and the Zensical CLI for builds. |
 
 ### 2.2. Inputs
 
-| Input               | Description                                                                                               | Required | Default                                                                                                     |
-| ------------------- | --------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `image`             | Full Zensical Docker image reference, including the registry and repository                               | No       | `docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70` |
-| `requirements-file` | Pip requirements file. An empty string skips dependency installation.                                     | No       | `requirements-docs.txt`                                                                                     |
-| `tests-directory`   | Directory for Python unittest discovery. An empty string skips tests.                                     | No       | `tests/docs`                                                                                                |
-| `build-script`      | Python script invoked with the argument `build`. An empty string runs `python -m zensical build --clean`. | No       | `scripts/docs.py`                                                                                           |
-| `site-directory`    | Generated site directory containing a nonempty `index.html`                                               | No       | `public`                                                                                                    |
-| `artifact-name`     | Name of the uploaded Pages artifact                                                                       | No       | `github-pages`                                                                                              |
+| Input | Description | Required | Default |
+| --- | --- | --- | --- |
+| `image` | Full Zensical Docker image reference, including registry and repository | No | `docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70` |
+| `site-directory` | Generated site directory containing a nonempty `index.html` | No | `public` |
+| `artifact-name` | Name of the uploaded Pages artifact | No | `github-pages` |
 
 ### 2.3. Outputs
 
@@ -79,6 +76,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
+        with:
+          site-directory: site
 ```
 
 Select **GitHub Actions** under **Settings → Pages → Build and deployment → Source** in the site repository. Copy the complete [publishing workflow](../examples/workflows/zensical.yml) to `.github/workflows/zensical.yml`. It builds pull requests and deploys successful builds from pushes or manual runs on `main`. The deployment job uses the `github-pages` environment and serializes deployments through the `pages` concurrency group.
@@ -87,18 +86,15 @@ Select **GitHub Actions** under **Settings → Pages → Build and deployment �
 
 ### 4.1. Internal Configuration
 
-The action pins the container image by digest in [action.yml](./action.yml). It mounts the checkout at `/docs` and runs the [build script](./build.sh) as the runner user so subsequent steps can read the generated files. The upload starts after the build succeeds and the action verifies that `site-directory` contains a nonempty `index.html`.
+The action pins the container image by digest in [action.yml](./action.yml). It mounts the checkout at `/docs` and runs the [build script](./build.sh) as the runner user. The script installs the GFM dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt) and invokes `python -m zensical build --clean`. The upload starts after the build succeeds and `site-directory` contains a nonempty `index.html`.
 
 ### 4.2. External Configuration
 
-For a standalone project with no extra dependencies or tests, use the CLI bundled in the image and upload Zensical's default `site/` directory.
+For a standalone project, set `site-directory` to Zensical's default output directory, `site/`.
 
 ```yaml
 - uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
   with:
-    requirements-file: ''
-    tests-directory: ''
-    build-script: ''
     site-directory: site
 ```
 
@@ -111,19 +107,10 @@ sentenz_gfm = {}
 
 The renderer uses Comrak for GFM syntax, including nested lists, fenced code, pipe tables, task lists, strikethrough, extended autolinks, and tag filtering. It also renders GitHub alerts such as `> [!NOTE]` as Zensical admonitions. Zensical continues to generate heading anchors, the table of contents, and site-relative links. Projects using Python-Markdown-specific source syntax can keep their existing renderer by leaving `sentenz_gfm` out of the configuration.
 
-For a standalone GFM site, use the bundled dependency file in the build step.
+For a standalone GFM site, use the same action invocation: the GFM dependencies are installed automatically in the container.
 
-```yaml
-- uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
-  with:
-    requirements-file: /opt/zensical-extensions/requirements-gfm.txt
-    tests-directory: ''
-    build-script: ''
-    site-directory: site
-```
+For projects requiring additional Python packages during the build, provide a custom container through `image` with those packages preinstalled. Run project-specific preprocessing and tests separately in the calling workflow. For a local preview, install the dependencies in [requirements-gfm.txt](./extensions/requirements-gfm.txt) and add this repository's `zensical/extensions` directory to `PYTHONPATH` before starting Zensical.
 
-For a project with its own requirements file, include the dependencies from [requirements-gfm.txt](./extensions/requirements-gfm.txt) alongside the project's existing dependencies. The container makes the [renderer](./extensions/sentenz_gfm.py) available to both the CLI and project build scripts. For a local preview, install the same dependencies and add this repository's `zensical/extensions` directory to `PYTHONPATH` before starting Zensical.
-
-To use a registry mirror, set `image` to the full image reference, for example `registry.example.org/docs/zensical:0.1.0`. Keep any Zensical version pin in the requirements file aligned with the selected image. Set `site-directory` to the output directory configured by the project. When overriding `artifact-name`, pass the same name to `actions/deploy-pages` in the deployment job.
+To use a registry mirror, set `image` to the full image reference, for example `registry.example.org/docs/zensical:0.1.0`. Ensure a custom image contains a compatible Zensical CLI. Set `site-directory` to the output directory configured by the project. When overriding `artifact-name`, pass the same name to `actions/deploy-pages` in the deployment job.
 
 To publish from a branch other than `main`, update both the push branch filter and the deployment condition in the calling workflow.
