@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.8.0](https://github.com/sentenz/actions/compare/1.7.1...1.8.0) (2026-11-22)
+
+
+### Features
+
+* **zensical:** publish documentation to GitHub Pages ([#159](https://github.com/sentenz/actions/issues/159)) ([9114728](https://github.com/sentenz/actions/commit/9114728f7dbb0595828c14ae4552b3b1497e56c3))
+
 ## [1.7.1](https://github.com/sentenz/actions/compare/1.7.0...1.7.1) (2026-11-19)
 
 
