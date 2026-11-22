@@ -22,6 +22,8 @@ jobs:
 
       - name: Build and upload documentation
         uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
+        with:
+          site-directory: site
 
   deploy:
     needs: build
