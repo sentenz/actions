@@ -12,6 +12,10 @@ inputs:
     description: Zensical Docker image with version tag and digest
     required: false
     default: docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
+  flavor:
+    description: Markdown flavor (zensical or gdm for GitHub Flavored Markdown)
+    required: false
+    default: zensical
   site-directory:
     description: Generated Pages site directory, relative to the checkout
     default: public
@@ -26,12 +30,14 @@ runs:
       shell: bash
       env:
         INPUT_IMAGE: ${{ inputs.image }}
+        INPUT_FLAVOR: ${{ inputs.flavor }}
       run: |
         docker run --rm --interactive \
           --user "$(id -u):$(id -g)" \
           --volume "${GITHUB_WORKSPACE}:/docs" --workdir /docs \
           --volume "${GITHUB_ACTION_PATH}/extensions:/opt/zensical-extensions:ro" \
           --env HOME=/tmp \
+          --env FLAVOR="${INPUT_FLAVOR}" \
           --entrypoint /bin/sh -- "${INPUT_IMAGE}" \
           -eu < "${GITHUB_ACTION_PATH}/build.sh"
 
