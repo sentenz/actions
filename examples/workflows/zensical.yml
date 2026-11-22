@@ -21,7 +21,7 @@ jobs:
           persist-credentials: false
 
       - name: Build and upload documentation
-        uses: sentenz/actions/zensical@2f6b68c5e328e64714fed6e6363cbff4230c75c2
+        uses: sentenz/actions/zensical@b942f9f9f086ad5d89686573b99f0c2e02c87399
 
   deploy:
     needs: build
