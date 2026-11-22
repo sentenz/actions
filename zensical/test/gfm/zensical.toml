@@ -2,5 +2,3 @@
 [project]
 site_name = "GFM example"
 
-[project.markdown_extensions]
-sentenz_gfm = {}
