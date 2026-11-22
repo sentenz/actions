@@ -102,7 +102,7 @@ For a standalone project, set `site-directory` to Zensical's default output dire
 To render **GitHub Flavored Markdown**, set `gfm: 'true'` in the action inputs and add `sentenz_gfm = {}` to the site's Markdown extensions in `zensical.toml`.
 
 ```yaml
-- uses: sentenz/actions/zensical@df49b0c43c42e78efe9caae720ba455dd9e07a2b
+- uses: sentenz/actions/zensical@main
   with:
     gfm: 'true'
     site-directory: site
