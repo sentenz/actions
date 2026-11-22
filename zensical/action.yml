@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Zensical
-description: Test and build documentation with Zensical and upload a GitHub Pages artifact
+description: Build documentation with Zensical and upload a GitHub Pages artifact
 author: sentenz
 
 branding:
@@ -12,15 +12,6 @@ inputs:
     description: Zensical Docker image with version tag and digest
     required: false
     default: docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
-  requirements-file:
-    description: Pip requirements for the documentation project (empty uses the image as supplied)
-    default: requirements-docs.txt
-  tests-directory:
-    description: Python unittest discovery directory (empty skips tests)
-    default: tests/docs
-  build-script:
-    description: Python script invoked with the build argument (empty uses the Zensical CLI)
-    default: scripts/docs.py
   site-directory:
     description: Generated Pages site directory, relative to the checkout
     default: public
@@ -31,19 +22,16 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Test and build in the Zensical container
+    - name: Build documentation in the Zensical container
       shell: bash
       env:
         INPUT_IMAGE: ${{ inputs.image }}
-        REQUIREMENTS_FILE: ${{ inputs.requirements-file }}
-        TESTS_DIRECTORY: ${{ inputs.tests-directory }}
-        BUILD_SCRIPT: ${{ inputs.build-script }}
       run: |
         docker run --rm --interactive \
           --user "$(id -u):$(id -g)" \
           --volume "${GITHUB_WORKSPACE}:/docs" --workdir /docs \
           --volume "${GITHUB_ACTION_PATH}/extensions:/opt/zensical-extensions:ro" \
-          --env HOME=/tmp --env REQUIREMENTS_FILE --env TESTS_DIRECTORY --env BUILD_SCRIPT \
+          --env HOME=/tmp \
           --entrypoint /bin/sh -- "${INPUT_IMAGE}" \
           -eu < "${GITHUB_ACTION_PATH}/build.sh"
 
