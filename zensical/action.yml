@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Zensical
+description: Test and build documentation with Zensical and upload a GitHub Pages artifact
+author: sentenz
+
+branding:
+  icon: book-open
+  color: blue
+
+inputs:
+  python-version:
+    description: Python version for the documentation build
+    default: "3.12"
+  requirements-file:
+    description: Pip requirements file containing Zensical and project extensions
+    default: requirements-docs.txt
+  tests-directory:
+    description: Python unittest discovery directory (empty skips tests)
+    default: tests/docs
+  build-script:
+    description: Python script invoked with the build argument (empty uses the Zensical CLI)
+    default: scripts/docs.py
+  site-directory:
+    description: Generated Pages site directory, relative to the checkout
+    default: public
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install documentation dependencies
+      shell: bash
+      env:
+        REQUIREMENTS_FILE: ${{ inputs.requirements-file }}
+      run: python -m pip install -r "${REQUIREMENTS_FILE}"
+
+    - name: Test documentation
+      if: inputs.tests-directory != ''
+      shell: bash
+      env:
+        TESTS_DIRECTORY: ${{ inputs.tests-directory }}
+      run: python -m unittest discover -s "${TESTS_DIRECTORY}" -v
+
+    - name: Build site
+      shell: bash
+      env:
+        BUILD_SCRIPT: ${{ inputs.build-script }}
+      run: |
+        if [[ -n "${BUILD_SCRIPT}" ]]; then
+          python -- "${BUILD_SCRIPT}" build
+        else
+          python -m zensical build --clean
+        fi
+
+    - name: Check Pages entry point
+      shell: bash
+      env:
+        SITE_DIRECTORY: ${{ inputs.site-directory }}
+      run: |
+        if [[ -z "${SITE_DIRECTORY}" || ! -s "${SITE_DIRECTORY}/index.html" ]]; then
+          echo "::error::Expected a generated index.html in the configured site-directory"
+          exit 1
+        fi
+
+    - name: Upload GitHub Pages artifact
+      uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      with:
+        path: ${{ inputs.site-directory }}
