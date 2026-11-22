@@ -73,7 +73,7 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
 ### 1.11. Zensical
 
 - [Zensical Action](./zensical/README.md)
-  > Test and build documentation with Zensical and upload the site for GitHub Pages.
+  > Build Zensical documentation and upload the site for GitHub Pages.
 
 ## 2. References
 
