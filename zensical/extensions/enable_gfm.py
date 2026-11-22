@@ -17,7 +17,7 @@ except ModuleNotFoundError:
 def main() -> None:
     config_path = Path("zensical.toml")
     if not config_path.is_file():
-        raise SystemExit("flavor=gdm requires zensical.toml in the checkout root")
+        raise SystemExit("flavor=gfm requires zensical.toml in the checkout root")
 
     content = config_path.read_text(encoding="utf-8")
     project = tomllib.loads(content).get("project", {})
@@ -32,7 +32,7 @@ def main() -> None:
             content = content[:offset] + "\nsentenz_gfm = {}" + content[offset:]
         elif re.search(r"(?m)^[ \t]*markdown_extensions[ \t]*=", content):
             raise SystemExit(
-                "flavor=gdm requires [project.markdown_extensions] table syntax "
+                "flavor=gfm requires [project.markdown_extensions] table syntax "
                 "when markdown_extensions is already configured"
             )
         else:
@@ -40,7 +40,7 @@ def main() -> None:
 
     tomllib.loads(content)  # Validate the temporary configuration before building.
     with tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", prefix=".zensical-gdm-", suffix=".toml",
+        mode="w", encoding="utf-8", prefix=".zensical-gfm-", suffix=".toml",
         dir=config_path.parent, delete=False,
     ) as config:
         config.write(content)
