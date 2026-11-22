@@ -42,14 +42,14 @@ Check out the site repository on a Linux runner with Docker, such as `ubuntu-lat
 
 ### 2.2. Inputs
 
-| Input               | Description                                                                                               | Required | Default                                                                         |
-| ------------------- | --------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------- |
-| `image-version`     | Zensical image tag, optionally followed by `@sha256:<digest>`                                             | No       | `0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70` |
-| `requirements-file` | Pip requirements file. An empty string skips dependency installation.                                     | No       | `requirements-docs.txt`                                                         |
-| `tests-directory`   | Directory for Python unittest discovery. An empty string skips tests.                                     | No       | `tests/docs`                                                                    |
-| `build-script`      | Python script invoked with the argument `build`. An empty string runs `python -m zensical build --clean`. | No       | `scripts/docs.py`                                                               |
-| `site-directory`    | Generated site directory containing a nonempty `index.html`                                               | No       | `public`                                                                        |
-| `artifact-name`     | Name of the uploaded Pages artifact                                                                       | No       | `github-pages`                                                                  |
+| Input               | Description                                                                                               | Required | Default                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `image`             | Full Zensical Docker image reference, including the registry and repository                               | No       | `docker.io/zensical/zensical:0.1.0@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70` |
+| `requirements-file` | Pip requirements file. An empty string skips dependency installation.                                     | No       | `requirements-docs.txt`                                                                                     |
+| `tests-directory`   | Directory for Python unittest discovery. An empty string skips tests.                                     | No       | `tests/docs`                                                                                                |
+| `build-script`      | Python script invoked with the argument `build`. An empty string runs `python -m zensical build --clean`. | No       | `scripts/docs.py`                                                                                           |
+| `site-directory`    | Generated site directory containing a nonempty `index.html`                                               | No       | `public`                                                                                                    |
+| `artifact-name`     | Name of the uploaded Pages artifact                                                                       | No       | `github-pages`                                                                                              |
 
 ### 2.3. Outputs
 
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: sentenz/actions/zensical@b942f9f9f086ad5d89686573b99f0c2e02c87399
+      - uses: sentenz/actions/zensical@02a5db1f63690448e3f4443a86ab2308499666e3
 ```
 
 Select **GitHub Actions** under **Settings → Pages → Build and deployment → Source** in the site repository. Copy the complete [publishing workflow](../examples/workflows/zensical.yml) to `.github/workflows/zensical.yml`. It builds pull requests and deploys successful builds from pushes or manual runs on `main`. The deployment job uses the `github-pages` environment and serializes deployments through the `pages` concurrency group.
@@ -91,7 +91,7 @@ The action pins the container image by digest in [action.yml](./action.yml). It 
 For a standalone project with no extra dependencies or tests, use the CLI bundled in the image and upload Zensical's default `site/` directory.
 
 ```yaml
-- uses: sentenz/actions/zensical@b942f9f9f086ad5d89686573b99f0c2e02c87399
+- uses: sentenz/actions/zensical@02a5db1f63690448e3f4443a86ab2308499666e3
   with:
     requirements-file: ''
     tests-directory: ''
@@ -99,6 +99,6 @@ For a standalone project with no extra dependencies or tests, use the CLI bundle
     site-directory: site
 ```
 
-For projects with a requirements file, keep any Zensical version pin aligned with `image-version`. Set `site-directory` to the output directory configured by the project. When overriding `artifact-name`, pass the same name to `actions/deploy-pages` in the deployment job.
+To use a registry mirror, set `image` to the full image reference, for example `registry.example.org/docs/zensical:0.1.0`. Keep any Zensical version pin in the requirements file aligned with the selected image. Set `site-directory` to the output directory configured by the project. When overriding `artifact-name`, pass the same name to `actions/deploy-pages` in the deployment job.
 
 To publish from a branch other than `main`, update both the push branch filter and the deployment condition in the calling workflow.
