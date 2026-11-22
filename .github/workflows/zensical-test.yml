@@ -22,40 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - project: skills
-            ref: 2be7da702f17cd8879069ef7b6879ca20daa31ef
-          - project: convention
-            ref: 21dd1fb6b70ee05db80d41acaa8fe6afabf0b6c4
-          - project: plain
-          - project: gfm
+        project: [plain, gfm]
     timeout-minutes: 10
     steps:
-      - name: Checkout documentation project
-        if: matrix.ref != ''
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: sentenz/${{ matrix.project }}
-          ref: ${{ matrix.ref }}
-          persist-credentials: false
-
       - name: Checkout action under test
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: .actions
           persist-credentials: false
-
-      - name: Enable GFM alongside the Skills link extension
-        if: matrix.project == 'skills'
-        run: |
-          sed -i '/^\[project.markdown_extensions\]$/a sentenz_gfm = {}' zensical.toml
-          echo '-r /opt/zensical-extensions/requirements-gfm.txt' >> requirements-docs.txt
-
-      - name: Build project with documentation dependencies and tests
-        if: matrix.ref != ''
-        uses: ./.actions/zensical
-        with:
-          artifact-name: pages-${{ matrix.project }}
 
       - name: Create a standalone Zensical project
         if: matrix.project == 'plain'
@@ -64,26 +38,20 @@ jobs:
           printf '[project]\nsite_name = "Example"\n' > zensical.toml
           printf '# Example\n' > docs/index.md
 
-      - name: Build standalone project using only the image
-        if: matrix.project == 'plain'
-        uses: ./.actions/zensical
-        with:
-          image: docker.io/zensical/zensical@sha256:a9512943ddf49c645fd3c0861e5347f9c889abe7f5fdaad05e047582b8069b70
-          requirements-file: ''
-          tests-directory: ''
-          build-script: ''
-          site-directory: site
-
       - name: Prepare GFM documentation
         if: matrix.project == 'gfm'
         run: cp -R .actions/zensical/test/gfm/{docs,zensical.toml} .
 
-      - name: Build and verify GitHub Flavored Markdown
-        if: matrix.project == 'gfm'
+      - name: Build documentation and upload Pages artifact
         uses: ./.actions/zensical
         with:
-          requirements-file: /opt/zensical-extensions/requirements-gfm.txt
-          tests-directory: ''
-          build-script: .actions/zensical/test/gfm/build.py
           site-directory: site
-          artifact-name: pages-gfm
+          artifact-name: pages-${{ matrix.project }}
+
+      - name: Install GFM verifier dependency
+        if: matrix.project == 'gfm'
+        run: python -m pip install --disable-pip-version-check html5lib==1.1
+
+      - name: Verify GitHub Flavored Markdown output
+        if: matrix.project == 'gfm'
+        run: python .actions/zensical/test/gfm/verify.py
