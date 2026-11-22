@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Zensical Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - zensical/**
+      - .github/workflows/zensical-test.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - zensical/**
+      - .github/workflows/zensical-test.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout documentation project
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: sentenz/skills
+          ref: 2be7da702f17cd8879069ef7b6879ca20daa31ef
+          persist-credentials: false
+
+      - name: Checkout action under test
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: .actions
+          persist-credentials: false
+
+      - name: Build and upload the skills documentation
+        uses: ./.actions/zensical

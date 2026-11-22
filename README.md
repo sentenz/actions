@@ -15,6 +15,7 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
   - [1.8. VS Code Extension](#18-vs-code-extension)
   - [1.9. TruffleHog](#19-trufflehog)
   - [1.10. Sigstore](#110-sigstore)
+  - [1.11. Zensical](#1111-zensical)
 - [2. References](#2-references)
 
 ## 1. Composite Actions
@@ -68,6 +69,11 @@ A centralized repository containing reusable GitHub Composite Actions for CI/CD 
 
 - [Sigstore Action](./sigstore/README.md)
   > Sign OCI image digests and files with keyless Cosign and verify their signatures.
+
+### 1.11. Zensical
+
+- [Zensical Action](./zensical/README.md)
+  > Test and build documentation with Zensical and upload the site for GitHub Pages.
 
 ## 2. References
 
