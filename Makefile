@@ -78,7 +78,7 @@ skills-agent-restore:
 
 # ─── Dependency Manager ──────────────────────────────────────────────────────────────────────────
 
-DEPENDENCY_IMAGE_RENOVATE ?= docker.io/renovate/renovate:44.239.1@sha256:7dba1a3b916a2cf302ba0df458ddcc8fcbac3c92d0fe9882ac13ba0363de656b
+DEPENDENCY_IMAGE_RENOVATE ?= docker.io/renovate/renovate:44.257.9@sha256:d6b65ff3562dd499240b23d34ef806ec7e5fd2675e4236a027dfb36774f2aa75
 
 ## Update project dependencies locally using Renovate and generate a report
 dependency-renovate-update:
@@ -257,7 +257,7 @@ policy-regal-lint:
 
 # ─── Static Analysis ─────────────────────────────────────────────────────────────────────────────
 
-LINT_IMAGE_MARKDOWNLINT ?= davidanson/markdownlint-cli2:v0.24.1@sha256:caf0698eaea0268bcf35b5e2d7ba946b5899d323e765bc2862054405658cd948
+LINT_IMAGE_MARKDOWNLINT ?= davidanson/markdownlint-cli2:v0.24.2@sha256:c768e94d8bb161c449bde28f60656929ca1f02c3010a405f65c9cac71563a889
 LINT_FILES_MARKDOWNLINT ?= "**/*.md"
 
 ## Lint Markdown files using markdownlint and generate a report
@@ -269,7 +269,7 @@ lint-markdown:
 
 # ─── SAST Manager ────────────────────────────────────────────────────────────────────────────────
 
-SAST_IMAGE_SEMGREP ?= semgrep/semgrep:1.185.0@sha256:67518c174185a2043fdbed16c70631b79209499b3671178e7194379b48295a0d
+SAST_IMAGE_SEMGREP ?= semgrep/semgrep:1.186.0@sha256:6e1b04340e60e910fbb4ddbf3c857ab0918f064417ad5ac530014ccb3cf8c8f1
 SAST_FILES_SEMGREP ?= .
 SAST_REGEX_SEMGREP = $(if $(strip $(SAST_FILES_SEMGREP)),$(SAST_FILES_SEMGREP),.)
 
@@ -464,7 +464,7 @@ sast-gitleaks-staged:
 	docker run --rm -v "${PWD}:/workspace" -w /workspace "$(SAST_IMAGE_GITLEAKS)" protect --redact --staged --source /workspace --report-format json --report-path logs/sast/gitleaks-protect.json 2>&1
 .PHONY: sast-gitleaks-staged
 
-SAST_IMAGE_TRUFFLEHOG ?= trufflesecurity/trufflehog:3.99.9@sha256:2ec535840f860aa27f11fee20222fb790326ecd66325c96bd49d02ec6af46eca
+SAST_IMAGE_TRUFFLEHOG ?= trufflesecurity/trufflehog:3.100.0@sha256:8fd07ea46a3f59583c4d50f006d8cf150530141b28969c3c34cc455cb9165a6b
 
 ## Scan local filesystem for leaked secrets using TruffleHog and generate a report
 sast-trufflehog-fs:
